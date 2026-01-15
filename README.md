@@ -1,9 +1,6 @@
 # The Freya Game Engine
 
 - Systems to "steal" from Nikola 
-    - window 
-    - input 
-    - math 
     - gfx 
     - files 
     - threads 

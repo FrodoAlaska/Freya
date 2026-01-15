@@ -6,6 +6,18 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/core/logger.cpp
   ${FREYA_SRC_DIR}/core/memory.cpp
   ${FREYA_SRC_DIR}/core/timer.cpp
+  ${FREYA_SRC_DIR}/core/window.cpp
+  ${FREYA_SRC_DIR}/core/input.cpp
+
+  # Math
+  ${FREYA_SRC_DIR}/math/common.cpp
+  ${FREYA_SRC_DIR}/math/random.cpp
+  ${FREYA_SRC_DIR}/math/point.cpp
+  ${FREYA_SRC_DIR}/math/matrix.cpp
+  ${FREYA_SRC_DIR}/math/vector.cpp
+  ${FREYA_SRC_DIR}/math/quaternion.cpp
+  ${FREYA_SRC_DIR}/math/transform.cpp
+  ${FREYA_SRC_DIR}/math/vertex.cpp
 )
 
 set(FREYA_HEADERS
@@ -14,6 +26,9 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_event.h
   ${FREYA_INCLUDE_DIR}/freya_logger.h
   ${FREYA_INCLUDE_DIR}/freya_memory.h
+  ${FREYA_INCLUDE_DIR}/freya_window.h
+  ${FREYA_INCLUDE_DIR}/freya_input.h
+  ${FREYA_INCLUDE_DIR}/freya_math.h
 )
 
 set(FREYA_PCH
