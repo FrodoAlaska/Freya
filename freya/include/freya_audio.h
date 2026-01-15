@@ -112,7 +112,7 @@ struct AudioSourceDesc {
 
   /// The position of the audio source. 
   ///
-  /// @NOTE: Nikola uses a right-handed coordinate system by default. 
+  /// @NOTE: Freya uses a right-handed coordinate system by default. 
   /// Make sure to keep that in mind when positioning the audio source.
   ///
   /// @NOTE: This is `{0.0f, 0.0f}` by default.
@@ -155,7 +155,7 @@ struct AudioListenerDesc {
 
   /// The position of the listener. 
   ///
-  /// @NOTE: Nikola uses a right-handed coordinate system by default. 
+  /// @NOTE: Freya uses a right-handed coordinate system by default. 
   /// Make sure to keep that in mind when positioning the listener.
   ///
   /// @NOTE: This is `{0.0f, 0.0f}` by default.

@@ -27,6 +27,15 @@ set(FREYA_SOURCES
 
   # Audio
   ${FREYA_SRC_DIR}/audio/openal_backend.cpp
+
+  # UI
+  ${FREYA_SRC_DIR}/ui/gui.cpp
+
+  # Filesystem
+  ${FREYA_SRC_DIR}/filesystem/file.cpp
+  ${FREYA_SRC_DIR}/filesystem/filewatcher.cpp
+  ${FREYA_SRC_DIR}/filesystem/filesystem.cpp
+  ${FREYA_SRC_DIR}/filesystem/filepath.cpp
 )
 
 set(FREYA_HEADERS
@@ -41,6 +50,8 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_gfx.h
   ${FREYA_INCLUDE_DIR}/freya_threads.h
   ${FREYA_INCLUDE_DIR}/freya_audio.h
+  ${FREYA_INCLUDE_DIR}/freya_ui.h
+  ${FREYA_INCLUDE_DIR}/freya_file.h
 )
 
 set(FREYA_PCH

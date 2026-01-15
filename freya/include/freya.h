@@ -5,3 +5,11 @@
 #include <freya_event.h>
 #include <freya_logger.h>
 #include <freya_memory.h>
+#include <freya_window.h>
+#include <freya_input.h>
+#include <freya_math.h>
+#include <freya_gfx.h>
+#include <freya_threads.h>
+#include <freya_audio.h>
+#include <freya_ui.h>
+#include <freya_file.h>

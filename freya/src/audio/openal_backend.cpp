@@ -151,7 +151,7 @@ AudioBufferID audio_buffer_create(const AudioBufferDesc& desc) {
   
   AudioBufferID buffer = AudioBufferID(id);
 
-  // Get the correct OpenAL format based on the given Nikola format type and the channels
+  // Get the correct OpenAL format based on the given Freya format type and the channels
   
   sizei bytes; 
   ALenum format = get_al_format(desc.format, desc.channels, &bytes); 

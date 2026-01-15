@@ -1,8 +1,6 @@
 # TODO 
 
 - Systems to work on 
-    - ui
-    - files 
     - asset manager and assets in general
         - Buffers 
         - Shaders 
