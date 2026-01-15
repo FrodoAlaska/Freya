@@ -18,6 +18,12 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/math/quaternion.cpp
   ${FREYA_SRC_DIR}/math/transform.cpp
   ${FREYA_SRC_DIR}/math/vertex.cpp
+
+  # Graphics
+  ${FREYA_SRC_DIR}/graphics/gl_backend.cpp
+
+  # Threads
+  ${FREYA_SRC_DIR}/threads/thread_pool.cpp
 )
 
 set(FREYA_HEADERS
@@ -29,6 +35,8 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_window.h
   ${FREYA_INCLUDE_DIR}/freya_input.h
   ${FREYA_INCLUDE_DIR}/freya_math.h
+  ${FREYA_INCLUDE_DIR}/freya_gfx.h
+  ${FREYA_INCLUDE_DIR}/freya_threads.h
 )
 
 set(FREYA_PCH
