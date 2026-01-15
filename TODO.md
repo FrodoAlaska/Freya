@@ -1,7 +1,6 @@
 # TODO 
 
 - Systems to work on 
-    - audio
     - ui
     - files 
     - asset manager and assets in general
@@ -13,8 +12,10 @@
         - Fonts?????
     - camera
     - renderer 
-    - physics 
     - entity
+    - engine/app integration
+    - physics 
+    - 2D cpu-based particles
 
 - New 2D systems from scratch 
     - Sprite animation

@@ -24,6 +24,9 @@ set(FREYA_SOURCES
 
   # Threads
   ${FREYA_SRC_DIR}/threads/thread_pool.cpp
+
+  # Audio
+  ${FREYA_SRC_DIR}/audio/openal_backend.cpp
 )
 
 set(FREYA_HEADERS
@@ -37,6 +40,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_math.h
   ${FREYA_INCLUDE_DIR}/freya_gfx.h
   ${FREYA_INCLUDE_DIR}/freya_threads.h
+  ${FREYA_INCLUDE_DIR}/freya_audio.h
 )
 
 set(FREYA_PCH

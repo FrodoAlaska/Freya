@@ -1,0 +1,420 @@
+#include "freya_audio.h"
+#include "freya_logger.h"
+
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <AL/alext.h>
+
+//////////////////////////////////////////////////////////////////////////
+
+namespace freya { // Start of freya
+
+///---------------------------------------------------------------------------------------------------------------------
+/// AudioState
+struct AudioState {
+  ALCdevice* al_device   = nullptr;
+  ALCcontext* al_context = nullptr;
+
+  HashMap<u32, AudioBufferDesc> buffers;
+  HashMap<u32, AudioSourceDesc> sources;
+
+  AudioListenerDesc listener;
+};
+
+static AudioState s_audio = {};
+/// AudioState
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Private functions
+
+static const char* get_al_error_string(ALenum error) {
+  switch(error) {
+    case AL_INVALID_NAME:
+      return "AL_INVALID_NAME";
+    case AL_INVALID_ENUM:
+      return "AL_INVALID_ENUM";
+    case AL_INVALID_VALUE:
+      return "AL_INVALID_VALUE";
+    case AL_INVALID_OPERATION:
+      return "AL_INVALID_OPERATION";
+    case AL_OUT_OF_MEMORY:
+      return "AL_OUT_OF_MEMORY";
+    default:
+      return "AL_NO_ERROR";
+  }
+}
+
+static void check_al_error(const char* func_name) {
+  i32 error = alGetError();
+  
+  // We're fine. No need to panic. Everything is coooool.
+  if(error == AL_NO_ERROR) {
+    return;
+  }
+
+  // The world is on fire!
+  FREYA_LOG_ERROR("OpenAL function \'%s\' raised a \'%s\' error", func_name, get_al_error_string(error));
+}
+
+static ALenum get_al_format(const AudioBufferFormat format, const u32 channels, sizei* bytes) {
+  if(channels == 1) { // Mono channels
+    switch(format) {
+      case AUDIO_BUFFER_FORMAT_U8:
+        *bytes = sizeof(u8);
+        return AL_FORMAT_MONO8;
+      case AUDIO_BUFFER_FORMAT_I16:
+        *bytes = sizeof(i16);
+        return AL_FORMAT_MONO16;
+      case AUDIO_BUFFER_FORMAT_F32:
+        *bytes = sizeof(f32);
+        return AL_FORMAT_MONO_FLOAT32;
+    }
+  } 
+  else if(channels == 2) { // Stereo channels
+    switch(format) {
+      case AUDIO_BUFFER_FORMAT_U8:
+        *bytes = sizeof(u8);
+        return AL_FORMAT_STEREO8;
+      case AUDIO_BUFFER_FORMAT_I16:
+        *bytes = sizeof(i16);
+        return AL_FORMAT_STEREO16;
+      case AUDIO_BUFFER_FORMAT_F32:
+        *bytes = sizeof(f32);
+        return AL_FORMAT_STEREO_FLOAT32;
+    }
+  }
+  else {
+    FREYA_LOG_ERROR("Invalid channels given to audio buffer");
+    return -1;
+  }
+}
+
+/// Private functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// AudioContext functions
+
+bool audio_device_init(const char* device_name) {
+  // Init OpenAL device
+  
+  s_audio.al_device = alcOpenDevice(device_name);
+  FREYA_ASSERT_LOG(s_audio.al_device, "Could not open an OpenAL audio device!");
+
+  // Create a context and set it as the current context
+  
+  s_audio.al_context = alcCreateContext(s_audio.al_device, nullptr);
+  alcMakeContextCurrent(s_audio.al_context);
+
+  // Reset the error stack of OpenAL 
+  alGetError();
+
+  // Print out some useful information
+  
+  FREYA_LOG_INFO("An OpenAL audio device was successfully initialized:\n" 
+                 "              VENDOR: %s\n" 
+                 "              RENDERER: %s\n" 
+                 "              VERSION: %s",
+                 alGetString(AL_VENDOR), alGetString(AL_RENDERER), alGetString(AL_VERSION));
+
+  return true;
+}
+
+void audio_device_shutdown() {
+  // This should be called otherwise we'll have a problem
+  alcMakeContextCurrent(nullptr); 
+
+  // Destroy all the resources 
+  
+  alcDestroyContext(s_audio.al_context);
+  alcCloseDevice(s_audio.al_device);
+
+  FREYA_LOG_INFO("The audio device was successfully destroyed");
+}
+
+/// AudioContext functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// AudioBuffer functions
+
+AudioBufferID audio_buffer_create(const AudioBufferDesc& desc) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  // Generate the ID
+ 
+  u32 id;
+
+  alGenBuffers(1, &id); 
+  check_al_error("alGenBuffers");
+  
+  AudioBufferID buffer = AudioBufferID(id);
+
+  // Get the correct OpenAL format based on the given Nikola format type and the channels
+  
+  sizei bytes; 
+  ALenum format = get_al_format(desc.format, desc.channels, &bytes); 
+
+  // Set the data
+  
+  alBufferData(id, format, desc.data, desc.size, desc.sample_rate); 
+  check_al_error("alBufferData");
+
+  // Done!
+
+  s_audio.buffers[id] = desc; 
+  return id;
+}
+
+void audio_buffer_destroy(AudioBufferID& buffer) {
+  u32 id = buffer.get_id();
+  alDeleteBuffers(1, &id);
+}
+
+AudioBufferDesc& audio_buffer_get_desc(AudioBufferID& buffer) {
+  return s_audio.buffers[buffer.get_id()];
+}
+
+void audio_buffer_update(AudioBufferID& buffer, const AudioBufferDesc& desc) {
+  u32 id = buffer.get_id();
+
+  s_audio.buffers[id] = desc;
+
+  alBufferi(id, AL_FREQUENCY, desc.sample_rate);
+  alBufferi(id, AL_CHANNELS, desc.channels);
+  alBufferi(id, AL_SIZE, desc.size);
+}
+
+/// AudioBuffer functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// AudioSource functions
+
+AudioSourceID audio_source_create(const AudioSourceDesc& desc) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  // Generate the source's ID
+ 
+  u32 id;
+
+  alGenSources(1, &id);
+  check_al_error("alGenSources");
+
+  AudioSourceID source = AudioSourceID(id); 
+
+  // Setting some defaults
+  
+  alSourcef(source.get_id(), AL_GAIN, desc.volume);
+  alSourcef(source.get_id(), AL_PITCH, desc.pitch);
+  alSourcefv(source.get_id(), AL_POSITION, &desc.position[0]);
+  alSourcefv(source.get_id(), AL_VELOCITY, &desc.velocity[0]);
+  alSourcefv(source.get_id(), AL_DIRECTION, &desc.direction[0]);
+  alSourcei(source.get_id(), AL_LOOPING, desc.is_looping);
+
+  // Attach the buffer (if valid)
+  
+  if(desc.buffers_count > 0) {
+    // @NOTE: Listen, I don't like this either, but what can ya do, huh?
+
+    DynamicArray<u32> buffer_ids;
+    buffer_ids.resize(desc.buffers_count);
+
+    for(sizei i = 0; i < buffer_ids.size(); i++) {
+      buffer_ids[i] = desc.buffers[i].get_id();
+    }
+
+    alSourceQueueBuffers(source.get_id(), desc.buffers_count, buffer_ids.data());
+    check_al_error("alSourceQueueBuffers");
+  }
+
+  s_audio.sources[id] = desc;
+  return id;
+}
+
+void audio_source_destroy(AudioSourceID& source) {
+  u32 id = source.get_id();
+  alDeleteSources(1, &id);
+}
+
+AudioSourceDesc& audio_source_get_desc(AudioSourceID& source) {
+  return s_audio.sources[source.get_id()];
+}
+
+void audio_source_start(AudioSourceID& source) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  alSourcePlay(source.get_id());
+  check_al_error("alPlaySource");
+}
+
+void audio_source_stop(AudioSourceID& source) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  alSourceStop(source.get_id());
+  check_al_error("alStopSource");
+}
+
+void audio_source_restart(AudioSourceID& source) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  alSourceRewind(source.get_id());
+  check_al_error("alRewindSource");
+}
+
+void audio_source_pause(AudioSourceID& source) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  alSourcePause(source.get_id());
+  check_al_error("alPauseSource");
+}
+
+void audio_source_queue_buffers(AudioSourceID& source, const AudioBufferID* buffers, const sizei count) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+  FREYA_ASSERT_LOG(buffers, "Invalid AudioBuffer array given to audio_source_queue_buffers");
+ 
+  // @NOTE: Listen, I don't like this either, but what can ya do, huh?
+
+  DynamicArray<u32> buffer_ids;
+  buffer_ids.resize(count);
+
+  for(sizei i = 0; i < buffer_ids.size(); i++) {
+    buffer_ids[i] = (u32)buffers[i].get_id();
+  }
+
+  // Queue the buffers
+  
+  alSourceQueueBuffers(source.get_id(), count, buffer_ids.data());
+  check_al_error("alSourceQueueBuffers");
+
+  // Update the internal queue
+  
+  s_audio.sources[source.get_id()].buffers_count = count;
+  for(sizei i = 0; i < count; i++) {
+    s_audio.sources[source.get_id()].buffers[i] = buffers[i];
+  }
+}
+
+bool audio_source_is_playing(AudioSourceID& source) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  i32 state;
+  alGetSourcei(source.get_id(), AL_SOURCE_STATE, &state);
+
+  return state == AL_PLAYING;
+}
+
+void audio_source_set_buffer(AudioSourceID& source, AudioBufferID& buffer) {
+  alSourcei(source.get_id(), AL_BUFFER, buffer.get_id());
+  check_al_error("alSourcei(AL_BUFFER)");
+}
+
+void audio_source_set_volume(AudioSourceID& source, const f32 volume) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.sources[source.get_id()].volume = volume;
+
+  alSourcef(source.get_id(), AL_GAIN, s_audio.sources[source.get_id()].volume);
+  check_al_error("alSourcef(AL_GAIN)");
+}
+
+void audio_source_set_pitch(AudioSourceID& source, const f32 pitch) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.sources[source.get_id()].pitch = pitch;
+
+  alSourcef(source.get_id(), AL_PITCH, s_audio.sources[source.get_id()].pitch);
+  check_al_error("alSourcef(AL_PITCH)");
+}
+
+void audio_source_set_looping(AudioSourceID& source, const bool looping) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.sources[source.get_id()].is_looping = looping;
+
+  alSourcei(source.get_id(), AL_LOOPING, looping);
+  check_al_error("alSourcei(AL_LOOPING)");
+}
+
+void audio_source_set_position(AudioSourceID& source, const Vec2& position) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+  
+  s_audio.sources[source.get_id()].position = position;
+
+  alSourcefv(source.get_id(), AL_POSITION, &position[0]);
+  check_al_error("alSource3f(AL_POSITION)");
+}
+
+void audio_source_set_velocity(AudioSourceID& source, const Vec2& velocity) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.sources[source.get_id()].velocity = velocity;
+
+  alSourcefv(source.get_id(), AL_VELOCITY, &velocity[0]);
+  check_al_error("alSource3f(AL_VELOCITY)");
+}
+
+void audio_source_set_direction(AudioSourceID& source, const Vec2& direction) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.sources[source.get_id()].direction = direction;
+
+  alSourcefv(source.get_id(), AL_DIRECTION, &direction[0]);
+  check_al_error("alSource3f(AL_DIRECTION)");
+}
+
+/// AudioSource functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// AudioListener functions
+
+void audio_listener_init(const AudioListenerDesc& desc) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.listener = desc;
+
+  alListenerf(AL_GAIN, desc.volume);
+  alListenerfv(AL_POSITION, &desc.position[0]);
+  alListenerfv(AL_VELOCITY, &desc.velocity[0]);
+  check_al_error("alListenerfv");
+}
+
+AudioListenerDesc& audio_listener_get_desc() {
+  return s_audio.listener;
+}
+
+void audio_listener_set_volume(const f32 volume) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.listener.volume = volume;
+
+  alListenerf(AL_GAIN, volume);
+  check_al_error("alListenerfv");
+}
+
+void audio_listener_set_position(const Vec2& position) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.listener.position = position;
+
+  alListenerfv(AL_POSITION, &position[0]);
+  check_al_error("alListenerfv");
+}
+
+void audio_listener_set_velocity(const Vec2& velocity) {
+  FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
+
+  s_audio.listener.velocity = velocity;
+
+  alListenerfv(AL_VELOCITY, &velocity[0]);
+  check_al_error("alListenerfv");
+}
+
+/// AudioListener functions
+///---------------------------------------------------------------------------------------------------------------------
+
+} // End of freya
+
+//////////////////////////////////////////////////////////////////////////
