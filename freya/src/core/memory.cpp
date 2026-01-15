@@ -1,0 +1,115 @@
+#include "freya_memory.h"
+#include "freya_logger.h"
+
+#include <cstdlib>
+#include <cstring>
+
+//////////////////////////////////////////////////////////////////////////
+
+namespace freya { // Start of freya
+
+/// ---------------------------------------------------------------------
+/// MemoryState
+struct MemoryState {
+  sizei alloc_count = 0; 
+  sizei free_count  = 0;
+
+  sizei alloc_total_bytes = 0;
+};
+
+static MemoryState s_state;
+/// MemoryState
+/// ---------------------------------------------------------------------
+
+/// ---------------------------------------------------------------------
+/// Memory functions
+
+void* memory_allocate(const sizei size) {
+  FREYA_ASSERT_LOG((size >= 0), "Cannot allocate a memory block of size 0");
+
+  void* ptr = malloc(size);
+  FREYA_ASSERT_LOG(ptr, "Could not allocate any more memory!");
+
+  // Initialize the memory to zero for convenience
+  memory_zero(ptr, size);
+
+  s_state.alloc_count++;
+  s_state.alloc_total_bytes += size;
+
+  return ptr;
+}
+
+void* memory_reallocate(void* ptr, const sizei new_size) {
+  void* temp_ptr = realloc(ptr, new_size);
+
+  FREYA_ASSERT_LOG(temp_ptr, "Could not allocate any more memory!");
+  ptr = temp_ptr;
+
+  // Initialize the memory to zero for convenience
+  memory_zero(ptr, new_size);
+  
+  s_state.alloc_count++;
+  s_state.alloc_total_bytes += new_size;
+  
+  return ptr;
+}
+
+void* memory_set(void* ptr, const i32 value, const sizei ptr_size) {
+  FREYA_ASSERT_LOG(ptr, "Cannot set values of invalid pointer");
+  ptr = memset(ptr, value, ptr_size);
+
+  return ptr;
+}
+
+void* memory_zero(void* ptr, const sizei ptr_size) {
+  return memory_set(ptr, 0, ptr_size);
+}
+
+void* memory_blocks_allocate(const sizei count, const sizei block_size) {
+  void* ptr = calloc(count, block_size);
+  FREYA_ASSERT_LOG(ptr, "Could not allocate any more memory!");
+  
+  // Initialize the memory to zero for convenience
+  memory_zero(ptr, count * block_size);
+
+  s_state.alloc_count++;
+  s_state.alloc_total_bytes += (count * block_size);
+
+  return ptr;
+}
+
+void* memory_copy(void* dest, const void* src, const sizei src_size) {
+  FREYA_ASSERT_LOG(dest && src, "Cannot copy around invalid memory blocks!");
+  
+  void* ptr = memcpy(dest, src, src_size);
+  FREYA_ASSERT_LOG(ptr, "Could not allocate any more memory!");
+
+  return ptr;
+}
+
+void memory_free(void* ptr) {
+  FREYA_ASSERT_LOG(ptr, "Cannot free an invalid pointer!");
+  free(ptr);
+
+  s_state.alloc_count--;
+  s_state.free_count++;
+}
+
+const sizei memory_get_allocations_count() {
+  return s_state.free_count + s_state.alloc_count;
+}
+
+const sizei memory_get_frees_count() {
+  return s_state.free_count;
+}
+
+const sizei memory_get_allocation_bytes() {
+  return s_state.alloc_total_bytes;
+}
+
+/// Memory functions
+/// ---------------------------------------------------------------------
+
+} // End of freya
+
+//////////////////////////////////////////////////////////////////////////
