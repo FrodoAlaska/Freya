@@ -295,6 +295,11 @@ FREYA_API void file_write_bytes(File& file, const GfxTextureDesc& tex_desc);
 /// @NOTE: This function will raise an error if `file` is not opened.
 FREYA_API void file_write_bytes(File& file, const GfxShaderDesc& shader_desc);
 
+/// Write the contents of the given `audio_desc` into `file`.
+///
+/// @NOTE: This function will raise an error if `file` is not opened.
+FREYA_API void file_write_bytes(File& file, const AudioBufferDesc& audio_desc);
+
 /// Write the contents of the given `transform` into `file`.
 ///
 /// @NOTE: This function will raise an error if `file` is not opened.

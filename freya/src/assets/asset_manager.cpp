@@ -188,10 +188,10 @@ static void build_audio_buffers(File& pkg_file, const ListSection& section) {
 
     // Load and save the asset
 
-    GfxShaderDesc shader_desc{};
+    AudioBufferDesc audio_desc{};
 
-    shader_loader_load(path, &shader_desc);
-    file_write_bytes(pkg_file, shader_desc);
+    audio_loader_load(path, &audio_desc);
+    file_write_bytes(pkg_file, audio_desc);
   }
 }
 

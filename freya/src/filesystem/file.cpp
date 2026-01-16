@@ -113,6 +113,30 @@ void file_write_bytes(File& file, const String& str) {
   file_write_bytes(file, str.c_str(), str.size());
 }
 
+void file_write_bytes(File& file, const AudioBufferDesc& audio_desc) {
+  FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
+  
+  // Write the format
+ 
+  u8 format = (u8)audio_desc.format;
+  file_write_bytes(file, &format, sizeof(format));
+ 
+  // Write the channels
+  
+  u8 channels = (u8)audio_desc.channels;
+  file_write_bytes(file, &channels, sizeof(channels));
+
+  // Write the sample rate
+  file_write_bytes(file, &audio_desc.sample_rate, sizeof(audio_desc.sample_rate));
+ 
+  // Write the samples
+
+  u32 size = (u32)audio_desc.size;
+
+  file_write_bytes(file, &size, sizeof(size));
+  file_write_bytes(file, audio_desc.data, size);
+}
+
 void file_write_bytes(File& file, const GfxTextureDesc& tex_desc) {
   FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
 

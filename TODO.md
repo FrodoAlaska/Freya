@@ -1,9 +1,8 @@
 # TODO 
 
 - Asset manager 
-    - Have an "asset converter" that is essentially the same as the NBR tool 
     - Asset push functions
-    - Building a freya package by using a function like `asset_group_build`
+    - Destroy the assets
     - Load in the asset package
     - Asset reloading
     - Test
@@ -11,10 +10,10 @@
 
 - Systems to work on 
     - asset manager and assets in general
-        - Fonts?????
-        
         - Buffers 
         - Shader contexts 
+        
+        - Fonts?????
     - camera
     - renderer and ui renderer
     - engine/app integration
