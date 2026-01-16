@@ -36,6 +36,14 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Consts
+
+const sizei MAX_SHADER_LOG_MSG_LENGTH = 1024;
+
+/// Consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// GfxContext
 struct GfxContext {
   GfxContextDesc desc = {};
@@ -956,24 +964,24 @@ static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
 
 static void check_shader_compile_error(const sizei shader) {
   i32 success;
-  i8 log_info[1024];
+  i8 log_info[MAX_SHADER_LOG_MSG_LENGTH];
 
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success); 
 
   if(!success) {
-    glGetShaderInfoLog(shader, 1024, nullptr, log_info);
+    glGetShaderInfoLog(shader, MAX_SHADER_LOG_MSG_LENGTH, nullptr, log_info);
     FREYA_LOG_WARN("SHADER-ERROR: %s", log_info);
   }
 }
 
 static void check_shader_linker_error(const GfxShader* shader) {
   i32 success;
-  i8 log_info[1024];
+  i8 log_info[MAX_SHADER_LOG_MSG_LENGTH];
 
   glGetProgramiv(shader->id, GL_LINK_STATUS, &success); 
 
   if(!success) {
-    glGetProgramInfoLog(shader->id, 1024, nullptr, log_info);
+    glGetProgramInfoLog(shader->id, MAX_SHADER_LOG_MSG_LENGTH, nullptr, log_info);
     FREYA_LOG_WARN("SHADER-ERROR: %s", log_info);
   }
 }
@@ -1765,11 +1773,13 @@ const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc) {
   // Do not continue if this is true, since compute 
   // shaders are quite special flakes. 
 
-  if(desc.compute_source) {
-    i32 compute_src_len = strlen(shader->desc.compute_source);
-    shader->compute_id  = glCreateShader(GL_COMPUTE_SHADER);
+  if(!desc.compute_source.empty()) {
+    shader->compute_id = glCreateShader(GL_COMPUTE_SHADER);
+    
+    i32 compute_src_len     = (i32)shader->desc.compute_source.size();
+    const char* compute_str = shader->desc.compute_source.c_str();
 
-    glShaderSource(shader->compute_id, 1, &shader->desc.compute_source, &compute_src_len); 
+    glShaderSource(shader->compute_id, 1, &compute_str, &compute_src_len); 
     glCompileShader(shader->compute_id);
     check_shader_compile_error(shader->compute_id);
     glAttachShader(shader->id, shader->compute_id);
@@ -1784,25 +1794,29 @@ const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc) {
 
   // Necessary asserts
 
-  FREYA_DEBUG_ASSERT(desc.vertex_source, "Invalid Vertex source passed to the shader");
-  FREYA_DEBUG_ASSERT(desc.pixel_source, "Invalid Pixel source passed to the shader");
+  FREYA_DEBUG_ASSERT(!desc.vertex_source.empty(), "Invalid Vertex source passed to the shader");
+  FREYA_DEBUG_ASSERT(!desc.pixel_source.empty(), "Invalid Pixel source passed to the shader");
 
   // Vertex shader
   
-  i32 vert_src_len = strlen(shader->desc.vertex_source);
-  shader->vert_id  = glCreateShader(GL_VERTEX_SHADER);
+  shader->vert_id = glCreateShader(GL_VERTEX_SHADER);
   
-  glShaderSource(shader->vert_id, 1, &shader->desc.vertex_source, &vert_src_len); 
+  i32 vert_src_len       = (i32)shader->desc.vertex_source.size();
+  const char* vertex_str = shader->desc.vertex_source.c_str();
+  
+  glShaderSource(shader->vert_id, 1, &vertex_str, &vert_src_len); 
   glCompileShader(shader->vert_id);
   check_shader_compile_error(shader->vert_id);
   glAttachShader(shader->id, shader->vert_id);
    
   // Fragment shader
   
-  i32 frag_src_len = strlen(shader->desc.pixel_source);
-  shader->frag_id  = glCreateShader(GL_FRAGMENT_SHADER);
+  shader->frag_id = glCreateShader(GL_FRAGMENT_SHADER);
   
-  glShaderSource(shader->frag_id, 1, &shader->desc.pixel_source, &frag_src_len); 
+  i32 frag_src_len     = (i32)shader->desc.pixel_source.size();
+  const char* frag_str = shader->desc.pixel_source.c_str();
+  
+  glShaderSource(shader->frag_id, 1, &frag_str, &frag_src_len); 
   glCompileShader(shader->frag_id);
   check_shader_compile_error(shader->frag_id);
   glAttachShader(shader->id, shader->frag_id);
@@ -1833,18 +1847,18 @@ GfxShaderDesc& gfx_shader_get_source(GfxShader* shader) {
 void gfx_shader_update(GfxShader* shader, const GfxShaderDesc& desc) {
   FREYA_DEBUG_ASSERT(shader->gfx, "Invalid GfxContext struct passed");
   FREYA_DEBUG_ASSERT(shader, "Invalid GfxShader struct passed");
-  FREYA_DEBUG_ASSERT(desc.vertex_source, "Invalid Vertex source passed to the shader");
-  FREYA_DEBUG_ASSERT(desc.pixel_source, "Invalid Pixel source passed to the shader");
-
+  
   shader->desc = desc;
 
   // Create the compute shader if the source exists. 
   // Do not continue if this is true, since compute 
   // shaders are quite special flakes. 
 
-  if(desc.compute_source) {
-    i32 compute_src_len = strlen(shader->desc.compute_source);
-    glShaderSource(shader->compute_id, 1, &shader->desc.compute_source, &compute_src_len); 
+  if(!desc.compute_source.empty()) {
+    i32 compute_src_len     = (i32)shader->desc.compute_source.size();
+    const char* compute_str = shader->desc.compute_source.c_str();
+
+    glShaderSource(shader->compute_id, 1, &compute_str, &compute_src_len); 
     glCompileShader(shader->compute_id);
     check_shader_compile_error(shader->compute_id);
     glAttachShader(shader->id, shader->compute_id);
@@ -1859,21 +1873,25 @@ void gfx_shader_update(GfxShader* shader, const GfxShaderDesc& desc) {
 
   // Necessary asserts
 
-  FREYA_DEBUG_ASSERT(desc.vertex_source, "Invalid Vertex source passed to the shader");
-  FREYA_DEBUG_ASSERT(desc.pixel_source, "Invalid Pixel source passed to the shader");
+  FREYA_DEBUG_ASSERT(!desc.vertex_source.empty(), "Invalid Vertex source passed to the shader");
+  FREYA_DEBUG_ASSERT(!desc.pixel_source.empty(), "Invalid Pixel source passed to the shader");
 
   // Vertex shader
   
-  i32 vert_src_len = strlen(shader->desc.vertex_source);
-  glShaderSource(shader->vert_id, 1, &shader->desc.vertex_source, &vert_src_len); 
+  i32 vert_src_len       = (i32)shader->desc.vertex_source.size();
+  const char* vertex_str = shader->desc.vertex_source.c_str();
+  
+  glShaderSource(shader->vert_id, 1, &vertex_str, &vert_src_len); 
   glCompileShader(shader->vert_id);
   check_shader_compile_error(shader->vert_id);
   glAttachShader(shader->id, shader->vert_id);
    
   // Fragment shader
   
-  i32 frag_src_len = strlen(shader->desc.pixel_source);
-  glShaderSource(shader->frag_id, 1, &shader->desc.pixel_source, &frag_src_len); 
+  i32 frag_src_len     = (i32)shader->desc.pixel_source.size();
+  const char* frag_str = shader->desc.pixel_source.c_str();
+  
+  glShaderSource(shader->frag_id, 1, &frag_str, &frag_src_len); 
   glCompileShader(shader->frag_id);
   check_shader_compile_error(shader->frag_id);
   glAttachShader(shader->id, shader->frag_id);
@@ -1891,7 +1909,7 @@ void gfx_shader_query(GfxShader* shader, GfxShaderQueryDesc* out_desc) {
   // Check if the shader is actually linked properly
  
   i32 success; 
-  char log_info[1024];
+  char log_info[MAX_SHADER_LOG_MSG_LENGTH];
 
   glGetProgramiv(shader->id, GL_LINK_STATUS, &success); 
   if(!success) {
@@ -1995,6 +2013,7 @@ void gfx_shader_upload_uniform_array(GfxShader* shader, const i32 location, cons
   FREYA_DEBUG_ASSERT(shader, "Invalid GfxShader struct passed");
 
   // Will not do anything with an invalid uniform
+  
   if(location == -1) {
     FREYA_LOG_WARN("Cannot set uniform with location -1");
     return;

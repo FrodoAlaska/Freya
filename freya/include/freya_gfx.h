@@ -922,10 +922,10 @@ struct GfxBufferDesc {
 /// GfxShaderDesc
 struct GfxShaderDesc {
   /// The full source code for the vertex shader. 
-  const i8* vertex_source  = nullptr;
+  String vertex_source;
 
   /// The full source code for the pixel/fragment shader. 
-  const i8* pixel_source   = nullptr;
+  String pixel_source;
 
   /// The full source code for the compute shader.
   ///
@@ -933,7 +933,7 @@ struct GfxShaderDesc {
   /// two strings will not be evaluated. The shader 
   /// will be known as a compute shader moving on, 
   /// and can be used with the `gfx_context_dispatch` function.
-  const i8* compute_source = nullptr;
+  String compute_source;
 };
 /// GfxShaderDesc
 ///---------------------------------------------------------------------------------------------------------------------

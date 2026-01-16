@@ -141,6 +141,8 @@ static T get_asset(AssetID& id, DynamicArray<T>& asset, const AssetType type) {
 }
 
 static void build_textures(File& pkg_file, const ListSection& section) {
+  FREYA_PROFILE_FUNCTION();
+
   for(const auto& path : section.assets) {
     // Write the name of the asset
 
@@ -154,6 +156,42 @@ static void build_textures(File& pkg_file, const ListSection& section) {
     texture_loader_load(path, &tex_desc);
     file_write_bytes(pkg_file, tex_desc);
     texture_loader_unload(tex_desc);
+  }
+}
+
+static void build_shaders(File& pkg_file, const ListSection& section) {
+  FREYA_PROFILE_FUNCTION();
+
+  for(const auto& path : section.assets) {
+    // Write the name of the asset
+
+    FilePath name = filepath_filename(path);
+    file_write_bytes(pkg_file, name);
+
+    // Load and save the asset
+
+    GfxShaderDesc shader_desc{};
+
+    shader_loader_load(path, &shader_desc);
+    file_write_bytes(pkg_file, shader_desc);
+  }
+}
+
+static void build_audio_buffers(File& pkg_file, const ListSection& section) {
+  FREYA_PROFILE_FUNCTION();
+
+  for(const auto& path : section.assets) {
+    // Write the name of the asset
+
+    FilePath name = filepath_filename(path);
+    file_write_bytes(pkg_file, name);
+
+    // Load and save the asset
+
+    GfxShaderDesc shader_desc{};
+
+    shader_loader_load(path, &shader_desc);
+    file_write_bytes(pkg_file, shader_desc);
   }
 }
 
@@ -246,16 +284,13 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
         build_textures(pkg_file, section);
         break;
       case ASSET_TYPE_SHADER:
-        // @TODO (Assets)
-        break;
-      case ASSET_TYPE_ANIMATION:
-        // @TODO (Assets)
+        build_shaders(pkg_file, section);
         break;
       case ASSET_TYPE_FONT:
         // @TODO (Assets)
         break;
       case ASSET_TYPE_AUDIO_BUFFER:
-        // @TODO (Assets)
+        build_audio_buffers(pkg_file, section);
         break;
       default:
         break;

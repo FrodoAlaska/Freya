@@ -158,9 +158,6 @@ bool list_parser_init(const freya::DynamicArray<ListToken>& tokens, ListContext&
   s_parser.asset_remaps["SHADER"] = freya::ASSET_TYPE_SHADER;
   s_parser.asset_remaps["shader"] = freya::ASSET_TYPE_SHADER;
 
-  s_parser.asset_remaps["ANIMATION"] = freya::ASSET_TYPE_ANIMATION;
-  s_parser.asset_remaps["animation"] = freya::ASSET_TYPE_ANIMATION;
-
   s_parser.asset_remaps["FONT"] = freya::ASSET_TYPE_FONT;
   s_parser.asset_remaps["font"] = freya::ASSET_TYPE_FONT;
 

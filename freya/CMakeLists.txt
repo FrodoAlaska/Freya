@@ -47,6 +47,8 @@ set(FREYA_SOURCES
   
   # Assets/loaders
   ${FREYA_SRC_DIR}/assets/loaders/texture_loader.cpp
+  ${FREYA_SRC_DIR}/assets/loaders/shader_loader.cpp
+  ${FREYA_SRC_DIR}/assets/loaders/audio_loader.cpp
 )
 
 set(FREYA_HEADERS
@@ -76,10 +78,10 @@ set(FREYA_PCH
 ### Library Sources ###
 ############################################################
 set(LIBS_SOURCES 
-  # GLAD
+  # glad
   ${FREYA_LIBS_DIR}/glad/glad.c
 
-  # ImGui
+  # imgui
   ${FREYA_LIBS_DIR}/imgui/backends/imgui_impl_glfw.cpp
   ${FREYA_LIBS_DIR}/imgui/backends/imgui_impl_opengl3.cpp
   ${FREYA_LIBS_DIR}/imgui/imgui.cpp
@@ -90,9 +92,13 @@ set(LIBS_SOURCES
   ${FREYA_LIBS_DIR}/imgui/imgui_tables.cpp
   ${FREYA_LIBS_DIR}/imgui/imgui_widgets.cpp
 
-  # STB
+  # stb
   ${FREYA_LIBS_DIR}/stb/stb_image.cpp
   ${FREYA_LIBS_DIR}/stb/stb_vorbis.cpp
+
+  # dr_libs
+  ${FREYA_LIBS_DIR}/dr_libs/dr_mp3.cpp
+  ${FREYA_LIBS_DIR}/dr_libs/dr_wav.cpp
 )
 ############################################################
 

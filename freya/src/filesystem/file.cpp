@@ -103,7 +103,13 @@ const sizei file_write_bytes(File& file, const void* buff, const sizei buff_size
 
 void file_write_bytes(File& file, const String& str) {
   FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
-  
+
+  // Write the size of the string
+
+  u32 str_len = (u32)str.size();
+  file_write_bytes(file, &str_len, sizeof(str_len));
+
+  // Write the string itself
   file_write_bytes(file, str.c_str(), str.size());
 }
 
@@ -129,6 +135,23 @@ void file_write_bytes(File& file, const GfxTextureDesc& tex_desc) {
   sizei data_size  = (width * height) * 4 * pixel_size; // 4 = color components
 
   file_write_bytes(file, tex_desc.data, data_size);
+}
+
+void file_write_bytes(File& file, const GfxShaderDesc& shader_desc) {
+  FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
+
+  // Write the compue shader
+
+  if(!shader_desc.compute_source.empty()) {
+    file_write_bytes(file, shader_desc.compute_source);
+    return;
+  }
+
+  // Write the vertex shader
+  file_write_bytes(file, shader_desc.vertex_source);
+  
+  // Write the pixel shader
+  file_write_bytes(file, shader_desc.pixel_source);
 }
 
 void file_write_bytes(File& file, const Transform& transform) {
