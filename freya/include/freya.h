@@ -11,5 +11,7 @@
 #include <freya_gfx.h>
 #include <freya_threads.h>
 #include <freya_audio.h>
+#include <freya_timer.h>
 #include <freya_ui.h>
 #include <freya_file.h>
+#include <freya_assets.h>

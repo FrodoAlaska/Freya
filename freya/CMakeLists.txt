@@ -36,9 +36,13 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/filesystem/filewatcher.cpp
   ${FREYA_SRC_DIR}/filesystem/filesystem.cpp
   ${FREYA_SRC_DIR}/filesystem/filepath.cpp
+
+  # Assets
+  ${FREYA_SRC_DIR}/assets/asset_manager.cpp
 )
 
 set(FREYA_HEADERS
+  ${FREYA_INCLUDE_DIR}/freya.h
   ${FREYA_INCLUDE_DIR}/freya_base.h
   ${FREYA_INCLUDE_DIR}/freya_containers.h
   ${FREYA_INCLUDE_DIR}/freya_event.h
@@ -51,7 +55,9 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_threads.h
   ${FREYA_INCLUDE_DIR}/freya_audio.h
   ${FREYA_INCLUDE_DIR}/freya_ui.h
+  ${FREYA_INCLUDE_DIR}/freya_timer.h
   ${FREYA_INCLUDE_DIR}/freya_file.h
+  ${FREYA_INCLUDE_DIR}/freya_assets.h
 )
 
 set(FREYA_PCH
