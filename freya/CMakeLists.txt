@@ -39,6 +39,11 @@ set(FREYA_SOURCES
 
   # Assets
   ${FREYA_SRC_DIR}/assets/asset_manager.cpp
+
+  # Assets/frlist
+  ${FREYA_SRC_DIR}/assets/frlist/frlist_lexer.cpp
+  ${FREYA_SRC_DIR}/assets/frlist/frlist_parser.cpp
+  ${FREYA_SRC_DIR}/assets/frlist/frlist.cpp
 )
 
 set(FREYA_HEADERS

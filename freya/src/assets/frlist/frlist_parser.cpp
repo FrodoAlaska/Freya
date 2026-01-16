@@ -1,0 +1,158 @@
+#include "frlist.h"
+#include "freya_logger.h"
+#include "freya_timer.h"
+
+/// ----------------------------------------------------------------------
+/// Parser
+struct Parser {
+  freya::DynamicArray<ListToken> tokens;
+  freya::i32 current;
+
+  freya::HashMap<freya::String, freya::AssetType> asset_remaps;
+};
+
+static Parser s_parser;
+/// Parser
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Private functions
+
+static bool is_eof() {
+  return s_parser.tokens[s_parser.current].type == LIST_TOKEN_EOF;
+}
+
+static ListToken& token_consume() {
+  if(is_eof()) {
+    return s_parser.tokens[s_parser.current];
+  }
+
+  s_parser.current++;
+  return s_parser.tokens[s_parser.current - 1];
+}
+
+static ListToken& token_peek_prev() {
+  if(s_parser.current == 0) {
+    return s_parser.tokens[0];
+  }
+
+  return s_parser.tokens[s_parser.current - 2];
+}
+
+static ListToken& token_peek_next() {
+  if(is_eof()) {
+    return s_parser.tokens[s_parser.current];
+  }
+
+  return s_parser.tokens[s_parser.current];
+}
+
+static void assign_section(ListContext* list, ListSection* section) {
+  // Safety check
+
+  if(token_peek_next().type != LIST_TOKEN_STRING_LITERAL) {
+    FREYA_LOG_ERROR("Section declared without a name");
+    return;
+  }
+
+  // Initialize a new section
+  section->local_dir = list->parent_dir;
+
+  // Assign the type of the new section
+  section->type = s_parser.asset_remaps[token_consume().literal];
+}
+
+static void assign_local(ListSection* section) {
+  // Check for the literal
+  
+  if(token_peek_next().type != LIST_TOKEN_STRING_LITERAL) {
+    FREYA_LOG_ERROR("Local variable declared without an identifier");
+    return;
+  } 
+  
+  // Consume and use the local variable
+  section->local_dir = freya::filepath_append(section->local_dir, token_consume().literal); 
+}
+
+static void assign_path(ListSection* section, const ListToken& current_token) {
+  section->assets.push_back(freya::filepath_append(section->local_dir, current_token.literal)); 
+}
+
+static bool parser_start(ListContext* list) {
+  ListSection* section = nullptr;
+
+  while(!is_eof()) {
+    ListToken token = token_consume(); 
+
+    switch(token.type) {
+      case LIST_TOKEN_SECTION: {
+        // Add a new section to the context
+        
+        list->sections.push_back(ListSection{});
+        section = &list->sections[list->sections.size() - 1];
+         
+        assign_section(list, section);
+      } break;
+      case LIST_TOKEN_LOCAL:
+        assign_local(section);
+        break;
+      case LIST_TOKEN_STRING_LITERAL:
+        assign_path(section, token);
+        break;
+      case LIST_TOKEN_COMMENT:
+      case LIST_TOKEN_EOF:
+        break;
+      default:
+        FREYA_LOG_ERROR("Invalid token found");
+        return false;
+    }
+  }
+
+  return true;
+}
+
+/// Private functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// List parser functions
+
+bool list_parser_init(const freya::DynamicArray<ListToken>& tokens, ListContext& out_list) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Defining the name to asset type mappings
+
+  s_parser.asset_remaps["TEXTURE"] = freya::ASSET_TYPE_TEXTURE;
+  s_parser.asset_remaps["texture"] = freya::ASSET_TYPE_TEXTURE;
+
+  s_parser.asset_remaps["SHADER"] = freya::ASSET_TYPE_SHADER;
+  s_parser.asset_remaps["shader"] = freya::ASSET_TYPE_SHADER;
+
+  s_parser.asset_remaps["ANIMATION"] = freya::ASSET_TYPE_ANIMATION;
+  s_parser.asset_remaps["animation"] = freya::ASSET_TYPE_ANIMATION;
+
+  s_parser.asset_remaps["FONT"] = freya::ASSET_TYPE_FONT;
+  s_parser.asset_remaps["font"] = freya::ASSET_TYPE_FONT;
+
+  s_parser.asset_remaps["AUDIO"] = freya::ASSET_TYPE_AUDIO_BUFFER;
+  s_parser.asset_remaps["audio"] = freya::ASSET_TYPE_AUDIO_BUFFER;
+
+  // Nothing was given!
+
+  if(tokens.empty()) {
+    FREYA_LOG_ERROR("Empty tokens array given to parser!");
+    return false;
+  }
+
+  // Parser init
+
+  s_parser         = {};
+  s_parser.current = 0; 
+  s_parser.tokens  = tokens;
+
+  // Done!
+  return parser_start(&out_list);
+}
+
+/// List parser functions
+/// ----------------------------------------------------------------------

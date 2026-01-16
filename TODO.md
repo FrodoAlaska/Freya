@@ -1,7 +1,6 @@
 # TODO 
 
 - Asset manager 
-    - Steal the `nbrlist` file format and make it ours 
     - Have an "asset converter" that is essentially the same as the NBR tool 
     - Building a freya package by using a function like `asset_group_build`
     - Load in the asset package

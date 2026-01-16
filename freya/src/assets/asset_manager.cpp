@@ -165,11 +165,13 @@ void asset_group_destroy(const AssetGroupID& group_id) {
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
   // Destroy compound assets
+  // @TODO (Assets)
   
   // DESTROY_COMP_ASSET_MAP(group, shader_contexts);
   // DESTROY_COMP_ASSET_MAP(group, fonts);
 
   // Destroy core assets
+  // @TODO (Assets)
   
   // DESTROY_CORE_ASSET_MAP(group, buffers, gfx_buffer_destroy);
   // DESTROY_CORE_ASSET_MAP(group, textures, gfx_texture_destroy);
@@ -188,7 +190,9 @@ bool asset_group_build(const AssetGroupID& group_id,
                        const FilePath& list_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
- 
+
+  // @TODO (Assets)
+
   // Done!
   return true;
 }
@@ -196,6 +200,8 @@ bool asset_group_build(const AssetGroupID& group_id,
 bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  // @TODO (Assets)
   
   // Done!
   return true;
