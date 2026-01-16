@@ -15,6 +15,17 @@ enum ListTokenType {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// ListToken 
+struct ListToken {
+  ListTokenType type; 
+  
+  freya::String literal;
+  freya::i32 line;
+};
+/// ListToken 
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// ListSection
 struct ListSection {
   freya::AssetType type;
@@ -32,17 +43,6 @@ struct ListContext {
   freya::FilePath parent_dir; 
 };
 /// ListContext 
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
-/// ListToken 
-struct ListToken {
-  ListTokenType type; 
-  
-  freya::String literal;
-  freya::i32 line;
-};
-/// ListToken 
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -64,7 +64,7 @@ bool list_parser_init(const freya::DynamicArray<ListToken>& tokens, ListContext&
 /// ----------------------------------------------------------------------
 /// FrList functions 
 
-void frlist_load(ListContext& out_list, const freya::FilePath& path);
+bool frlist_load(ListContext& out_list, const freya::FilePath& path);
 
 /// FrList context functions 
 /// ----------------------------------------------------------------------

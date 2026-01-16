@@ -16,6 +16,17 @@ static Parser s_parser;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// Callbacks
+
+static void iterate_assets(const freya::FilePath& base_dir, const freya::FilePath& current_path, void* user_data) {
+  ListSection* section = (ListSection*)user_data;
+  section->assets.emplace_back(current_path);
+}
+
+/// Callbacks
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// Private functions
 
 static bool is_eof() {
@@ -59,7 +70,9 @@ static void assign_section(ListContext* list, ListSection* section) {
   section->local_dir = list->parent_dir;
 
   // Assign the type of the new section
-  section->type = s_parser.asset_remaps[token_consume().literal];
+  
+  ListToken& next = token_consume();
+  section->type = s_parser.asset_remaps[next.literal];
 }
 
 static void assign_local(ListSection* section) {
@@ -75,7 +88,17 @@ static void assign_local(ListSection* section) {
 }
 
 static void assign_path(ListSection* section, const ListToken& current_token) {
-  section->assets.push_back(freya::filepath_append(section->local_dir, current_token.literal)); 
+  freya::FilePath full_path = freya::filepath_append(section->local_dir, current_token.literal);
+
+  // We need all of the inner asset paths, so iterate through them
+
+  if(freya::filepath_is_dir(full_path)) {
+    freya::filesystem_directory_iterate(full_path, iterate_assets, section);
+    return;
+  }
+
+  // Otherwise, just add the path regularly
+  section->assets.emplace_back(full_path); 
 }
 
 static bool parser_start(ListContext* list) {
@@ -120,6 +143,13 @@ static bool parser_start(ListContext* list) {
 bool list_parser_init(const freya::DynamicArray<ListToken>& tokens, ListContext& out_list) {
   FREYA_PROFILE_FUNCTION();
 
+  // Nothing was given!
+
+  if(tokens.empty()) {
+    FREYA_LOG_ERROR("Empty tokens array given to parser!");
+    return false;
+  }
+  
   // Defining the name to asset type mappings
 
   s_parser.asset_remaps["TEXTURE"] = freya::ASSET_TYPE_TEXTURE;
@@ -137,16 +167,8 @@ bool list_parser_init(const freya::DynamicArray<ListToken>& tokens, ListContext&
   s_parser.asset_remaps["AUDIO"] = freya::ASSET_TYPE_AUDIO_BUFFER;
   s_parser.asset_remaps["audio"] = freya::ASSET_TYPE_AUDIO_BUFFER;
 
-  // Nothing was given!
-
-  if(tokens.empty()) {
-    FREYA_LOG_ERROR("Empty tokens array given to parser!");
-    return false;
-  }
-
   // Parser init
 
-  s_parser         = {};
   s_parser.current = 0; 
   s_parser.tokens  = tokens;
 

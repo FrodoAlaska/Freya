@@ -107,6 +107,30 @@ void file_write_bytes(File& file, const String& str) {
   file_write_bytes(file, str.c_str(), str.size());
 }
 
+void file_write_bytes(File& file, const GfxTextureDesc& tex_desc) {
+  FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
+
+  // Write the texture's size
+ 
+  u16 width  = (u16)tex_desc.width;
+  u16 height = (u16)tex_desc.height;
+
+  file_write_bytes(file, &width, sizeof(width));
+  file_write_bytes(file, &height, sizeof(height));
+ 
+  // Write other information
+
+  u8 format = (u8)tex_desc.format;
+  file_write_bytes(file, &format, sizeof(format));
+
+  // Write the data
+
+  sizei pixel_size = (tex_desc.format == GFX_TEXTURE_FORMAT_RGBA16F) ? 4 : 1; 
+  sizei data_size  = (width * height) * 4 * pixel_size; // 4 = color components
+
+  file_write_bytes(file, tex_desc.data, data_size);
+}
+
 void file_write_bytes(File& file, const Transform& transform) {
   FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
   

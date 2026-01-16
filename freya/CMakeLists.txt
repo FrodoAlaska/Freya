@@ -44,6 +44,9 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/assets/frlist/frlist_lexer.cpp
   ${FREYA_SRC_DIR}/assets/frlist/frlist_parser.cpp
   ${FREYA_SRC_DIR}/assets/frlist/frlist.cpp
+  
+  # Assets/loaders
+  ${FREYA_SRC_DIR}/assets/loaders/texture_loader.cpp
 )
 
 set(FREYA_HEADERS
@@ -86,6 +89,10 @@ set(LIBS_SOURCES
   ${FREYA_LIBS_DIR}/imgui/imgui_stdlib.h
   ${FREYA_LIBS_DIR}/imgui/imgui_tables.cpp
   ${FREYA_LIBS_DIR}/imgui/imgui_widgets.cpp
+
+  # STB
+  ${FREYA_LIBS_DIR}/stb/stb_image.cpp
+  ${FREYA_LIBS_DIR}/stb/stb_vorbis.cpp
 )
 ############################################################
 

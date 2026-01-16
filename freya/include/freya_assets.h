@@ -130,10 +130,7 @@ FREYA_API AssetGroupID asset_group_create(const String& name);
 
 FREYA_API void asset_group_destroy(const AssetGroupID& group_id);
 
-FREYA_API bool asset_group_build(const AssetGroupID& group_id, 
-                                 const FilePath& prebuilt_dir, 
-                                 const FilePath& built_dir, 
-                                 const FilePath& list_path);
+FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
 
 FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path);
 

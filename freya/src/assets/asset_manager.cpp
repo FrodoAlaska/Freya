@@ -3,6 +3,9 @@
 #include "freya_logger.h"
 #include "freya_memory.h"
 
+#include "frlist/frlist.h"
+#include "loaders/asset_loaders.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
@@ -137,6 +140,23 @@ static T get_asset(AssetID& id, DynamicArray<T>& asset, const AssetType type) {
   return asset[id.get_id()];
 }
 
+static void build_textures(File& pkg_file, const ListSection& section) {
+  for(const auto& path : section.assets) {
+    // Write the name of the asset
+
+    FilePath name = filepath_filename(path);
+    file_write_bytes(pkg_file, name);
+
+    // Load and save the asset
+
+    GfxTextureDesc tex_desc{};
+
+    texture_loader_load(path, &tex_desc);
+    file_write_bytes(pkg_file, tex_desc);
+    texture_loader_unload(tex_desc);
+  }
+}
+
 /// Private functions 
 /// ----------------------------------------------------------------------
 
@@ -184,16 +204,69 @@ void asset_group_destroy(const AssetGroupID& group_id) {
   s_manager.groups.erase(group_id.get_id());
 }
 
-bool asset_group_build(const AssetGroupID& group_id, 
-                       const FilePath& prebuilt_dir, 
-                       const FilePath& built_dir, 
-                       const FilePath& list_path) {
+bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
-  // @TODO (Assets)
+  // Load the frlist file
+
+  ListContext list_ctx;
+  if(!frlist_load(list_ctx, list_path)) {
+    FREYA_LOG_ERROR("Failed to read FRPKG file at \'%s\'", list_path.c_str());
+    return false;
+  }
+
+  // Open the frpkg file to write to later
+ 
+  File pkg_file;
+  i32 file_flags = (i32)(FILE_OPEN_WRITE | FILE_OPEN_BINARY);
+
+  if(!file_open(pkg_file, output_path, file_flags)) {
+    FREYA_LOG_ERROR("Failed to open frpkg file at \'%s\'", output_path.c_str());
+    return false;
+  }
+
+  // Write the version
+  file_write_bytes(pkg_file, &FRPKG_VERSION, sizeof(FRPKG_VERSION));
+
+  // Convert each asset in the list and write it to the newly-create frpkg file
+
+  FREYA_LOG_TRACE("Converting assets from \'%s\' to \'%s\'", list_ctx.parent_dir.c_str(), output_path.c_str());
+
+  for(auto& section : list_ctx.sections) {
+    // Write the asset type
+   
+    u8 asset_type = (u8)section.type;
+    file_write_bytes(pkg_file, &asset_type, sizeof(asset_type));
+
+    // Write the actual assets
+
+    switch(section.type) {
+      case ASSET_TYPE_TEXTURE:
+        build_textures(pkg_file, section);
+        break;
+      case ASSET_TYPE_SHADER:
+        // @TODO (Assets)
+        break;
+      case ASSET_TYPE_ANIMATION:
+        // @TODO (Assets)
+        break;
+      case ASSET_TYPE_FONT:
+        // @TODO (Assets)
+        break;
+      case ASSET_TYPE_AUDIO_BUFFER:
+        // @TODO (Assets)
+        break;
+      default:
+        break;
+    }
+  }
 
   // Done!
+ 
+  file_close(pkg_file);
+  FREYA_LOG_DEBUG("Successfully built frpkg at \'%s\'!", output_path.c_str());
+  
   return true;
 }
 

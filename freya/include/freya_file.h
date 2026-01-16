@@ -5,6 +5,7 @@
 #include "freya_math.h"
 #include "freya_audio.h"
 #include "freya_timer.h"
+#include "freya_gfx.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -283,6 +284,11 @@ FREYA_API const sizei file_write_bytes(File& file, const void* buff, const sizei
 ///
 /// @NOTE: This function will raise an error if `file` is not opened.
 FREYA_API void file_write_bytes(File& file, const String& str);
+
+/// Write the contents of the given `tex_desc` into `file`.
+///
+/// @NOTE: This function will raise an error if `file` is not opened.
+FREYA_API void file_write_bytes(File& file, const GfxTextureDesc& tex_desc);
 
 /// Write the contents of the given `transform` into `file`.
 ///
