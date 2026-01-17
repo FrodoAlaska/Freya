@@ -48,4 +48,14 @@ int main(int argc, char** argv) {
     freya::renderer_begin(camera);
     freya::renderer_end();
   }
+
+  // Destroy the asset group
+  freya::asset_group_destroy(group_id);
+
+  // Shutdown the rest of the systems
+
+  freya::audio_device_shutdown();
+  freya::renderer_shutdown();
+  freya::window_close(window);
+  freya::event_shutdown();
 }

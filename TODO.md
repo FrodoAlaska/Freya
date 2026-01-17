@@ -1,7 +1,6 @@
 # TODO 
 
 - Asset manager 
-    - Destroy the assets
     - Load in the asset package
     - Asset reloading
     - Test
