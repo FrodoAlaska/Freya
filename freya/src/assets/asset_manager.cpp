@@ -2,6 +2,7 @@
 #include "freya_event.h"
 #include "freya_logger.h"
 #include "freya_memory.h"
+#include "freya_render.h"
 
 #include "frlist/frlist.h"
 #include "loaders/asset_loaders.h"
@@ -22,7 +23,7 @@ struct AssetGroup {
   DynamicArray<GfxShader*> shaders;
   DynamicArray<AudioBufferID> audio_buffers;
   
-  // DynamicArray<ShaderContext*> shader_contexts;
+  DynamicArray<ShaderContext*> shader_contexts;
   // DynamicArray<Animation*> animations;
   // DynamicArray<Font*> fonts;
 
@@ -133,7 +134,7 @@ static const char* audio_format_str(const AudioBufferFormat format) {
 }
 
 template<typename T> 
-static T get_asset(AssetID& id, DynamicArray<T>& asset, const AssetType type) {
+static T get_asset(const AssetID& id, DynamicArray<T>& asset, const AssetType type) {
   FREYA_DEBUG_ASSERT((id == type), "Invalid type when trying to retrieve a resource");
   FREYA_DEBUG_ASSERT((id >= 0 && id <= (i16)asset.size()), "Invalid ID when trying to retrieve a resource");
 
@@ -309,41 +310,147 @@ AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDes
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
-  return AssetID();
+  // Create and push the buffer
+
+  GfxBuffer* buffer = gfx_buffer_create(renderer_get_context()); 
+
+  AssetID id;
+  PUSH_ASSET(group, buffers, buffer, ASSET_TYPE_BUFFER, id);
+
+  // Load the buffer's data
+  gfx_buffer_load(buffer, buff_desc);
+
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed buffer:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Size = %zu", buff_desc.size);
+  FREYA_LOG_DEBUG("     Type = %s", buffer_type_str(buff_desc.type));
+
+  // Done!
+  return id;
 }
 
 AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureDesc& tex_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
+  
+  // Create and push the texture
+  
+  GfxTexture* texture = gfx_texture_create(renderer_get_context(), tex_desc.type);
 
-  return AssetID();
+  AssetID id; 
+  PUSH_ASSET(group, textures, texture, ASSET_TYPE_TEXTURE, id);
+ 
+  // Load the texture's data
+  gfx_texture_load(texture, tex_desc);
+  
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed texture:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Size = %i X %i", tex_desc.width, tex_desc.height);
+  FREYA_LOG_DEBUG("     Type = %s", texture_type_str(tex_desc.type));
+ 
+  // Done!
+  return id;
 }
 
 AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
+  
+  // Create and load the shader
+  
+  GfxShader* shader = gfx_shader_create(renderer_get_context());
+  gfx_shader_load(shader, shader_desc); 
 
-  return AssetID();
+  // New shader ID
+
+  AssetID id; 
+  PUSH_ASSET(group, shaders, shader, ASSET_TYPE_SHADER, id);
+  
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed shader:", group.name.c_str());
+  if(!shader_desc.compute_source.empty()) {
+    FREYA_LOG_DEBUG("     Compute source length = %zu", shader_desc.compute_source.size());
+  }
+  else {
+    FREYA_LOG_DEBUG("     Vertex source length = %zu", shader_desc.vertex_source.size());
+    FREYA_LOG_DEBUG("     Pixel source length  = %zu", shader_desc.pixel_source.size());
+  }
+
+  // Done!
+  return id;
 }
 
 AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const AssetID& shader_id) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
+  
+  // Allocate the context
+  
+  ShaderContext* ctx = new ShaderContext{};
+  ctx->shader        = asset_group_get_shader(shader_id);
 
-  return AssetID();
+  // Create the context
+  
+  AssetID id; 
+  PUSH_ASSET(group, shader_contexts, ctx, ASSET_TYPE_SHADER_CONTEXT, id);
+
+  // Query the shader for uniform information
+
+  GfxShaderQueryDesc query_desc = {};
+  gfx_shader_query(ctx->shader, &query_desc);
+
+  for(sizei i = 0; i < query_desc.uniforms_count; i++) {
+    GfxUniformDesc* uniform = &query_desc.active_uniforms[i];
+    if(uniform->location == -1) { // Invalid uniform. Why??
+      continue;
+    }
+    
+    ctx->uniforms_cache[uniform->name] = uniform->location;
+  }
+
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed shader context:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Attributes count      = %i", query_desc.attributes_count);
+  FREYA_LOG_DEBUG("     Uniforms count        = %i", query_desc.uniforms_count);
+  FREYA_LOG_DEBUG("     Uniform buffers count = %i", query_desc.uniform_blocks_count);
+  
+  // Done!
+  return id;
 }
 
 AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc) {
-  GROUP_CHECK(group_id);
-  AssetGroup& group = s_manager.groups[group_id.get_id()];
+  // Create a new shader
+  AssetID shader_id = asset_group_push_shader(group_id, shader_desc);
 
-  return AssetID();
+  // Done!
+  return asset_group_push_shader_context(group_id, shader_id);
 }
 
 AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
+  
+  // Create a new audio buffer
+  AudioBufferID buffer = audio_buffer_create(audio_desc);
 
+  // New audio buffer added!
+  
+  AssetID id;
+  PUSH_ASSET(group, audio_buffers, buffer, ASSET_TYPE_AUDIO_BUFFER, id);
+
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed an audio buffer:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Format      = %s", audio_format_str(audio_desc.format));
+  FREYA_LOG_DEBUG("     Channels    = %i", audio_desc.channels);
+  FREYA_LOG_DEBUG("     Size        = %zu", audio_desc.size);
+  FREYA_LOG_DEBUG("     Sample Rate = %zu", audio_desc.sample_rate);
+
+  // Done!
   return AssetID();
 }
 
@@ -370,6 +477,31 @@ const AssetID& asset_group_get_id(const AssetGroupID& group_id, const String& as
 
   // Done!
   return group.named_ids[asset_name];
+}
+
+GfxBuffer* asset_group_get_buffer(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.buffers, ASSET_TYPE_BUFFER);
+}
+
+GfxTexture* asset_group_get_texture(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.textures, ASSET_TYPE_TEXTURE);
+}
+
+GfxShader* asset_group_get_shader(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.shaders, ASSET_TYPE_SHADER);
+}
+
+ShaderContext* asset_group_get_shader_context(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.shader_contexts, ASSET_TYPE_SHADER_CONTEXT);
+}
+
+const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.audio_buffers, ASSET_TYPE_AUDIO_BUFFER);
 }
 
 /// AssetGroupID functions

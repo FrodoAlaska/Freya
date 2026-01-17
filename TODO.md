@@ -1,7 +1,6 @@
 # TODO 
 
 - Asset manager 
-    - Asset push functions
     - Destroy the assets
     - Load in the asset package
     - Asset reloading
@@ -10,9 +9,6 @@
 
 - Systems to work on 
     - asset manager and assets in general
-        - Buffers 
-        - Shader contexts 
-        
         - Fonts?????
     - camera
     - renderer and ui renderer

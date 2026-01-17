@@ -54,6 +54,7 @@ set(FREYA_SOURCES
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
+  ${FREYA_SRC_DIR}/renderer/shader_context.cpp
 )
 
 set(FREYA_HEADERS

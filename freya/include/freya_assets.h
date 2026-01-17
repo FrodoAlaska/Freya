@@ -15,7 +15,7 @@ struct Animation;
 /// Assets consts
 
 /// The currently valid version of any `.frpkg` file
-const u8 FRPKG_VERSION        = 1;
+const u8 FRPKG_VERSION        = 2;
 
 /// A value to indicate an invalid asset group.
 const i32 ASSET_GROUP_INVALID = -1;
@@ -27,6 +27,23 @@ const i16 ASSET_ID_INVALID    = -1;
 const i16 ASSET_CACHE_ID      = 0;
 
 /// Assets consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// AssetType
+enum AssetType {
+  ASSET_TYPE_INVALID = -1,
+  
+  ASSET_TYPE_BUFFER = 0, 
+  ASSET_TYPE_TEXTURE, 
+  ASSET_TYPE_SHADER,
+  ASSET_TYPE_SHADER_CONTEXT,
+  ASSET_TYPE_FONT,
+  ASSET_TYPE_AUDIO_BUFFER,
+
+  ASSET_TYPES_MAX,
+};
+/// AssetType
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -61,23 +78,6 @@ struct AssetGroupID {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// AssetType
-enum AssetType {
-  ASSET_TYPE_INVALID = -1,
-  
-  ASSET_TYPE_BUFFER = 0, 
-  ASSET_TYPE_TEXTURE, 
-  ASSET_TYPE_SHADER,
-  ASSET_TYPE_SHADER_CONTEXT,
-  ASSET_TYPE_FONT,
-  ASSET_TYPE_AUDIO_BUFFER,
-
-  ASSET_TYPES_MAX,
-};
-/// AssetType
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// AssetID
 struct AssetID {
   /// Constructors
@@ -93,8 +93,9 @@ struct AssetID {
 
   public:
     inline const AssetType get_type() const {return _type;}
-    inline const i16 get_id() const {return _type;}
-    inline const AssetGroupID& get_group() const {return _type;}
+    inline const i16 get_id() const {return _id;}
+    inline const AssetGroupID get_group() const {return _group;}
+    inline const i32 get_group_id() const {return _group.get_id();}
 
   /// Operators
 
@@ -110,6 +111,18 @@ struct AssetID {
     
     inline bool operator>=(const i16& rhs) {return _id >= rhs;}
     inline bool operator<=(const i16& rhs) {return _id <= rhs;}
+    
+    inline bool operator==(const i16& rhs) const {return _id == rhs;}
+    inline bool operator!=(const i16& rhs) const {return _id != rhs;}
+    
+    inline bool operator==(const AssetType& rhs) const {return _type == rhs;}
+    inline bool operator!=(const AssetType& rhs) const {return _type != rhs;}
+    
+    inline bool operator>(const i16& rhs) const {return _id > rhs;}
+    inline bool operator<(const i16& rhs) const {return _id < rhs;}
+    
+    inline bool operator>=(const i16& rhs) const {return _id >= rhs;}
+    inline bool operator<=(const i16& rhs) const {return _id <= rhs;}
 
   /// Private fields
 
@@ -145,6 +158,16 @@ FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, co
 FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path);
 
 FREYA_API const AssetID& asset_group_get_id(const AssetGroupID& group_id, const String& asset_name);
+
+FREYA_API GfxBuffer* asset_group_get_buffer(const AssetID& id);
+
+FREYA_API GfxTexture* asset_group_get_texture(const AssetID& id);
+
+FREYA_API GfxShader* asset_group_get_shader(const AssetID& id);
+
+FREYA_API ShaderContext* asset_group_get_shader_context(const AssetID& id);
+
+FREYA_API const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id);
 
 /// AssetGroupID functions
 ///---------------------------------------------------------------------------------------------------------------------
