@@ -191,6 +191,37 @@ void file_write_bytes(File& file, const GfxShaderDesc& shader_desc) {
   file_write_bytes(file, shader_desc.pixel_source);
 }
 
+void file_read_bytes(File& file, AudioBufferDesc* out_desc) {
+  FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
+
+  // Read the format
+ 
+  u8 format;
+  file_read_bytes(file, &format, sizeof(format));
+
+  out_desc->format = (AudioBufferFormat)format;
+
+  // Read the channels
+  
+  u8 channels;
+  file_read_bytes(file, &channels, sizeof(channels));
+
+  out_desc->channels = (u32)channels;
+
+  // Read the sample rate
+  file_read_bytes(file, &out_desc->sample_rate, sizeof(out_desc->sample_rate));
+ 
+  // Read the samples
+
+  u32 size;
+  file_read_bytes(file, &size, sizeof(size));
+
+  out_desc->size = (sizei)size;
+  out_desc->data = memory_allocate(out_desc->size);
+
+  file_read_bytes(file, out_desc->data, out_desc->size);
+}
+
 void file_write_bytes(File& file, const Transform& transform) {
   FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
   

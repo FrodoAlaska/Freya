@@ -238,11 +238,16 @@ FREYA_API void audio_source_pause(AudioSourceID& source);
 /// Queue `count` amount of `buffers` to the given `source` to be played one after the other.
 FREYA_API void audio_source_queue_buffers(AudioSourceID& source, const AudioBufferID* buffers, const sizei count);
 
+/// Push the given `buffer` into `source`. 
+///
+/// @NOTE: This is a helper function to append `buffer` to `AudioSourceDesc.buffers`.
+FREYA_API void audio_source_push_buffer(AudioSourceID& source, const AudioBufferID& buffer);
+
 /// Return back the "playing" state of the given `source`.
 FREYA_API bool audio_source_is_playing(AudioSourceID& source);
 
-/// Set the given `buffer` to be processed by `source`.
-FREYA_API void audio_source_set_buffer(AudioSourceID& source, AudioBufferID& buffer);
+/// Set the given `buffer` at `index` to be processed by `source`.
+FREYA_API void audio_source_set_buffer(AudioSourceID& source, AudioBufferID& buffer, const sizei index);
 
 /// Set the volume of `source` to the given `volume`.
 FREYA_API void audio_source_set_volume(AudioSourceID& source, const f32 volume);

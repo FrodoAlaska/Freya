@@ -29,9 +29,6 @@ int main(int argc, char** argv) {
   freya::asset_group_build(group_id, "../../assets/asset_list.frlist", "dungeon_alpha.frpkg");
   freya::asset_group_load_package(group_id, "dungeon_alpha.frpkg");
 
-  // Editor init
-  freya::gui_init(window);
-
   // Camera init
 
   freya::CameraDesc cam_desc = {
@@ -40,6 +37,13 @@ int main(int argc, char** argv) {
   
   freya::Camera camera;
   freya::camera_create(camera, cam_desc);
+
+  // Audio source init
+
+  freya::AudioSourceID audio_id = freya::audio_source_create(freya::AudioSourceDesc{});
+  freya::audio_source_push_buffer(audio_id, freya::asset_group_get_id(group_id, "maybe_inkspots"));
+
+  freya::audio_source_play(audio_id);
 
   // Main loop
 

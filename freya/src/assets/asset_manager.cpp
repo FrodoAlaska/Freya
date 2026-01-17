@@ -266,15 +266,46 @@ static void read_shaders(File& file, AssetGroup& group) {
     String name;
     file_read_bytes(file, &name);
 
-    // Read the texture desc
+    // Read the shader desc
 
     GfxShaderDesc desc;
     file_read_bytes(file, &desc);
 
-    // Add the texture to the group
+    // Add the shader to the group
     group.named_ids[name] = asset_group_push_shader(group.id, desc); 
 
     FREYA_LOG_DEBUG("Loaded shader \'%s\' from frpkg ", name.c_str());
+  }
+}
+
+static void read_audio_buffers(File& file, AssetGroup& group) {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Read the count
+
+  u16 count;
+  file_read_bytes(file, &count, sizeof(count));
+
+  // Read the asset
+
+  for(u16 i = 0; i < count; i++) {
+    // Read the name
+
+    String name;
+    file_read_bytes(file, &name);
+
+    // Read the audio desc
+
+    AudioBufferDesc desc;
+    file_read_bytes(file, &desc);
+
+    // Add the audio buffer to the group
+    group.named_ids[name] = asset_group_push_audio_buffer(group.id, desc); 
+
+    // Get rid of the audio data on the CPU-side
+    memory_free(desc.data); 
+
+    FREYA_LOG_DEBUG("Loaded audio buffer \'%s\' from frpkg ", name.c_str());
   }
 }
 
@@ -535,7 +566,7 @@ AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioB
   FREYA_LOG_DEBUG("     Sample Rate = %zu", audio_desc.sample_rate);
 
   // Done!
-  return AssetID();
+  return id;
 }
 
 bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path) {
@@ -589,7 +620,7 @@ bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpk
         read_shaders(file, group);
         break;
       case ASSET_TYPE_AUDIO_BUFFER:
-        // read_audio_buffers(file, group);
+        read_audio_buffers(file, group);
         break;
       default:
         break;

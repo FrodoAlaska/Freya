@@ -6,7 +6,6 @@
     - asset manager and assets in general
         - Fonts?????
         
-        - Load in the asset package
         - Asset reloading
         - Test
         - Documentation

@@ -296,6 +296,22 @@ void audio_source_queue_buffers(AudioSourceID& source, const AudioBufferID* buff
   }
 }
 
+void audio_source_push_buffer(AudioSourceID& source, const AudioBufferID& buffer) {
+  sizei& buffers_count = s_audio.sources[source.get_id()].buffers_count;
+
+  // Add the buffer to the array
+
+  s_audio.sources[source.get_id()].buffers[buffers_count] = buffer;
+  buffers_count++;
+   
+  // Queue the buffer up
+
+  u32 buffer_id = buffer.get_id();
+
+  alSourceQueueBuffers(source.get_id(), 1, &buffer_id);
+  check_al_error("alSourceQueueBuffers");
+}
+
 bool audio_source_is_playing(AudioSourceID& source) {
   FREYA_ASSERT_LOG(s_audio.al_device, "The audio device was not initialized for this operation to continue");
 
@@ -305,7 +321,9 @@ bool audio_source_is_playing(AudioSourceID& source) {
   return state == AL_PLAYING;
 }
 
-void audio_source_set_buffer(AudioSourceID& source, AudioBufferID& buffer) {
+void audio_source_set_buffer(AudioSourceID& source, AudioBufferID& buffer, const sizei index) {
+  s_audio.sources[source.get_id()].buffers[index] = buffer;
+
   alSourcei(source.get_id(), AL_BUFFER, buffer.get_id());
   check_al_error("alSourcei(AL_BUFFER)");
 }
