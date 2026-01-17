@@ -15,3 +15,4 @@
 #include <freya_ui.h>
 #include <freya_file.h>
 #include <freya_assets.h>
+#include <freya_render.h>

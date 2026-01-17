@@ -1,6 +1,5 @@
 #pragma once
 
-#include "freya_gfx.h"
 #include "freya_file.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -130,6 +129,18 @@ FREYA_API AssetGroupID asset_group_create(const String& name);
 FREYA_API void asset_group_destroy(const AssetGroupID& group_id);
 
 FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
+
+FREYA_API AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDesc& buff_desc);
+
+FREYA_API AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureDesc& tex_desc);
+
+FREYA_API AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
+
+FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const AssetID& shader_id);
+
+FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
+
+FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
 FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path);
 

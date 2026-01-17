@@ -305,6 +305,48 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
   return true;
 }
 
+AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDesc& buff_desc) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  return AssetID();
+}
+
+AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureDesc& tex_desc) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  return AssetID();
+}
+
+AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  return AssetID();
+}
+
+AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const AssetID& shader_id) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  return AssetID();
+}
+
+AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  return AssetID();
+}
+
+AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  return AssetID();
+}
+
 bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];

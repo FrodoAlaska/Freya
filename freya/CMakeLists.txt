@@ -6,6 +6,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/core/logger.cpp
   ${FREYA_SRC_DIR}/core/memory.cpp
   ${FREYA_SRC_DIR}/core/timer.cpp
+  ${FREYA_SRC_DIR}/core/clock.cpp
   ${FREYA_SRC_DIR}/core/window.cpp
   ${FREYA_SRC_DIR}/core/input.cpp
 
@@ -49,6 +50,10 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/assets/loaders/texture_loader.cpp
   ${FREYA_SRC_DIR}/assets/loaders/shader_loader.cpp
   ${FREYA_SRC_DIR}/assets/loaders/audio_loader.cpp
+ 
+  # Renderer
+  ${FREYA_SRC_DIR}/renderer/camera.cpp
+  ${FREYA_SRC_DIR}/renderer/renderer.cpp
 )
 
 set(FREYA_HEADERS
@@ -68,6 +73,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_timer.h
   ${FREYA_INCLUDE_DIR}/freya_file.h
   ${FREYA_INCLUDE_DIR}/freya_assets.h
+  ${FREYA_INCLUDE_DIR}/freya_render.h
 )
 
 set(FREYA_PCH

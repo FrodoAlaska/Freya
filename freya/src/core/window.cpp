@@ -434,7 +434,7 @@ const bool window_is_shown(const Window* window) {
   return glfwGetWindowAttrib(window->handle, GLFW_VISIBLE);
 }
 
-const IVec2 window_get_size(const Window* window, i32* width, i32* height) {
+const IVec2 window_get_size(const Window* window) {
   return window->size;
 }
 
