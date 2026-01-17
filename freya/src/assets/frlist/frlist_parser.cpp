@@ -18,9 +18,11 @@ static Parser s_parser;
 /// ----------------------------------------------------------------------
 /// Callbacks
 
-static void iterate_assets(const freya::FilePath& base_dir, const freya::FilePath& current_path, void* user_data) {
+static bool iterate_assets(const freya::FilePath& base_dir, const freya::FilePath& current_path, void* user_data) {
   ListSection* section = (ListSection*)user_data;
   section->assets.emplace_back(current_path);
+
+  return true;
 }
 
 /// Callbacks

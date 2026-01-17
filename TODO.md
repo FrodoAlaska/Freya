@@ -1,7 +1,5 @@
 # TODO 
 
-- Asset manager 
-
 - Systems to work on 
     - asset manager and assets in general
         - Fonts?????

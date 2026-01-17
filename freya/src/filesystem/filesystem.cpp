@@ -15,7 +15,9 @@ void filesystem_directory_iterate(const FilePath& dir, const FileIterateFunc& it
   }
   
   for(auto& p : std::filesystem::directory_iterator(dir)) {
-    iter_func(dir, p.path().string(), (void*)user_data);
+    if(!iter_func(dir, p.path().string(), (void*)user_data)) {
+      return;
+    }
   }
 }
 
@@ -26,7 +28,9 @@ void filesystem_directory_recurse_iterate(const FilePath& dir, const FileIterate
   }
   
   for(auto& p : std::filesystem::recursive_directory_iterator(dir)) {
-    iter_func(dir, p.path().string(), (void*)user_data);
+    if(!iter_func(dir, p.path().string(), (void*)user_data)) {
+      return;
+    }
   }
 }
 
@@ -52,6 +56,10 @@ bool filesystem_create_directory(const FilePath& dir_name) {
 
 bool filesystem_create_directories(const FilePath& dir_path) {
   return std::filesystem::create_directories(dir_path);
+}
+
+FileTimePoint filesystem_get_last_write_time(const FilePath& path) {
+  return std::filesystem::last_write_time(path);
 }
 
 /// Filesystem functions

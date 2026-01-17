@@ -141,6 +141,43 @@ static T get_asset(const AssetID& id, DynamicArray<T>& asset, const AssetType ty
   return asset[id.get_id()];
 }
 
+static bool can_build_frpkg(const FilePath& assets_path, const FilePath& output_path) {
+  // Check if output exists... 
+  // we need to build a package if it doesn't exist
+
+  if(!filesystem_exists(output_path)) {
+    return true; 
+  }
+
+  // We also need to build (or update) the package if it 
+  // was modified recently (or more recently than the package file)
+
+  bool has_changed          = false; 
+  FileTimePoint output_time = filesystem_get_last_write_time(output_path);
+
+  // Iterate through each directory and check its write time
+
+  auto iterate_dir = [&](const FilePath& base_dir, const FilePath& current_path, void* user_data) {
+    FileTimePoint current_time = filesystem_get_last_write_time(current_path);
+    if(current_time > output_time) {
+      has_changed = true;
+      return false;
+    }
+
+    return true;
+  };
+  filesystem_directory_iterate(assets_path, iterate_dir);
+
+  // No changes. No need to build
+
+  if(has_changed) {
+    return true;
+  }
+
+  // No need to build the package...
+  return false;
+}
+
 static void build_textures(File& pkg_file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
@@ -356,6 +393,14 @@ void asset_group_destroy(const AssetGroupID& group_id) {
 bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
+
+  // We need to check if it's even needed to build the package. 
+  // For example, it might already be up-to-date.
+
+  if(!can_build_frpkg(filepath_parent_path(list_path), output_path)) {
+    FREYA_LOG_TRACE("Frpkg at \'%s\' is up-to-date", output_path.c_str());
+    return true; // No need to build the package... 
+  }
 
   // Load the frlist file
 

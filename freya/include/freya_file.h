@@ -69,8 +69,14 @@ using File = std::fstream;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// FileTimePoint
+using FileTimePoint = std::filesystem::file_time_type;
+/// FileTimePoint
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// FileIterateFunc
-using FileIterateFunc = std::function<void(const FilePath& base_dir, const FilePath& current_path, void* user_data)>;
+using FileIterateFunc = std::function<bool(const FilePath& base_dir, const FilePath& current_path, void* user_data)>;
 /// FileIterateFunc
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -113,6 +119,9 @@ FREYA_API bool filesystem_create_directory(const FilePath& dir_name);
 /// Create all of the directories (if they don't exist) in the given `dir_path`. 
 /// Returns `true` if the directories were created. Otherwise, the function returns `false`.
 FREYA_API bool filesystem_create_directories(const FilePath& dir_path);
+
+/// Get the last write time of the given `path`
+FREYA_API FileTimePoint filesystem_get_last_write_time(const FilePath& path);
 
 /// Filesystem functions
 ///---------------------------------------------------------------------------------------------------------------------
