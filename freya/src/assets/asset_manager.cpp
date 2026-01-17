@@ -144,10 +144,17 @@ static T get_asset(const AssetID& id, DynamicArray<T>& asset, const AssetType ty
 static void build_textures(File& pkg_file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
+  // Write the number of assets of this type
+
+  u16 asset_count = (u16)section.assets.size(); 
+  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+
+  // Load and write all of the assets
+
   for(const auto& path : section.assets) {
     // Write the name of the asset
 
-    FilePath name = filepath_filename(path);
+    FilePath name = filepath_stem(path);
     file_write_bytes(pkg_file, name);
 
     // Load and save the asset
@@ -163,10 +170,17 @@ static void build_textures(File& pkg_file, const ListSection& section) {
 static void build_shaders(File& pkg_file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
+  // Write the number of assets of this type
+
+  u16 asset_count = (u16)section.assets.size(); 
+  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  
+  // Load and write all of the assets
+
   for(const auto& path : section.assets) {
     // Write the name of the asset
 
-    FilePath name = filepath_filename(path);
+    FilePath name = filepath_stem(path);
     file_write_bytes(pkg_file, name);
 
     // Load and save the asset
@@ -181,10 +195,17 @@ static void build_shaders(File& pkg_file, const ListSection& section) {
 static void build_audio_buffers(File& pkg_file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
+  // Write the number of assets of this type
+
+  u16 asset_count = (u16)section.assets.size(); 
+  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  
+  // Load and write all of the assets
+  
   for(const auto& path : section.assets) {
     // Write the name of the asset
 
-    FilePath name = filepath_filename(path);
+    FilePath name = filepath_stem(path);
     file_write_bytes(pkg_file, name);
 
     // Load and save the asset
@@ -193,6 +214,67 @@ static void build_audio_buffers(File& pkg_file, const ListSection& section) {
 
     audio_loader_load(path, &audio_desc);
     file_write_bytes(pkg_file, audio_desc);
+  }
+}
+
+static void read_textures(File& file, AssetGroup& group) {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Read the count
+
+  u16 count;
+  file_read_bytes(file, &count, sizeof(count));
+
+  // Read the asset
+
+  for(u16 i = 0; i < count; i++) {
+    // Read the name
+
+    String name;
+    file_read_bytes(file, &name);
+
+    // Read the texture desc
+
+    GfxTextureDesc desc;
+    desc.type = GFX_TEXTURE_2D;
+
+    file_read_bytes(file, &desc);
+
+    // Add the texture to the group
+    group.named_ids[name] = asset_group_push_texture(group.id, desc); 
+
+    // Get rid of the texture data on the CPU-side
+    memory_free(desc.data); 
+
+    FREYA_LOG_DEBUG("Loaded texture \'%s\' from frpkg ", name.c_str());
+  }
+}
+
+static void read_shaders(File& file, AssetGroup& group) {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Read the count
+
+  u16 count;
+  file_read_bytes(file, &count, sizeof(count));
+
+  // Read the asset
+
+  for(u16 i = 0; i < count; i++) {
+    // Read the name
+
+    String name;
+    file_read_bytes(file, &name);
+
+    // Read the texture desc
+
+    GfxShaderDesc desc;
+    file_read_bytes(file, &desc);
+
+    // Add the texture to the group
+    group.named_ids[name] = asset_group_push_shader(group.id, desc); 
+
+    FREYA_LOG_DEBUG("Loaded shader \'%s\' from frpkg ", name.c_str());
   }
 }
 
@@ -263,7 +345,12 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
   }
 
   // Write the version
-  file_write_bytes(pkg_file, &FRPKG_VERSION, sizeof(FRPKG_VERSION));
+  file_write_bytes(pkg_file, &FRPKG_VALID_VERSION, sizeof(FRPKG_VALID_VERSION));
+
+  // Write the number of sections
+  
+  u8 sections_count = (u8)list_ctx.sections.size();
+  file_write_bytes(pkg_file, &sections_count, sizeof(sections_count));
 
   // Convert each asset in the list and write it to the newly-create frpkg file
 
@@ -340,7 +427,7 @@ AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureD
  
   // Load the texture's data
   gfx_texture_load(texture, tex_desc);
-  
+ 
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed texture:", group.name.c_str());
@@ -455,9 +542,63 @@ bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpk
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
-  // @TODO (Assets)
+  // Open the frpkg file
+
+  File file; 
+  i32 file_flags = (i32)(FILE_OPEN_READ | FILE_OPEN_BINARY);
+
+  if(!file_open(file, frpkg_path, file_flags)) {
+    FREYA_LOG_ERROR("Failed to open frpkg file at '\%s\'", frpkg_path.c_str());
+    return false;
+  }
+
+  // Read and check the version
+
+  u8 version;
+  file_read_bytes(file, &version, sizeof(version));
+
+  if(version != FRPKG_VALID_VERSION) {
+    FREYA_LOG_ERROR("Invalid frpkg version found \'%s\'. Expected \'%i\', but found \'%i\'", frpkg_path.c_str(), FRPKG_VALID_VERSION, version);
+    return false;
+  }
+
+  // Read the sections count
+
+  u8 sections_count;
+  file_read_bytes(file, &sections_count, sizeof(sections_count));
+
+  //
+  // Read and add all of the assets in the package file
+  //
+  
+  FREYA_LOG_TRACE("Loading assets from \'%s\'...", frpkg_path.c_str());
+
+  for(u8 i = 0; i < sections_count; i++) {
+    // Read the asset type
+
+    u8 asset_type;
+    file_read_bytes(file, &asset_type, sizeof(asset_type));
+
+    // Read the asset depending on its type
+
+    switch(asset_type) {
+      case ASSET_TYPE_TEXTURE:
+        read_textures(file, group);
+        break;
+      case ASSET_TYPE_SHADER:
+        read_shaders(file, group);
+        break;
+      case ASSET_TYPE_AUDIO_BUFFER:
+        // read_audio_buffers(file, group);
+        break;
+      default:
+        break;
+    }
+  }
   
   // Done!
+  
+  file_close(file);
   return true;
 }
 

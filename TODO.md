@@ -1,14 +1,15 @@
 # TODO 
 
 - Asset manager 
-    - Load in the asset package
-    - Asset reloading
-    - Test
-    - Documentation
 
 - Systems to work on 
     - asset manager and assets in general
         - Fonts?????
+        
+        - Load in the asset package
+        - Asset reloading
+        - Test
+        - Documentation
     - camera
     - renderer and ui renderer
     - engine/app integration

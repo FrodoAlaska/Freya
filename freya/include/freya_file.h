@@ -336,6 +336,16 @@ FREYA_API const sizei file_read_bytes(File& file, void* out_buff, const sizei si
 /// @NOTE: This function will raise an error if `file` is not opened.
 FREYA_API void file_read_bytes(File& file, String* str);
 
+/// Read a `GfxTextureDesc` from `file` and save it into `out_desc`.
+///
+/// @NOTE: This function will raise an error if `file` is not opened.
+FREYA_API void file_read_bytes(File& file, GfxTextureDesc* out_desc);
+
+/// Read a `GfxShaderDesc` from `file` and save it into `out_desc`.
+///
+/// @NOTE: This function will raise an error if `file` is not opened.
+FREYA_API void file_read_bytes(File& file, GfxShaderDesc* out_desc);
+
 /// Read a `Transform` from `file` and save it into `transform`.
 ///
 /// @NOTE: This function will raise an error if `file` is not opened.

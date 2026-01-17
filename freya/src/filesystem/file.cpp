@@ -109,8 +109,11 @@ void file_write_bytes(File& file, const String& str) {
   u32 str_len = (u32)str.size();
   file_write_bytes(file, &str_len, sizeof(str_len));
 
-  // Write the string itself
-  file_write_bytes(file, str.c_str(), str.size());
+  // Write the string itself (only if it's valid)
+ 
+  if(str_len > 0) {
+    file_write_bytes(file, str.data(), str_len);
+  }
 }
 
 void file_write_bytes(File& file, const AudioBufferDesc& audio_desc) {
@@ -148,10 +151,20 @@ void file_write_bytes(File& file, const GfxTextureDesc& tex_desc) {
   file_write_bytes(file, &width, sizeof(width));
   file_write_bytes(file, &height, sizeof(height));
  
-  // Write other information
+  // Write the format
 
   u8 format = (u8)tex_desc.format;
   file_write_bytes(file, &format, sizeof(format));
+
+  // Write the filter 
+  
+  u8 filter = (u8)tex_desc.filter;
+  file_write_bytes(file, &filter, sizeof(filter));
+
+  // Write the wrap mode
+  
+  u8 wrap = (u8)tex_desc.wrap_mode;
+  file_write_bytes(file, &wrap, sizeof(wrap));
 
   // Write the data
 
@@ -166,8 +179,8 @@ void file_write_bytes(File& file, const GfxShaderDesc& shader_desc) {
 
   // Write the compue shader
 
+  file_write_bytes(file, shader_desc.compute_source);
   if(!shader_desc.compute_source.empty()) {
-    file_write_bytes(file, shader_desc.compute_source);
     return;
   }
 
@@ -258,12 +271,77 @@ const sizei file_read_bytes(File& file, void* out_buff, const sizei size) {
 
 void file_read_bytes(File& file, String* str) {
   FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
- 
-  // @TODO (File): We should NOT assign arbitrary sizes to the read string
-  char c_str[1024];
 
-  file_read_bytes(file, c_str, sizeof(c_str));
-  *str = String(c_str);
+  // Read the length
+
+  u32 str_len;
+  file_read_bytes(file, &str_len, sizeof(str_len));
+  
+  // Read the string (only if it's valid)
+
+  if(str_len > 0) {
+    str->resize(str_len);
+    file_read_bytes(file, str->data(), str_len);
+  }
+}
+
+void file_read_bytes(File& file, GfxTextureDesc* out_desc) {
+  FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
+  
+  // Read the texture's size
+
+  u16 width, height;
+  file_read_bytes(file, &width, sizeof(width));  
+  file_read_bytes(file, &height, sizeof(height));  
+ 
+  out_desc->width  = width;
+  out_desc->height = height;
+
+  // Read the format
+
+  u8 format;
+  file_read_bytes(file, &format, sizeof(format));
+
+  out_desc->format = (GfxTextureFormat)format;
+
+  // Read the filter
+
+  u8 filter;
+  file_read_bytes(file, &filter, sizeof(filter));
+
+  out_desc->filter = (GfxTextureFilter)filter;
+
+  // Read the wrap
+
+  u8 wrap;
+  file_read_bytes(file, &wrap, sizeof(wrap));
+
+  out_desc->wrap_mode = (GfxTextureWrap)wrap;
+
+  // Read the data
+  
+  sizei pixel_size = (out_desc->format == GFX_TEXTURE_FORMAT_RGBA16F) ? 4 : 1; 
+  sizei data_size  = (width * height) * 4 * pixel_size; // 4 = color components
+
+  out_desc->data = memory_allocate(data_size);
+  file_read_bytes(file, out_desc->data, data_size);
+}
+
+void file_read_bytes(File& file, GfxShaderDesc* out_desc) {
+  FREYA_DEBUG_ASSERT(file.is_open(), "Cannot perform an operation on an unopened file");
+  
+  // Read the compue shader
+
+  file_read_bytes(file, &out_desc->compute_source);
+  if(!out_desc->compute_source.empty()) {
+    return;
+  }
+
+  // Read the vertex shader
+  file_read_bytes(file, &out_desc->vertex_source);
+  
+  // Read the pixel shader
+  file_read_bytes(file, &out_desc->pixel_source);
 }
 
 void file_read_bytes(File& file, Transform* transform) {
