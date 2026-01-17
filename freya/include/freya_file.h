@@ -163,27 +163,27 @@ FREYA_API FilePath filepath_root_path(const FilePath& path);
 
 /// Retrieve the full relative path of `path`. 
 ///
-/// @EXAMPLE: The relative path of `C:\res\shaders\shader.nbr` would be `res\shaders\shader.nbr`.
+/// @EXAMPLE: The relative path of `C:\res\shaders\shader.glsl` would be `res\shaders\shader.glsl`.
 FREYA_API FilePath filepath_relative_path(const FilePath& path);
 
 /// Retrieve the full parent path of `path`. 
 ///
-/// @EXAMPLE: The parent path of `res/shaders/shader.nbr` would be `res/shaders/`.
+/// @EXAMPLE: The parent path of `res/shaders/shader.glsl` would be `res/shaders/`.
 FREYA_API FilePath filepath_parent_path(const FilePath& path);
 
 /// Retrieve the filename of `path`.
 ///
-/// @EXAMPLE: The filename of `res/shaders/shader.nbr` would be `shader.nbr`.
+/// @EXAMPLE: The filename of `res/shaders/shader.glsl` would be `shader.glsl`.
 FREYA_API FilePath filepath_filename(const FilePath& path);
 
 /// Retrieve the stem of `path`.
 ///
-/// @EXAMPLE: The stem of `res/shaders/shader.nbr` would be `shader`.
+/// @EXAMPLE: The stem of `res/shaders/shader.glsl` would be `shader`.
 FREYA_API FilePath filepath_stem(const FilePath& path);
 
 /// Retrieve the extension of `path`.
 ///
-/// @EXAMPLE: The extension of `res/shaders/shader.nbr` would be `.nbr`.
+/// @EXAMPLE: The extension of `res/shaders/shader.glsl` would be `.glsl`.
 FREYA_API FilePath filepath_extension(const FilePath& path);
 
 /// Set the filename of `path` to the given `name`.
@@ -194,7 +194,7 @@ FREYA_API void filepath_set_extension(FilePath& path, const FilePath& ext);
 
 /// Remove the filename of `path`. 
 ///
-/// @EXAMPLE: The path `res/shaders/shader.nbr` will become `res/shaders/`
+/// @EXAMPLE: The path `res/shaders/shader.glsl` will become `res/shaders/`
 FREYA_API void filepath_remove_filename(FilePath& path);
 
 /// Check if `path` has a root name.

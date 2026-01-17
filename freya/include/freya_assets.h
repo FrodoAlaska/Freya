@@ -8,6 +8,7 @@ namespace freya { // Start of freya
 
 // Forward declarations
 
+struct Font;
 struct ShaderContext;
 struct Animation;
 
@@ -153,6 +154,8 @@ FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, 
 
 FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
 
+FREYA_API AssetID asset_group_push_font(const AssetGroupID& group_id, const DynamicArray<u8>& font_data, const String& name);
+
 FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
 FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path);
@@ -166,6 +169,8 @@ FREYA_API GfxTexture* asset_group_get_texture(const AssetID& id);
 FREYA_API GfxShader* asset_group_get_shader(const AssetID& id);
 
 FREYA_API ShaderContext* asset_group_get_shader_context(const AssetID& id);
+
+FREYA_API Font* asset_group_get_font(const AssetID& id);
 
 FREYA_API const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id);
 

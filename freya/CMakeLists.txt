@@ -50,6 +50,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/assets/loaders/texture_loader.cpp
   ${FREYA_SRC_DIR}/assets/loaders/shader_loader.cpp
   ${FREYA_SRC_DIR}/assets/loaders/audio_loader.cpp
+  ${FREYA_SRC_DIR}/assets/loaders/font_loader.cpp
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp

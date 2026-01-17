@@ -2,8 +2,6 @@
 
 - Systems to work on 
     - asset manager and assets in general
-        - Fonts?????
-        
         - Asset reloading
         - Test
         - Documentation

@@ -55,6 +55,25 @@ struct ShaderContext {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Font
+struct Font {
+  /// @NOTE:
+  ///
+  /// The library we currently use for UI (RmlUi) uses FreeType to load 
+  /// the fonts and deal with all that logic. All it needs from us, however, 
+  /// is the byte data loaded from a truetype font. And `font_data` is just that. 
+  ///
+  /// This is clearly not a good approach. But, in the future, we will make RmlUi 
+  /// rely on _our_ font data. For now, though, this is how it works.
+  ///
+
+  String name;
+  DynamicArray<u8> font_data;
+};
+/// Font
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Camera functions
 
 /// Fill the information in `out_camera` using the given `desc`.

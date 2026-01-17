@@ -24,8 +24,8 @@ struct AssetGroup {
   DynamicArray<AudioBufferID> audio_buffers;
   
   DynamicArray<ShaderContext*> shader_contexts;
+  DynamicArray<Font*> fonts;
   // DynamicArray<Animation*> animations;
-  // DynamicArray<Font*> fonts;
 
   HashMap<String, AssetID> named_ids;
 };
@@ -229,6 +229,36 @@ static void build_shaders(File& pkg_file, const ListSection& section) {
   }
 }
 
+static void build_fonts(File& pkg_file, const ListSection& section) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Write the number of assets of this type
+
+  u16 asset_count = (u16)section.assets.size(); 
+  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  
+  // Load and write all of the assets
+  
+  for(const auto& path : section.assets) {
+    // Write the name of the asset
+
+    FilePath name = filepath_stem(path);
+    file_write_bytes(pkg_file, name);
+
+    // Load the asset
+
+    DynamicArray<u8> bytes;
+    font_loader_load(path, bytes);
+
+    // Save the asset
+    
+    u32 data_size = (u32)bytes.size();
+
+    file_write_bytes(pkg_file, &data_size, sizeof(data_size));
+    file_write_bytes(pkg_file, bytes.data(), bytes.size());
+  }
+}
+
 static void build_audio_buffers(File& pkg_file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
@@ -315,6 +345,39 @@ static void read_shaders(File& file, AssetGroup& group) {
   }
 }
 
+static void read_fonts(File& file, AssetGroup& group) {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Read the count
+
+  u16 count;
+  file_read_bytes(file, &count, sizeof(count));
+
+  // Read the asset
+
+  for(u16 i = 0; i < count; i++) {
+    // Read the name
+
+    String name;
+    file_read_bytes(file, &name);
+
+    // Read the font data
+   
+    u32 data_size;
+    file_read_bytes(file, &data_size, sizeof(data_size));
+
+    DynamicArray<u8> font_data;
+    font_data.resize(data_size);
+    
+    file_read_bytes(file, font_data.data(), data_size);
+
+    // Add the font to the group
+    group.named_ids[name] = asset_group_push_font(group.id, font_data, name); 
+
+    FREYA_LOG_DEBUG("Loaded font \'%s\' from frpkg ", name.c_str());
+  }
+}
+
 static void read_audio_buffers(File& file, AssetGroup& group) {
   FREYA_PROFILE_FUNCTION();
   
@@ -376,6 +439,7 @@ void asset_group_destroy(const AssetGroupID& group_id) {
   // Destroy compound assets
   
   DESTROY_COMP_ASSET_MAP(group, shader_contexts);
+  DESTROY_COMP_ASSET_MAP(group, fonts);
 
   // Destroy core assets
   
@@ -448,7 +512,7 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
         build_shaders(pkg_file, section);
         break;
       case ASSET_TYPE_FONT:
-        // @TODO (Assets)
+        build_fonts(pkg_file, section);
         break;
       case ASSET_TYPE_AUDIO_BUFFER:
         build_audio_buffers(pkg_file, section);
@@ -590,6 +654,27 @@ AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxS
   return asset_group_push_shader_context(group_id, shader_id);
 }
 
+AssetID asset_group_push_font(const AssetGroupID& group_id, const DynamicArray<u8>& font_data, const String& name) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+  
+  // Allocate a new font
+  Font* font = new Font{name, font_data};
+
+  // New font added!
+  
+  AssetID id;
+  PUSH_ASSET(group, fonts, font, ASSET_TYPE_FONT, id);
+
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed a font:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Data size = %zu", font_data.size());
+
+  // Done!
+  return id;
+}
+
 AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
@@ -664,6 +749,9 @@ bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpk
       case ASSET_TYPE_SHADER:
         read_shaders(file, group);
         break;
+      case ASSET_TYPE_FONT:
+        read_fonts(file, group);
+        break;
       case ASSET_TYPE_AUDIO_BUFFER:
         read_audio_buffers(file, group);
         break;
@@ -711,6 +799,11 @@ GfxShader* asset_group_get_shader(const AssetID& id) {
 ShaderContext* asset_group_get_shader_context(const AssetID& id) {
   AssetGroup& group = s_manager.groups[id.get_group_id()];
   return get_asset(id, group.shader_contexts, ASSET_TYPE_SHADER_CONTEXT);
+}
+
+Font* asset_group_get_font(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.fonts, ASSET_TYPE_FONT);
 }
 
 const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id) {

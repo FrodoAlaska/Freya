@@ -7,8 +7,8 @@ shaders
 # :: ANIMATION
 # animations
 
-# :: FONT
-# fonts
+:: FONT
+fonts
 
 :: AUDIO
 audio 
