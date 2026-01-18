@@ -2,8 +2,6 @@
 
 - Systems to work on 
     - asset manager and assets in general
-        - Asset reloading
-        - Test
         - Documentation
     - camera
     - renderer and ui renderer

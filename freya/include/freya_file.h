@@ -39,24 +39,6 @@ enum FileOpenMode {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// FileStatus
-enum FileStatus {
-  /// Used when a file gets created.
-  FILE_STATUS_CREATED, 
-  
-  /// Used when a file gets modified.
-  FILE_STATUS_MODIFIED, 
-  
-  /// Used when a file gets deleted.
-  FILE_STATUS_DELETED, 
-
-  /// Used when a file gets renamed 
-  FILE_STATUS_RENAMED, 
-};
-/// FileStatus
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// FilePath
 using FilePath = String;
 /// FilePath
@@ -78,17 +60,6 @@ using FileTimePoint = std::filesystem::file_time_type;
 /// FileIterateFunc
 using FileIterateFunc = std::function<bool(const FilePath& base_dir, const FilePath& current_path, void* user_data)>;
 /// FileIterateFunc
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// FileWatchFunc
-using FileWatchFunc   = std::function<void(const FileStatus status, const FilePath& path, void* user_data)>;
-/// FileWatchFunc
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Predefines to prevent circular dependencies
-
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -124,18 +95,6 @@ FREYA_API bool filesystem_create_directories(const FilePath& dir_path);
 FREYA_API FileTimePoint filesystem_get_last_write_time(const FilePath& path);
 
 /// Filesystem functions
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Filewatcher functions 
-
-/// Add the given file at `path` to the file watcher, with `callback` to be invoked later, passing in `user_data`.
-FREYA_API void filewatcher_add_file(const FilePath& path, const FileWatchFunc& callback, const void* user_data);
-
-/// Add all the files at `dir` to the file watcher, with `callback` to be invoked later, passing in `user_data`. 
-FREYA_API void filewatcher_add_dir(const FilePath& dir, const FileWatchFunc& callback, const void* user_data);
-
-/// Filewatcher functions 
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------

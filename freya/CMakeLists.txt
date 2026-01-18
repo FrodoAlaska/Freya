@@ -34,23 +34,22 @@ set(FREYA_SOURCES
 
   # Filesystem
   ${FREYA_SRC_DIR}/filesystem/file.cpp
-  ${FREYA_SRC_DIR}/filesystem/filewatcher.cpp
   ${FREYA_SRC_DIR}/filesystem/filesystem.cpp
   ${FREYA_SRC_DIR}/filesystem/filepath.cpp
 
   # Assets
-  ${FREYA_SRC_DIR}/assets/asset_manager.cpp
+  ${FREYA_SRC_DIR}/freya_assets/asset_manager.cpp
 
   # Assets/frlist
-  ${FREYA_SRC_DIR}/assets/frlist/frlist_lexer.cpp
-  ${FREYA_SRC_DIR}/assets/frlist/frlist_parser.cpp
-  ${FREYA_SRC_DIR}/assets/frlist/frlist.cpp
+  ${FREYA_SRC_DIR}/freya_assets/frlist/frlist_lexer.cpp
+  ${FREYA_SRC_DIR}/freya_assets/frlist/frlist_parser.cpp
+  ${FREYA_SRC_DIR}/freya_assets/frlist/frlist.cpp
   
   # Assets/loaders
-  ${FREYA_SRC_DIR}/assets/loaders/texture_loader.cpp
-  ${FREYA_SRC_DIR}/assets/loaders/shader_loader.cpp
-  ${FREYA_SRC_DIR}/assets/loaders/audio_loader.cpp
-  ${FREYA_SRC_DIR}/assets/loaders/font_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/texture_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/shader_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/audio_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/font_loader.cpp
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp

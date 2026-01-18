@@ -138,11 +138,11 @@ struct AssetID {
 ///---------------------------------------------------------------------------------------------------------------------
 /// AssetGroupID functions
 
-FREYA_API AssetGroupID asset_group_create(const String& name);
+FREYA_API AssetGroupID asset_group_create(const String& name, const FilePath& list_path, const FilePath& output_path);
 
 FREYA_API void asset_group_destroy(const AssetGroupID& group_id);
 
-FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
+FREYA_API bool asset_group_build(const AssetGroupID& group_id);
 
 FREYA_API AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDesc& buff_desc);
 
@@ -158,7 +158,7 @@ FREYA_API AssetID asset_group_push_font(const AssetGroupID& group_id, const Dyna
 
 FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
-FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path);
+FREYA_API bool asset_group_load_package(const AssetGroupID& group_id);
 
 FREYA_API const AssetID& asset_group_get_id(const AssetGroupID& group_id, const String& asset_name);
 

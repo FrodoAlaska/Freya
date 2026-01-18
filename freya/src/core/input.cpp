@@ -2,6 +2,7 @@
 #include "freya_event.h"
 #include "freya_logger.h"
 #include "freya_memory.h"
+#include "freya_timer.h"
 
 #include <GLFW/glfw3.h>
 
@@ -126,6 +127,8 @@ void input_init() {
 }
 
 void input_update() {
+  FREYA_PROFILE_FUNCTION();
+
   // Updating the input states 
   
   memory_copy(s_input.previous_key_state, s_input.current_key_state, sizeof(s_input.current_key_state)); 
