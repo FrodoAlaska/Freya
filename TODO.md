@@ -1,13 +1,13 @@
 # TODO 
 
 - Systems to work on 
-    - camera
     - renderer and ui renderer
-    - engine/app integration
+        - complete the camera
     - physics 
     - 2D animations
     - 2D cpu-based particles
     - entity
+    - Readme
 
 - Other systems to work on in the future 
     - User-friendly post-process effects

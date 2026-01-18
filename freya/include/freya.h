@@ -16,3 +16,4 @@
 #include <freya_file.h>
 #include <freya_assets.h>
 #include <freya_render.h>
+#include <freya_app.h>

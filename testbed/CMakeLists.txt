@@ -25,6 +25,7 @@ set(TESTBED_TYPE
 ############################################################
 set(TESTBED_SOURCES 
   ${TESTBED_SRC_DIR}/${TESTBED_TYPE}/main.cpp
+  ${TESTBED_SRC_DIR}/${TESTBED_TYPE}/app.cpp
 )
 ############################################################
 

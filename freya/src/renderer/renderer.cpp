@@ -71,8 +71,6 @@ void renderer_begin(const Camera& camera) {
 
 void renderer_end() {
   // @TODO (Renderer)
-
-  gfx_context_present(s_renderer.ctx);
 }
 
 void renderer_set_clear_color(const Vec4& color) {

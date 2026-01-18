@@ -9,6 +9,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/core/clock.cpp
   ${FREYA_SRC_DIR}/core/window.cpp
   ${FREYA_SRC_DIR}/core/input.cpp
+  ${FREYA_SRC_DIR}/core/engine.cpp
 
   # Math
   ${FREYA_SRC_DIR}/math/common.cpp
@@ -75,6 +76,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_file.h
   ${FREYA_INCLUDE_DIR}/freya_assets.h
   ${FREYA_INCLUDE_DIR}/freya_render.h
+  ${FREYA_INCLUDE_DIR}/freya_app.h
 )
 
 set(FREYA_PCH

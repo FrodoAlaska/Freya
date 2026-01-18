@@ -243,7 +243,7 @@ const char* input_gamepad_get_name(const JoystickID id) {
   return glfwGetGamepadName(id);
 }
 
-void input_action_bind(const char* action_name, const InputAction action) {
+void input_action_bind(const String& action_name, const InputAction action) {
   s_input.actions[action_name] = action;
 }
 
