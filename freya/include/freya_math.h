@@ -55,24 +55,6 @@ const f64 FLOAT_MAX = 3.40282e+38F;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// VertexComponentType 
-enum VertexComponentType {
-  /// A bit for the position component of a vertex.
-  VERTEX_COMPONENT_POSITION       = 1 << 0,
-  
-  /// A bit for the normal component of a vertex.
-  VERTEX_COMPONENT_NORMAL         = 1 << 1,
-  
-  /// A bit for the texture coordinate component of a vertex.
-  VERTEX_COMPONENT_TEXTURE_COORDS = 1 << 2,
-  
-  /// A bit for the color component of a vertex.
-  VERTEX_COMPONENT_COLOR          = 1 << 3,
-};
-/// VertexComponentType 
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// Vec2
 typedef glm::vec2 Vec2;
 /// Vec2
@@ -168,7 +150,9 @@ struct Vertex2D {
   Vec2 position; 
   Vec2 normal;
   Vec2 texture_coords;
+
   Vec4 color;
+  f32 texture_index;
 };
 /// Vertex3D
 ///---------------------------------------------------------------------------------------------------------------------
@@ -550,18 +534,6 @@ FREYA_API void transform_lerp_rotation(Transform& trans, const f32 rotation, con
 FREYA_API void transform_lerp_scale(Transform& trans, const Vec2& scale, const f32 delta);
 
 /// Transform functions
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Vertex functions
-
-/// Returns the number of components per vertex type in the given `vertex_flags`.
-FREYA_API const sizei vertex_get_components_count(const i32 vertex_flags);
-
-/// Returns the stride in bytes in the given `vertex_flags`.
-FREYA_API const sizei vertex_get_stride(const i32 vertex_flags);
-
-/// Vertex functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------

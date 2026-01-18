@@ -6,8 +6,8 @@
 - Systems to work on 
     - renderer
         - complete the camera
-    - entity
     - 2D animations
+    - entity
     - 2D cpu-based particles
     - physics 
     - Readme

@@ -164,13 +164,13 @@ FREYA_API GfxContext* renderer_get_context();
 FREYA_API void renderer_queue_texture(const AssetID& texture_id, const Rect2D& src, const Rect2D& dest, const Vec4& tint = Vec4(1.0f));
 
 /// Queue a texture to be drawn by the end of the frame, using
-/// the given `texture_id` at `position` with size of `size` and tinted with `tint`.
+/// the given `texture_id`, and transform, with `tint` color.
 ///
 /// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
-FREYA_API void renderer_queue_texture(const AssetID& texture_id, const Vec2& position, const Vec2& size, const Vec4& tint = Vec4(1.0f));
+FREYA_API void renderer_queue_texture(const AssetID& texture_id, const Transform& transform, const Vec4& tint = Vec4(1.0f));
 
-/// Queue a quad at `position` with a size of `size` and tinted with `color`.
-FREYA_API void renderer_queue_quad(const Vec2& position, const Vec2& size, const Vec4& color);
+/// Queue a quad using `transform` with a `color`.
+FREYA_API void renderer_queue_quad(const Transform& transform, const Vec4& color);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

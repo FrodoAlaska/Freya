@@ -93,7 +93,12 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 void app_render(freya::App* app) {
   // 2D render
 
+  freya::Transform transform;
+  transform.position = freya::Vec2(100.0f);
+  transform.scale    = freya::Vec2(32.0f);
+
   freya::renderer_begin(app->camera);
+  freya::renderer_queue_texture(freya::asset_group_get_id(app->group_id, "grass"), transform);
   freya::renderer_end();
 
   // UI render
