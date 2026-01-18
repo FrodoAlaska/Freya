@@ -1246,6 +1246,7 @@ void gfx_context_set_target(GfxContext* gfx, GfxFramebuffer* framebuffer) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
 
   // Set the default values for when binding to the default framebuffer
+  
   gfx->current_clear_flags = gfx->default_clear_flags;
   gfx->current_target      = 0;
 

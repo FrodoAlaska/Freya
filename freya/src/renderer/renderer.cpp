@@ -283,7 +283,9 @@ void renderer_begin(const Camera& camera) {
                          mat4_raw_data(s_renderer.view));
 
   // @TODO (Renderer): Set the renderer's framebuffer
- 
+
+  gfx_context_set_target(s_renderer.ctx, nullptr);
+
   Vec4& col = s_renderer.clear_color;
   gfx_context_clear(s_renderer.ctx, col.r, col.g, col.b, col.a);
 

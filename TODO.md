@@ -4,8 +4,8 @@
     - While RenderDoc shows valid output with the UI renderer, we don't see anything in the application. 
 
 - Systems to work on 
-    - renderer
-        - complete the camera
+    - complete the camera
+    - The renderer should adhere to the given camera
     - 2D animations
     - entity
     - 2D cpu-based particles
