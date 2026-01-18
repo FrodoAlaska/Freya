@@ -1142,7 +1142,7 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
   const u8* gl_version   = glGetString(GL_VERSION);
   const u8* glsl_version = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-  // Check for extensions
+  // Get the current extensions
 
   i32 extensions_count = 0; 
   glGetIntegerv(GL_NUM_EXTENSIONS, &extensions_count);
@@ -1152,21 +1152,6 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
   for(i32 i = 0; i < extensions_count; i++) {
     String ext = (const char*)glGetStringi(GL_EXTENSIONS, i);
     gfx->extensions[i] = ext;
-  }
-
-  if(!gfx_context_has_extension(gfx, "GL_ARB_bindless_texture")) {
-    FREYA_LOG_FATAL("Could not find GL_ARB_bindless_texture extension in this driver.");
-  }
-  
-  if(!gfx_context_has_extension(gfx, "GL_ARB_draw_indirect")) {
-    FREYA_LOG_FATAL("Could not find GL_ARB_draw_indirect extension in this driver.");
-  }
-
-  if(!gfx_context_has_extension(gfx, "GL_ARB_seamless_cube_map")) {
-    FREYA_LOG_WARN("Could not find GL_ARB_seamless_cube_map extension in this driver.");
-  }
-  else {
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
   }
 
   // Listen to some events

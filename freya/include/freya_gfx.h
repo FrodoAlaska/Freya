@@ -1060,7 +1060,7 @@ struct GfxTextureDesc {
   /// If the texture was created in a non-bindless way, 
   /// you _must_ destroy it and re-create it with this 
   /// flag on, in order to enable bindless capabilities.
-  bool is_bindless    = true;
+  bool is_bindless    = false;
 
   /// The pixels that will be sent to the GPU.
   void* data          = nullptr;

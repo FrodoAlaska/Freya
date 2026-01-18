@@ -175,6 +175,38 @@ FREYA_API void renderer_queue_quad(const Vec2& position, const Vec2& size, const
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
 
+///---------------------------------------------------------------------------------------------------------------------
+/// UI renderer functions
+
+/// Initialize the UI renderer.
+FREYA_API bool ui_renderer_init(GfxContext* gfx);
+
+/// Shutdown and reclaim all the memory allocated by the UI renderer.
+FREYA_API void ui_renderer_shutdown();
+
+/// Begin the rendering process of the UI renderer.
+FREYA_API void ui_renderer_begin();
+
+/// End the rendering process of the UI renderer. 
+FREYA_API void ui_renderer_end();
+
+/// Set the internal asset group of the UI renderer to the given `group_id`.
+/// 
+/// @NOTE: This is essential, since the renderer will refer (by name, usually) 
+/// to already-loaded assets. This function _MUST_ be called at least once on initialization.
+FREYA_API void ui_renderer_set_asset_group(const AssetGroupID& group_id);
+
+/// Set the internal font of the UI renderer to the font retrieved 
+/// from the internal asset group of the UI renderer using the given `font_name`.
+///
+/// @NOTE: This function _MUST_ be called only after setting the internal 
+/// asset group of the UI renderer (see `ui_renderer_set_asset_group`).
+/// In addition, this function _MUST_ be called at least once on initialization.
+FREYA_API bool ui_renderer_set_font(const String& font_name);
+
+/// UI renderer functions
+///---------------------------------------------------------------------------------------------------------------------
+
 } // End of freya
 
 //////////////////////////////////////////////////////////////////////////

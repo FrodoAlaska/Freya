@@ -32,6 +32,7 @@ set(FREYA_SOURCES
 
   # UI
   ${FREYA_SRC_DIR}/ui/gui.cpp
+  ${FREYA_SRC_DIR}/ui/rmlui_backend.cpp
 
   # Filesystem
   ${FREYA_SRC_DIR}/filesystem/file.cpp
@@ -54,8 +55,9 @@ set(FREYA_SOURCES
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp
-  ${FREYA_SRC_DIR}/renderer/renderer.cpp
   ${FREYA_SRC_DIR}/renderer/shader_context.cpp
+  ${FREYA_SRC_DIR}/renderer/renderer.cpp
+  ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
 )
 
 set(FREYA_HEADERS

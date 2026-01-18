@@ -1,0 +1,459 @@
+#include "freya_render.h"
+#include "freya_ui.h"
+#include "freya_assets.h"
+#include "freya_event.h"
+#include "freya_input.h"
+#include "freya_logger.h"
+
+#include "shaders/ui_shaders.h"
+
+#include <RmlUi/Core.h>
+#include <RmlUi/Core/SystemInterface.h>
+#include <RmlUi/Core/RenderInterface.h>
+#include <RmlUi/Core/Input.h>
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Log.h>
+
+//////////////////////////////////////////////////////////////////////////
+
+namespace freya { // Start of freya
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Consts
+
+const sizei VERTEX_BUFFER_SIZE = KiB(256);
+const sizei INDEX_BUFFER_SIZE  = KiB(256);
+
+/// Consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// ShaderID
+enum ShaderID {
+  SHADER_TEXTURE = 0, 
+  SHADER_COLOR,
+  SHADER_GRADIENT, 
+  SHADER_CREATION, 
+  SHADER_COLOR_MATRIX,
+  SHADER_BLEND_MASK,
+
+  SHADERS_MAX,
+};
+/// ShaderID
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Forward declarations
+
+class FRSystemInterface;
+class FRRenderInterface;
+
+/// Forward declarations
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIBatch
+struct UIBatch {
+  DynamicArray<Rml::Vertex> vertices; 
+  DynamicArray<i32> indices;
+};
+/// UIBatch
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIDrawCall
+struct UIDrawCall {
+  GfxTexture* texture; 
+  ShaderID shader_id;
+
+  Vec2 translation = Vec2(0.0f);
+  Mat4 transform   = Mat4(1.0f);
+
+  sizei batch_index = 0;
+};
+/// UIDrawCall
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIRenderer
+struct UIRenderer {
+  FRSystemInterface* system_interface; 
+  FRRenderInterface* render_interface;
+
+  GfxContext* gfx;
+  Window* window;
+  GfxPipeline* pipeline; 
+
+  ShaderContext* shaders[SHADERS_MAX]; // Pre-compiled shader contexts
+
+  DynamicArray<UIBatch> batches;       // Compiled batches
+  DynamicArray<GfxTexture*> textures;  // Textures in use
+  DynamicArray<UIDrawCall> draw_calls; // Compiled draw calls
+
+  Mat4 transform = Mat4(1.0f);
+  Mat4 ortho     = Mat4(1.0f);
+
+  AssetGroupID group_id;
+};
+
+static UIRenderer s_renderer;
+/// UIRenderer
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// FRSystemInterface
+class FRSystemInterface : public Rml::SystemInterface {
+public:
+  FRSystemInterface() = default;
+
+public:
+  double GetElapsedTime() override {
+    return clock_get_time();
+  }
+
+  bool LogMessage(Rml::Log::Type type, const Rml::String& message) override {
+    switch(type) {
+      case Rml::Log::Type::LT_ERROR:
+        FREYA_LOG_ERROR("RML-ERROR: %s", message.c_str());
+        return false;
+      case Rml::Log::Type::LT_ASSERT:
+        FREYA_DEBUG_ASSERT(false, message.c_str());
+        return false;
+      case Rml::Log::Type::LT_WARNING:
+        FREYA_LOG_WARN("RML-WARNING: %s", message.c_str());
+        break;
+      case Rml::Log::Type::LT_INFO:
+        FREYA_LOG_INFO("RML-INFO:  %s", message.c_str());
+        break;
+    }
+
+    return true;
+  }
+};
+/// FRSystemInterface
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// FRRenderInterface
+class FRRenderInterface : public Rml::RenderInterface {
+public:
+  FRRenderInterface(UIRenderer& ui_renderer)
+    :renderer(ui_renderer)
+  {}
+
+public:
+  Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override {
+    UIBatch batch = {}; 
+    batch.vertices.assign(vertices.data(), vertices.data() + vertices.size());
+    batch.indices.assign(indices.data(), indices.data() + indices.size());
+
+    renderer.batches.push_back(batch);
+    return (Rml::CompiledGeometryHandle)(renderer.batches.size());
+  }
+  
+  void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture) override {
+    UIDrawCall call{};
+    call.texture     = (texture == 0) ? nullptr : renderer.textures[(sizei)(texture - 1)];
+    call.shader_id   = (texture == 0) ? SHADER_COLOR : SHADER_TEXTURE;
+    call.translation = Vec2(translation.x, translation.y);
+    call.transform   = renderer.transform;
+    call.batch_index = (sizei)(geometry - 1);
+
+    renderer.draw_calls.push_back(call);
+  }
+  
+  void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override {
+    // @NOTE: Nothing to do here, since we're batching the geometry...
+  }
+
+  Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override {
+    // Use the preset asset group to retrieve the texture by name
+   
+    String name         = filepath_stem(source);
+    AssetID texture_id  = asset_group_get_id(renderer.group_id, name);
+    GfxTexture* texture = asset_group_get_texture(texture_id);
+
+    // Write back the dimensions of the texture to Rml
+
+    GfxTextureDesc& tex_desc = gfx_texture_get_desc(texture);
+    texture_dimensions.x     = tex_desc.width;
+    texture_dimensions.y     = tex_desc.height;
+
+    // Done!
+    
+    renderer.textures.push_back(texture); 
+    return (Rml::TextureHandle)(renderer.textures.size());
+  }
+
+  Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override {
+    // Convert the given data to our format
+
+    GfxTextureDesc tex_desc; 
+    tex_desc.width  = source_dimensions.x; 
+    tex_desc.height = source_dimensions.y; 
+    tex_desc.depth  = 0; 
+    tex_desc.mips   = 1; 
+    tex_desc.type   = GFX_TEXTURE_2D; 
+    tex_desc.format = GFX_TEXTURE_FORMAT_RGBA8; 
+    tex_desc.data   = (void*)source.data();
+
+    // Add it to the asset group
+    AssetID texture_id = asset_group_push_texture(renderer.group_id, tex_desc); 
+
+    // Done!
+    
+    renderer.textures.push_back(asset_group_get_texture(texture_id)); 
+    return (Rml::TextureHandle)(renderer.textures.size());
+  }
+
+  void ReleaseTexture(Rml::TextureHandle texture) override {
+    renderer.textures[(sizei)(texture - 1)] = nullptr;
+  }
+
+  void EnableScissorRegion(bool enable) override {
+    gfx_context_set_state(renderer.gfx, GFX_STATE_SCISSOR, enable);
+  }
+
+  void SetScissorRegion(Rml::Rectanglei region) {
+    Rml::Vector2i position = region.Position();
+    Rml::Vector2i size     = region.Size();
+
+    gfx_context_set_scissor_rect(renderer.gfx, position.x, position.y, size.x, size.y);
+  }
+
+  void SetTransform(const Rml::Matrix4f* transform) {
+    if(!transform) {
+      renderer.transform = Mat4(1.0f);
+      return;
+    }
+
+    Rml::Vector4f colomn1 = (*transform)[0];
+    Rml::Vector4f colomn2 = (*transform)[1];
+    Rml::Vector4f colomn3 = (*transform)[2];
+    Rml::Vector4f colomn4 = (*transform)[3];
+
+    renderer.transform[0] = Vec4(colomn1.x, colomn1.y, colomn1.z, colomn1.w);
+    renderer.transform[1] = Vec4(colomn2.x, colomn2.y, colomn2.z, colomn2.w);
+    renderer.transform[2] = Vec4(colomn3.x, colomn3.y, colomn3.z, colomn3.w);
+    renderer.transform[3] = Vec4(colomn4.x, colomn4.y, colomn4.z, colomn4.w);
+  }
+
+  Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) {
+    // @TODO (UI)
+    return 0;
+  }
+  
+  void RenderShader(Rml::CompiledShaderHandle shader,
+                    Rml::CompiledGeometryHandle geometry,
+                    Rml::Vector2f translation,
+                    Rml::TextureHandle texture) {
+    // @TODO (UI)
+  }
+
+  void ReleaseShader(Rml::CompiledShaderHandle shader) {
+    // @TODO (UI)
+  }
+
+public:
+  UIRenderer& renderer;
+};
+/// FRRenderInterface
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UI renderer functions
+
+bool ui_renderer_init(GfxContext* gfx) {
+  FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext given to ui_renderer_init");
+  FREYA_PROFILE_FUNCTION();
+
+  s_renderer.gfx    = gfx;
+  s_renderer.window = gfx_context_get_desc(gfx).window;
+
+  //
+  // Pipeline init
+  //
+
+  GfxPipelineDesc pipe_desc{};
+
+  // Vertex buffer init
+
+  GfxBufferDesc buff_desc = {
+    .data  = nullptr, 
+    .size  = VERTEX_BUFFER_SIZE,
+    .type  = GFX_BUFFER_VERTEX,
+    .usage = GFX_BUFFER_USAGE_DYNAMIC_DRAW,
+  };
+  pipe_desc.vertex_buffer = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
+
+  // Index buffer init
+
+  buff_desc = {
+    .data  = nullptr, 
+    .size  = INDEX_BUFFER_SIZE,
+    .type  = GFX_BUFFER_INDEX,
+    .usage = GFX_BUFFER_USAGE_DYNAMIC_DRAW,
+  };
+  pipe_desc.index_buffer = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
+
+  // Layouts init
+
+  pipe_desc.layouts[0].attributes[0]    = GFX_LAYOUT_FLOAT2; // Position
+  pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_UBYTE4; // Color
+  pipe_desc.layouts[0].attributes[2]    = GFX_LAYOUT_FLOAT2; // Texture coords
+  pipe_desc.layouts[0].attributes_count = 3;
+  
+  // Create the pipeline 
+
+  pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE; 
+  s_renderer.pipeline = gfx_pipeline_create(gfx, pipe_desc);
+
+  //
+  // Shaders init
+  //
+
+  AssetID shader_ids[SHADERS_MAX] = {
+    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_texture_shader()), 
+    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_color_shader()), 
+    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_gradient_shader()), 
+    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_creation_shader()),  
+    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_color_matrix()),  
+    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_blend_mask()),  
+  };
+
+  for(sizei i = 0; i < SHADERS_MAX; i++) {
+    s_renderer.shaders[i] = asset_group_get_shader_context(shader_ids[i]);
+  }
+
+  // Pre-allocating some memory for better performance
+  s_renderer.batches.reserve(128);
+
+  //
+  // Interfaces init
+  //
+
+  s_renderer.system_interface = new FRSystemInterface();
+  s_renderer.render_interface = new FRRenderInterface(s_renderer);
+
+  Rml::SetSystemInterface(s_renderer.system_interface);
+  Rml::SetRenderInterface(s_renderer.render_interface);
+  
+  Rml::Initialise();
+
+  // Done!
+  
+  FREYA_LOG_INFO("Successfully initialized the ui renderer");
+  return true;
+}
+
+void ui_renderer_shutdown() {
+  FREYA_PROFILE_FUNCTION();
+
+  // Interfaces deinit
+  
+  Rml::Shutdown();
+
+  delete s_renderer.render_interface;
+  delete s_renderer.system_interface;
+
+  // Clearing all the resources
+
+  for(auto& batch : s_renderer.batches) {
+    batch.vertices.clear();
+    batch.indices.clear();
+  }
+
+  s_renderer.batches.clear();
+  s_renderer.draw_calls.clear();
+
+  // Done!
+  FREYA_LOG_INFO("Successfully shutdown the ui renderer");
+}
+
+void ui_renderer_begin() {
+  FREYA_PROFILE_FUNCTION();
+
+  // Calculating the orthographic matrix
+
+  IVec2 framebuffer_size = window_get_size(s_renderer.window);
+  s_renderer.ortho       = mat4_ortho(0.0f, (f32)framebuffer_size.x, (f32)framebuffer_size.y, 0.0f) * s_renderer.transform;
+
+  // Clear calls from previous frames
+  s_renderer.draw_calls.clear();
+}
+
+void ui_renderer_end() {
+  FREYA_PROFILE_FUNCTION();
+
+  // Initiating the draw calls
+
+  for(auto& call : s_renderer.draw_calls) {
+    // Retrieve the correct shader
+
+    ShaderContext* shader = s_renderer.shaders[call.shader_id];
+
+    // Setting uniforms 
+
+    shader_context_set_uniform(shader, "u_translate", call.translation);
+    shader_context_set_uniform(shader, "u_transform", call.transform);
+    shader_context_set_uniform(shader, "u_projection", s_renderer.ortho);
+
+    // Use the resources
+
+    GfxBindingDesc bind_desc;
+    bind_desc.shader = shader->shader;
+
+    if(call.texture) {
+      bind_desc.textures       = &call.texture;
+      bind_desc.textures_count = 1;
+    }
+
+    gfx_context_use_bindings(s_renderer.gfx, bind_desc);
+
+    // Update the required resources
+    
+    GfxPipelineDesc& pipe_desc = gfx_pipeline_get_desc(s_renderer.pipeline);
+
+    UIBatch& batch = s_renderer.batches[call.batch_index];
+    if(!batch.vertices.empty()) {
+      gfx_buffer_upload_data(pipe_desc.vertex_buffer, 
+                             0, 
+                             sizeof(Rml::Vertex) * batch.vertices.size(), 
+                             batch.vertices.data());
+    }
+
+    if(!batch.indices.empty()) {
+      gfx_buffer_upload_data(pipe_desc.index_buffer, 
+                             0, 
+                             sizeof(i32) * batch.indices.size(), 
+                             batch.indices.data());
+    }
+
+    pipe_desc.vertices_count = batch.vertices.size();
+    pipe_desc.indices_count  = batch.indices.size();
+    gfx_pipeline_update(s_renderer.pipeline, pipe_desc);
+    
+    // Render the batch
+
+    gfx_context_use_pipeline(s_renderer.gfx, s_renderer.pipeline); 
+    gfx_context_draw(s_renderer.gfx, 0);
+  }
+}
+
+void ui_renderer_set_asset_group(const AssetGroupID& group_id) {
+  s_renderer.group_id = group_id;
+}
+
+bool ui_renderer_set_font(const String& font_name) {
+  const AssetID& font_id = asset_group_get_id(s_renderer.group_id, font_name);
+  Font* font             = asset_group_get_font(font_id);
+
+  return Rml::LoadFontFace(font->font_data, font->name, Rml::Style::FontStyle::Normal);
+}
+
+/// UI renderer functions
+///---------------------------------------------------------------------------------------------------------------------
+
+} // End of freya
+
+//////////////////////////////////////////////////////////////////////////

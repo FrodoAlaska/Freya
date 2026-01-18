@@ -44,6 +44,9 @@ void engine_init(const AppDesc& desc) {
 
   // Input init
   input_init();
+
+  // Asset manager init
+  asset_manager_init();
  
   // Window init 
   
@@ -76,7 +79,7 @@ void engine_init(const AppDesc& desc) {
   renderer_init(s_engine.window);
   s_engine.gfx_context = renderer_get_context();
   
-  // @TODO: ui_renderer_init(s_engine.gfx_context);
+  ui_renderer_init(s_engine.gfx_context);
 
   // Audio init
   audio_device_init(nullptr);
@@ -123,9 +126,11 @@ void engine_shutdown() {
   CHECK_VALID_CALLBACK(s_engine.app_desc.shutdown_fn, s_engine.app);
 
   audio_device_shutdown();
+  ui_renderer_shutdown();
   renderer_shutdown();
 
   window_close(s_engine.window);
+  asset_manager_shutdown();
   event_shutdown();
   
   FREYA_LOG_INFO("Appication \'%s\' was successfully shutdown", s_engine.app_desc.window_title.c_str());

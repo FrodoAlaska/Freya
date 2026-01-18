@@ -25,7 +25,7 @@ const i32 ASSET_GROUP_INVALID = -1;
 const i16 ASSET_ID_INVALID    = -1;
 
 /// The ID of the group associated with the rasset cache.
-const i16 ASSET_CACHE_ID      = 0;
+const i32 ASSET_CACHE_ID      = 0;
 
 /// Assets consts
 ///---------------------------------------------------------------------------------------------------------------------
@@ -148,22 +148,32 @@ struct AssetID {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Asset manager functions
+
+/// Initialize the global asset manager.
+FREYA_API void asset_manager_init();
+
+/// Shutdown the global asset manager, reclaming any memory in the process 
+/// and destroying the cache asset group.
+FREYA_API void asset_manager_shutdown();
+
+/// Asset manager functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// AssetGroupID functions
 
-/// Create a new asset group with a `name` and a `list_path` to gather all of the 
-/// intermediary formats to build them into `output_path`.
-///
-/// @NOTE: The `list_path` will be used in the `asset_group_build` function, while 
-/// the `output_path` will be used to load a `FRPKG` file with the `asset_group_load_package` function.
-FREYA_API AssetGroupID asset_group_create(const String& name, const FilePath& list_path, const FilePath& output_path);
+/// Create a new (and empty) asset group with a `name`.
+FREYA_API AssetGroupID asset_group_create(const String& name);
 
 /// Destroy and unload all of the assets in the given `group_id`.
 FREYA_API void asset_group_destroy(const AssetGroupID& group_id);
 
-/// Build all of the intermediary formats into a `FRPKG` file. 
+/// Build all of the intermediary formats listed in the `.frlist` file at `list_path` 
+/// into a `FRPKG` file and place it at `output_path`. 
 ///
 /// @NOTE: See `asset_group_create` for more information about internal paths.
-FREYA_API bool asset_group_build(const AssetGroupID& group_id);
+FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
 
 /// Push a new `GfxBuffer` into `group_id`, using all the information found in `buff_desc`,
 /// returning a valid `AssetID` to be used later.
@@ -193,10 +203,10 @@ FREYA_API AssetID asset_group_push_font(const AssetGroupID& group_id, const Dyna
 /// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
-/// Load a `FRPKG` file and push all of the assts into the given `group_id`. 
+/// Load a `FRPKG` file at `frpkg_path` and push all of the assts into the given `group_id`. 
 ///
 /// @NOTE: See `asset_group_create` for more information about internal paths.
-FREYA_API bool asset_group_load_package(const AssetGroupID& group_id);
+FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path);
 
 /// Get a valid `AssetID` from `group_id`, using the given `asset_name` to identify the asset. 
 ///

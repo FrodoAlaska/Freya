@@ -17,8 +17,6 @@ struct AssetGroup {
   String name; 
   AssetGroupID id;
 
-  FilePath assets_path, list_path, output_path;
-
   DynamicArray<GfxBuffer*> buffers;
   DynamicArray<GfxTexture*> textures;
   DynamicArray<GfxCubemap*> cubemaps;
@@ -36,6 +34,7 @@ struct AssetGroup {
 /// ----------------------------------------------------------------------
 /// AssetManager 
 struct AssetManager {
+  AssetGroupID cache_id;
   HashMap<i32, AssetGroup> groups;
 };
 
@@ -413,20 +412,43 @@ static void read_audio_buffers(File& file, AssetGroup& group) {
 /// Private functions 
 /// ----------------------------------------------------------------------
 
+///---------------------------------------------------------------------------------------------------------------------
+/// Asset manager functions
+
+void asset_manager_init() {
+  // Create the cache asset group
+
+  s_manager.cache_id               = AssetGroupID(ASSET_CACHE_ID);
+  s_manager.groups[ASSET_CACHE_ID] = AssetGroup {
+    .name = "cache", 
+    .id   = s_manager.cache_id,
+  };
+
+  // Done!
+  FREYA_LOG_INFO("Successfully created the global asset manager");
+}
+
+void asset_manager_shutdown() {
+  // Shutdown the cache asset group
+  asset_group_destroy(s_manager.cache_id); 
+
+  // Done!
+  FREYA_LOG_INFO("The global asset manager was successfully shutdown");
+}
+
+/// Asset manager functions
+///---------------------------------------------------------------------------------------------------------------------
+
 /// ----------------------------------------------------------------------
 /// AssetGroupID functions
 
-AssetGroupID asset_group_create(const String& name, const FilePath& list_path, const FilePath& output_path) {
+AssetGroupID asset_group_create(const String& name) {
   // Group init
 
-  AssetGroupID id               = AssetGroupID((i32)random_u32());
+  AssetGroupID id               = AssetGroupID((i32)random_u32() + 1);
   s_manager.groups[id.get_id()] = AssetGroup {
     .name = name, 
     .id   = id,
-
-    .assets_path = filepath_parent_path(list_path),
-    .list_path   = list_path, 
-    .output_path = output_path,
   };
 
   // Done!
@@ -457,23 +479,24 @@ void asset_group_destroy(const AssetGroupID& group_id) {
   s_manager.groups.erase(group_id.get_id());
 }
 
-bool asset_group_build(const AssetGroupID& group_id) {
+bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
   // We need to check if it's even needed to build the package. 
   // For example, it might already be up-to-date.
 
-  if(!can_build_frpkg(group.assets_path, group.output_path)) {
-    FREYA_LOG_TRACE("Frpkg at \'%s\' is up-to-date", group.output_path.c_str());
+  FilePath assets_path = filepath_parent_path(list_path);
+  if(!can_build_frpkg(assets_path, output_path)) {
+    FREYA_LOG_TRACE("Frpkg at \'%s\' is up-to-date", output_path.c_str());
     return true; // No need to build the package... 
   }
 
   // Load the frlist file
 
   ListContext list_ctx;
-  if(!frlist_load(list_ctx, group.list_path)) {
-    FREYA_LOG_ERROR("Failed to read FRPKG file at \'%s\'", group.list_path.c_str());
+  if(!frlist_load(list_ctx, list_path)) {
+    FREYA_LOG_ERROR("Failed to read FRPKG file at \'%s\'", list_path.c_str());
     return false;
   }
 
@@ -482,8 +505,8 @@ bool asset_group_build(const AssetGroupID& group_id) {
   File pkg_file;
   i32 file_flags = (i32)(FILE_OPEN_WRITE | FILE_OPEN_BINARY);
 
-  if(!file_open(pkg_file, group.output_path, file_flags)) {
-    FREYA_LOG_ERROR("Failed to open frpkg file at \'%s\'", group.output_path.c_str());
+  if(!file_open(pkg_file, output_path, file_flags)) {
+    FREYA_LOG_ERROR("Failed to open frpkg file at \'%s\'", output_path.c_str());
     return false;
   }
 
@@ -497,7 +520,7 @@ bool asset_group_build(const AssetGroupID& group_id) {
 
   // Convert each asset in the list and write it to the newly-create frpkg file
 
-  FREYA_LOG_TRACE("Converting assets from \'%s\' to \'%s\'", list_ctx.parent_dir.c_str(), group.output_path.c_str());
+  FREYA_LOG_TRACE("Converting assets from \'%s\' to \'%s\'", list_ctx.parent_dir.c_str(), output_path.c_str());
 
   for(auto& section : list_ctx.sections) {
     // Write the asset type
@@ -528,7 +551,7 @@ bool asset_group_build(const AssetGroupID& group_id) {
   // Done!
  
   file_close(pkg_file);
-  FREYA_LOG_DEBUG("Successfully built frpkg at \'%s\'!", group.output_path.c_str());
+  FREYA_LOG_DEBUG("Successfully built frpkg at \'%s\'!", output_path.c_str());
   
   return true;
 }
@@ -702,7 +725,7 @@ AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioB
   return id;
 }
 
-bool asset_group_load_package(const AssetGroupID& group_id) {
+bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
@@ -711,8 +734,8 @@ bool asset_group_load_package(const AssetGroupID& group_id) {
   File file; 
   i32 file_flags = (i32)(FILE_OPEN_READ | FILE_OPEN_BINARY);
 
-  if(!file_open(file, group.output_path, file_flags)) {
-    FREYA_LOG_ERROR("Failed to open frpkg file at '\%s\'", group.output_path.c_str());
+  if(!file_open(file, frpkg_path, file_flags)) {
+    FREYA_LOG_ERROR("Failed to open frpkg file at '\%s\'", frpkg_path.c_str());
     return false;
   }
 
@@ -722,7 +745,7 @@ bool asset_group_load_package(const AssetGroupID& group_id) {
   file_read_bytes(file, &version, sizeof(version));
 
   if(version != FRPKG_VALID_VERSION) {
-    FREYA_LOG_ERROR("Invalid frpkg version found \'%s\'. Expected \'%i\', but found \'%i\'", group.output_path.c_str(), FRPKG_VALID_VERSION, version);
+    FREYA_LOG_ERROR("Invalid frpkg version found \'%s\'. Expected \'%i\', but found \'%i\'", frpkg_path.c_str(), FRPKG_VALID_VERSION, version);
     return false;
   }
 
@@ -735,7 +758,7 @@ bool asset_group_load_package(const AssetGroupID& group_id) {
   // Read and add all of the assets in the package file
   //
   
-  FREYA_LOG_TRACE("Loading assets from \'%s\'...", group.output_path.c_str());
+  FREYA_LOG_TRACE("Loading assets from \'%s\'...", frpkg_path.c_str());
 
   for(u8 i = 0; i < sections_count; i++) {
     // Read the asset type

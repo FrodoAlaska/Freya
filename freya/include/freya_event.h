@@ -1,6 +1,7 @@
 #pragma once
 
 #include "freya_base.h"
+#include "freya_ui.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -45,6 +46,42 @@ enum EventType {
   
   EVENT_JOYSTICK_CONNECTED, 
   EVENT_JOYSTICK_DISCONNECTED, 
+
+  /// UI events
+  
+  EVENT_UI_DOCUMENT_LOADED,
+  EVENT_UI_DOCUMENT_UNLOADED,
+
+  EVENT_UI_DOCUMENT_SHOWN,
+  EVENT_UI_DOCUMENT_HIDDEN,
+
+  EVENT_UI_ELEMENT_FOCUSED,
+  EVENT_UI_ELEMENT_BLURRED,
+
+  EVENT_UI_ELEMENT_CLICKED, 
+  EVENT_UI_ELEMENT_DOUBLE_CLICKED, 
+  EVENT_UI_ELEMENT_SCROLLED, 
+  EVENT_UI_ELEMENT_ENTERED,
+  EVENT_UI_ELEMENT_EXITED,
+  EVENT_UI_ELEMENT_MOUSE_DOWN,
+  EVENT_UI_ELEMENT_MOUSE_MOVED,
+  EVENT_UI_ELEMENT_KEY_DOWN,
+  EVENT_UI_ELEMENT_KEY_UP,
+  
+  EVENT_UI_ELEMENT_DRAG_STARTED,
+  EVENT_UI_ELEMENT_DRAG_ENDED,
+  EVENT_UI_ELEMENT_DRAGED,
+
+  EVENT_UI_ELEMENT_DRAG_ENTERED,
+  EVENT_UI_ELEMENT_DRAG_EXITED,
+  
+  EVENT_UI_ELEMENT_DRAG_MOVED,
+  EVENT_UI_ELEMENT_DRAG_DROPPED,
+  
+  EVENT_UI_ELEMENT_ANIMATION_ENDED,
+  EVENT_UI_ELEMENT_TRANSITION_ENDED,
+  
+  EVENT_UI_ELEMENT_TAB_CHANGED,
 
   EVENTS_MAX,
 };
@@ -103,6 +140,21 @@ struct Event {
 
   /// The joystick ID given to this event.
   i32 joystick_id; 
+  
+  /// The UI element given to this event upon any 
+  /// UI-related event initiation.
+  UIElement* element;
+  
+  /// The UI element given to this event upon any 
+  /// UI dragging operation.
+  ///
+  /// @NOTE: Both the `dragged_element` and `element` are 
+  /// valid on any drag-related events.
+  UIElement* dragged_element;
+
+  /// The index of the tab that was changed into 
+  /// upon the dispatch of the `EVENT_UI_ELEMENT_TAB_CHANGED` event.
+  i32 tab_index;
 };
 /// Event
 ///---------------------------------------------------------------------------------------------------------------------

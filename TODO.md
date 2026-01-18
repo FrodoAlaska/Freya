@@ -1,12 +1,15 @@
 # TODO 
 
+- BUGS:
+    - While RenderDoc shows valid output with the UI renderer, we don't see anything in the application. 
+
 - Systems to work on 
-    - renderer and ui renderer
+    - renderer
         - complete the camera
-    - physics 
+    - entity
     - 2D animations
     - 2D cpu-based particles
-    - entity
+    - physics 
     - Readme
 
 - Other systems to work on in the future 
