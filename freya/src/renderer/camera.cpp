@@ -23,8 +23,7 @@ void camera_follow(Camera& cam, const Vec2& target, const Vec2& offset) {
 }
 
 void camera_follow_lerp(Camera& cam, const Vec2& target, const Vec2& offset, const f32 delta) {
-  cam.transform.position = vec2_lerp(cam.transform.position, target + offset, delta);
-  transform_apply(cam.transform);
+  transform_lerp_position(cam.transform, target + offset, delta);
 }
 
 Vec2 camera_world_to_screen_space(const Camera& cam, const Vec2 position, const Window* window) {

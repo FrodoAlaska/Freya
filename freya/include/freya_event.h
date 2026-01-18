@@ -83,6 +83,11 @@ enum EventType {
   
   EVENT_UI_ELEMENT_TAB_CHANGED,
 
+  /// Entity events
+  
+  EVENT_ENTITY_ADDED, 
+  EVENT_ENTITY_DESTROYED,
+
   EVENTS_MAX,
 };
 /// EventType
@@ -155,6 +160,10 @@ struct Event {
   /// The index of the tab that was changed into 
   /// upon the dispatch of the `EVENT_UI_ELEMENT_TAB_CHANGED` event.
   i32 tab_index;
+
+  /// The entity ID given to this event by 
+  /// either `EVENT_ENTITY_ADDED` or `EVENT_ENTITY_DESTROYED`.
+  u32 entt_id;
 };
 /// Event
 ///---------------------------------------------------------------------------------------------------------------------

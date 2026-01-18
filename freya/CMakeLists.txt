@@ -57,6 +57,9 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/shader_context.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
   ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
+  
+  # Entity
+  ${FREYA_SRC_DIR}/entity/entity.cpp
 )
 
 set(FREYA_HEADERS
@@ -78,6 +81,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_assets.h
   ${FREYA_INCLUDE_DIR}/freya_render.h
   ${FREYA_INCLUDE_DIR}/freya_app.h
+  ${FREYA_INCLUDE_DIR}/freya_entity.h
 )
 
 set(FREYA_PCH

@@ -48,7 +48,7 @@ void transform_lerp(Transform& trans,
   transform_apply(trans);
 }
 
-void transform_lerp_position(Transform& trans, const Vec3& position, const f32 delta) {
+void transform_lerp_position(Transform& trans, const Vec2& position, const f32 delta) {
   transform_translate(trans, vec2_lerp(trans.position, position, delta));
 }
 
@@ -56,7 +56,7 @@ void transform_lerp_rotation(Transform& trans, const f32 rotation, const f32 del
   transform_rotate(trans, lerp(trans.rotation, rotation, delta));
 }
 
-void transform_lerp_scale(Transform& trans, const Vec3& scale, const f32 delta) {
+void transform_lerp_scale(Transform& trans, const Vec2& scale, const f32 delta) {
   transform_scale(trans, vec2_lerp(trans.scale, scale, delta));
 }
 

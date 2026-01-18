@@ -2,7 +2,6 @@
 
 - Systems to work on 
     - 2D animations
-    - entity
     - 2D cpu-based particles
     - physics 
     - Readme
