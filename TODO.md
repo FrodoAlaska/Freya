@@ -1,8 +1,6 @@
 # TODO 
 
 - Systems to work on 
-    - asset manager and assets in general
-        - Documentation
     - camera
     - renderer and ui renderer
     - engine/app integration

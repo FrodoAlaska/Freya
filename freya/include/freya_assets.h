@@ -64,6 +64,10 @@ struct AssetGroupID {
   /// Operators
 
   public:
+    //
+    // Eqality operators
+    // 
+
     inline bool operator==(const i32& rhs) {return _id == rhs;}
     inline bool operator!=(const i32& rhs) {return _id != rhs;}
     
@@ -101,12 +105,20 @@ struct AssetID {
   /// Operators
 
   public:
+    //
+    // Eqality operators
+    // 
+
     inline bool operator==(const i16& rhs) {return _id == rhs;}
     inline bool operator!=(const i16& rhs) {return _id != rhs;}
     
     inline bool operator==(const AssetType& rhs) {return _type == rhs;}
     inline bool operator!=(const AssetType& rhs) {return _type != rhs;}
-    
+   
+    //
+    // Comparison operators 
+    //
+
     inline bool operator>(const i16& rhs) {return _id > rhs;}
     inline bool operator<(const i16& rhs) {return _id < rhs;}
     
@@ -138,40 +150,106 @@ struct AssetID {
 ///---------------------------------------------------------------------------------------------------------------------
 /// AssetGroupID functions
 
+/// Create a new asset group with a `name` and a `list_path` to gather all of the 
+/// intermediary formats to build them into `output_path`.
+///
+/// @NOTE: The `list_path` will be used in the `asset_group_build` function, while 
+/// the `output_path` will be used to load a `FRPKG` file with the `asset_group_load_package` function.
 FREYA_API AssetGroupID asset_group_create(const String& name, const FilePath& list_path, const FilePath& output_path);
 
+/// Destroy and unload all of the assets in the given `group_id`.
 FREYA_API void asset_group_destroy(const AssetGroupID& group_id);
 
+/// Build all of the intermediary formats into a `FRPKG` file. 
+///
+/// @NOTE: See `asset_group_create` for more information about internal paths.
 FREYA_API bool asset_group_build(const AssetGroupID& group_id);
 
+/// Push a new `GfxBuffer` into `group_id`, using all the information found in `buff_desc`,
+/// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDesc& buff_desc);
 
+/// Push a new `GfxTexture` into `group_id`, using all the information found in `tex_desc`,
+/// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureDesc& tex_desc);
 
+/// Push a new `GfxShader` into `group_id`, using all the information found in `shader_desc`,
+/// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
 
+/// Push a new `ShaderContext` into `group_id`, using the previously-created shader `shader_id`,
+/// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const AssetID& shader_id);
 
+/// Push a new `ShaderContext` into `group_id`, creating a new `GfxShader` with the information 
+/// found in `shader_desc`, returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
 
+/// Push a new `Font` into `group_id`, using `font_data` and `name` (name of the font),
+/// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_font(const AssetGroupID& group_id, const DynamicArray<u8>& font_data, const String& name);
 
+/// Push a new `AudioBufferID` into `group_id`, using all the information found in `audio_desc`,
+/// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
+/// Load a `FRPKG` file and push all of the assts into the given `group_id`. 
+///
+/// @NOTE: See `asset_group_create` for more information about internal paths.
 FREYA_API bool asset_group_load_package(const AssetGroupID& group_id);
 
+/// Get a valid `AssetID` from `group_id`, using the given `asset_name` to identify the asset. 
+///
+/// @NOTE: This function will return an invalid `AssetID` if the given `asset_name` does not 
+/// exist in `group_id`. The name of the asset is derived from its file stem (i.e `texture.png` -> `texture`).
 FREYA_API const AssetID& asset_group_get_id(const AssetGroupID& group_id, const String& asset_name);
 
+/// Retrieve a `GfxBuffer`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
 FREYA_API GfxBuffer* asset_group_get_buffer(const AssetID& id);
 
+/// Retrieve a `GfxTexture`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
 FREYA_API GfxTexture* asset_group_get_texture(const AssetID& id);
 
+/// Retrieve a `GfxShader`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
 FREYA_API GfxShader* asset_group_get_shader(const AssetID& id);
 
+/// Retrieve a `ShaderContext`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
 FREYA_API ShaderContext* asset_group_get_shader_context(const AssetID& id);
 
+/// Retrieve a `Font`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
 FREYA_API Font* asset_group_get_font(const AssetID& id);
 
+/// Retrieve a `AudioBufferID`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
 FREYA_API const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id);
 
 /// AssetGroupID functions
