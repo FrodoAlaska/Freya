@@ -85,9 +85,6 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   // Update the UI context
   freya::ui_context_update(app->context); 
-
-  // Update the camera
-  freya::camera_update(app->camera);
 }
 
 void app_render(freya::App* app) {

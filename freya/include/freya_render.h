@@ -22,6 +22,9 @@ struct CameraDesc {
   
   f32 sensitivity = 0.1f;
   f32 exposure    = 1.0f; 
+
+  f32 zoom     = 1.0f;
+  f32 rotation = 0.0f;
 };
 /// CameraDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -29,13 +32,10 @@ struct CameraDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Camera 
 struct Camera {
-  Vec2 position; 
+  Transform transform; 
 
-  f32 zoom        = 45.0f;
   f32 sensitivity = 0.1f;
   f32 exposure    = 1.0f; 
-
-  Mat4 view, projection, view_projection;
 };
 /// Camera 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -78,11 +78,6 @@ struct Font {
 
 /// Fill the information in `out_camera` using the given `desc`.
 FREYA_API void camera_create(Camera& out_camera, const CameraDesc& desc);
-
-/// Update the projection of the given `cam`.
-///
-/// @NOTE: This function must be called _every_ frame.
-FREYA_API void camera_update(Camera& cam);
 
 /// Have the given `cam` follow the `target`, taking into account the given `offset`.
 FREYA_API void camera_follow(Camera& cam, const Vec2& target, const Vec2& offset);

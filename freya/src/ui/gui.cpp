@@ -329,6 +329,41 @@ void gui_edit_transform(const char* name, Transform* transform) {
   ImGui::PopID(); 
 }
 
+void gui_edit_camera(const char* name, Camera* camera) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+
+  //
+  // Transfrom
+  //
+
+  // Position
+  
+  if(ImGui::DragFloat2("Position", &camera->transform.position[0], s_gui.big_step)) {
+    transform_translate(camera->transform, camera->transform.position);
+  }
+
+  // Zoom
+
+  if(ImGui::DragFloat("Zoom (in degrees)", &camera->transform.scale[0], s_gui.big_step)) {
+    transform_scale(camera->transform, camera->transform.scale * Vec2(DEG2RAD, 0.0f));
+  }
+
+  // Rotation
+
+  if(ImGui::DragFloat2("Rotation", &camera->transform.rotation, s_gui.big_step)) {
+    transform_rotate(camera->transform, camera->transform.rotation);
+  }
+
+  // Sensitivity
+  ImGui::DragFloat("Sensitivity", &camera->sensitivity, s_gui.small_step);
+
+  // Exposure
+  ImGui::DragFloat("Exposure", &camera->exposure, s_gui.small_step);
+
+  ImGui::PopID(); 
+}
+
 void gui_edit_audio_source(const char* name, AudioSourceID& source) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
@@ -339,7 +374,7 @@ void gui_edit_audio_source(const char* name, AudioSourceID& source) {
   // Source Info
   // 
 
-  // Volume
+  // Volume*
   
   if(ImGui::SliderFloat("Volume", &source_desc.volume, 0.0f, 1.0f)) {
     audio_source_set_volume(source, source_desc.volume);

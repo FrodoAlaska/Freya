@@ -2,6 +2,7 @@
 
 #include "freya_file.h"
 #include "freya_window.h"
+#include "freya_render.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -185,6 +186,9 @@ FREYA_API void gui_edit_color(const char* name, Vec4& color);
 
 /// Add a transform section identified by `name` to edit the given `transform`.
 FREYA_API void gui_edit_transform(const char* name, Transform* transform);
+
+/// Add a camera section identified by `name` to edit the given `camera`.
+FREYA_API void gui_edit_camera(const char* name, Camera* camera);
 
 /// Add an audio source section identified by `name` to edit the given `source`.
 FREYA_API void gui_edit_audio_source(const char* name, AudioSourceID& source);

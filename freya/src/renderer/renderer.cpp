@@ -271,16 +271,20 @@ void renderer_shutdown() {
 
 void renderer_begin(const Camera& camera) {
   FREYA_PROFILE_FUNCTION();
-  
-  // @TEMP
+ 
+  // Update the camera projection
 
   IVec2 window_size = window_get_size(s_renderer.ctx_desc.window);
-  s_renderer.view   = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
 
+  Mat4 ortho = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
+  Mat4 view  = ortho * camera.transform.model;
+
+  // Update the camera buffer
+  
   gfx_buffer_upload_data(s_renderer.matrix_buffer, 
                          0, 
                          sizeof(Mat4), 
-                         mat4_raw_data(s_renderer.view));
+                         mat4_raw_data(view));
 
   // @TODO (Renderer): Set the renderer's framebuffer
 
