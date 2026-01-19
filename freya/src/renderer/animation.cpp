@@ -20,6 +20,7 @@ void animation_create(Animation& out_anim, const AnimationDesc& desc) {
   out_anim.frames_count  = (tex_desc.width / out_anim.frame_size.x) - 1;
   out_anim.current_frame = desc.is_reversed ? out_anim.frames_count : 0;
   out_anim.direction     = desc.is_reversed ? -1 : 1;
+  out_anim.start_row     = desc.start_row;
 
   // Animation logic init
 
@@ -59,7 +60,7 @@ void animation_update(Animation& anim, const f32 delta_time) {
 
   anim.src_rect = Rect2D {
     .size     = anim.frame_size,
-    .position = Vec2((f32)anim.current_frame * anim.frame_size.x, 0.0f), 
+    .position = Vec2(anim.current_frame, anim.start_row) * anim.frame_size, 
   };
 
   // The animation is not done yet... defer the 

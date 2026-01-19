@@ -87,16 +87,31 @@ struct AnimationDesc {
   /// The speed of the animation. 
   f32 flip_speed;
 
+  /// The index of the starting row 
+  /// of the animation. 
+  ///
+  /// This can be used if a texture 
+  /// includes multiple animations. 
+  ///
+  /// @NOTE: The default values is `0`.
+  i32 start_row      = 0;
+
   /// Indicates whether the animation 
   /// can loop to the beginning when finished.
+  ///
+  /// @NOTE: The default value is `true`.
   bool can_loop      = true;
 
   /// Indicates whether the animation can 
   /// alternate directions when finished.
+  ///
+  /// @NOTE: The default value is `true`.
   bool can_alternate = false;
 
   /// Indicates whether to play the animation 
   /// in reverse order
+  ///
+  /// @NOTE: The default value is `false`.
   bool is_reversed   = false;
 };
 /// AnimationDesc
@@ -108,9 +123,8 @@ struct Animation {
   GfxTexture* texture; 
   Vec2 frame_size;
 
-  i32 current_frame;
-  i32 frames_count;
-  i32 direction;
+  i32 current_frame, frames_count;
+  i32 direction, start_row;
 
   f32 counter, flip_speed;
   bool is_active, can_loop, can_alternate;

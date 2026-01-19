@@ -59,6 +59,8 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     .texture_id = freya::asset_group_get_id(app->group_id, "key_animation"),
     .frame_size = freya::Vec2(256.0f),
     .flip_speed = 0.1f,
+
+    .start_row = 6,
   };
   freya::entity_add_animation(app->world, app->entt_id, anim_desc);
 
