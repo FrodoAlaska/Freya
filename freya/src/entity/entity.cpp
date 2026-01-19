@@ -10,13 +10,91 @@ namespace freya { // Start of freya
 /// EntityWorld functions
 
 void entity_world_clear(EntityWorld& world) {
+  // Destroy each entity
+
+  auto view = world.view<EntityID>();
+  for(auto entt : view) {
+    entity_destroy(world, entt);
+  }
+
+  // Goodbye, cruel world!
   world.clear();
 }
 
-EntityID entity_world_create_entity(EntityWorld& world,
-                                  const Vec2& position, 
-                                  const Vec2& scale,
-                                  const f32 rotation) {
+void entity_world_update(EntityWorld& world, const f32 delta_time) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Animators
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(AnimatorComponent)");
+
+    auto view = world.view<AnimatorComponent>();
+    for(auto entt : view) {
+      AnimatorComponent& anim = view.get<AnimatorComponent>(entt);
+      animation_update(anim.animation, delta_time);
+    }
+  }
+
+  // Timers
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(Timer)");
+
+    auto view = world.view<Timer>();
+    for(auto entt : view) {
+      Timer& timer = view.get<Timer>(entt);
+      timer_update(timer, delta_time);
+    }
+  }
+}
+
+void entity_world_render(const EntityWorld& world) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Sprites
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(SpriteComponent)");
+
+    auto view = world.view<SpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform    = view.get<Transform>(entt);
+      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
+
+      // Render a texture (if it's a valid)
+
+      if(sprite.texture_id.get_id() != ASSET_ID_INVALID) {
+        renderer_queue_texture(sprite.texture_id, transform, sprite.color);
+        continue;
+      }
+
+      // Render a regular quad
+      renderer_queue_quad(transform, sprite.color);
+    }
+  }
+  
+  // Animators
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(AnimatorComponent)");
+
+    auto view = world.view<AnimatorComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform    = view.get<Transform>(entt);
+      const AnimatorComponent& anim = view.get<AnimatorComponent>(entt);
+
+      renderer_queue_animation(anim.animation, transform, anim.tint);
+    }
+  }
+}
+
+/// EntityWorld functions
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// EntityID functions
+
+EntityID entity_create(EntityWorld& world,
+                       const Vec2& position, 
+                       const Vec2& scale,
+                       const f32 rotation) {
   // Create a new entity
   EntityID entt = world.create();
 
@@ -42,7 +120,7 @@ EntityID entity_world_create_entity(EntityWorld& world,
   return entt;
 }
 
-void entity_world_destroy_entity(EntityWorld& world, EntityID& entt) {
+void entity_destroy(EntityWorld& world, EntityID& entt) {
   // Dispatch an event
 
   Event event = {
@@ -57,52 +135,6 @@ void entity_world_destroy_entity(EntityWorld& world, EntityID& entt) {
   // Destroy the entity in the world
   world.destroy(entt); 
 }
-
-void entity_world_update(EntityWorld& world, const f32 delta_time) {
-  FREYA_PROFILE_FUNCTION();
-
-  // Timers
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(Timer)");
-
-    auto view = world.view<Timer>();
-    for(auto entt : view) {
-      Timer& timer = view.get<Timer>(entt);
-      timer_update(timer, delta_time);
-    }
-  }
-}
-
-void entity_world_render(const EntityWorld& world) {
-  FREYA_PROFILE_FUNCTION();
-
-  // Renderables
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(RenderableComponent)");
-
-    auto view = world.view<RenderableComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform            = view.get<Transform>(entt);
-      const RenderableComponent& renderable = view.get<RenderableComponent>(entt);
-
-      // Render a texture (if it's a valid)
-
-      if(renderable.renderable_id.get_id() != ASSET_ID_INVALID) {
-        renderer_queue_texture(renderable.renderable_id, transform, renderable.color);
-        continue;
-      }
-
-      // Render a regular quad
-      renderer_queue_quad(transform, renderable.color);
-    }
-  }
-}
-
-/// EntityWorld functions
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
-/// EntityID functions
 
 void entity_add_audio_source(EntityWorld& world, 
                              EntityID& entt, 
@@ -123,13 +155,20 @@ void entity_add_timer(EntityWorld& world,
                       const bool one_shot, 
                       const bool active) {
   Timer timer; 
-  timer_create(&timer, max_time, one_shot, active);
+  timer_create(timer, max_time, one_shot, active);
 
   world.emplace<Timer>(entt, timer);
 }
 
-void entity_add_renderable(EntityWorld& world, EntityID& entt, const AssetID& renderable_id, const Vec4& color) {
-  world.emplace<RenderableComponent>(entt, renderable_id, color);
+void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
+  Animation anim; 
+  animation_create(anim, desc);
+
+  world.emplace<AnimatorComponent>(entt, anim, tint);
+}
+
+void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
+  world.emplace<SpriteComponent>(entt, texture_id, color);
 }
 
 /// EntityID functions

@@ -38,13 +38,10 @@ String perf_timer_to_string(PerfTimer& timer) {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Timer functions
 
-void timer_create(Timer* timer, const f32 limit, const bool one_shot, const bool initial_active) {
-  memory_zero(timer, sizeof(Timer));
-
-  timer->limit = limit; 
-  
-  timer->is_one_shot = one_shot; 
-  timer->is_active   = initial_active; 
+void timer_create(Timer& out_timer, const f32 limit, const bool one_shot, const bool initial_active) {
+  out_timer.limit       = limit; 
+  out_timer.is_one_shot = one_shot; 
+  out_timer.is_active   = initial_active; 
 }
 
 void timer_update(Timer& timer, const f32 delta_time) {

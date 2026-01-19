@@ -364,6 +364,15 @@ void renderer_queue_quad(const Transform& transform, const Vec4& color) {
   renderer_queue_texture(s_renderer.default_texture, transform, color);
 }
 
+void renderer_queue_animation(const Animation& anim, const Transform& transform, const Vec4& tint) {
+  Rect2D dest = {
+    .size     = transform.scale,
+    .position = transform.position, 
+  };
+
+  renderer_queue_texture(anim.texture_id, anim.src_rect, dest, tint);  
+}
+
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
 

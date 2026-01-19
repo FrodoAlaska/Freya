@@ -74,6 +74,39 @@ struct Font {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// AnimationDesc
+struct AnimationDesc {
+  AssetID texture_id; 
+  
+  Vec2 frame_size;
+  f32 flip_speed;
+
+  bool can_loop      = true;
+  bool can_alternate = false;
+  bool is_reversed   = false;
+};
+/// AnimationDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Animation
+struct Animation {
+  AssetID texture_id; 
+  Vec2 frame_size;
+
+  i32 current_frame;
+  i32 frames_count;
+  i32 direction;
+
+  f32 counter, flip_speed, flip_time;
+  bool is_active, can_loop, can_alternate;
+
+  Rect2D src_rect;
+};
+/// Animation
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Camera functions
 
 /// Fill the information in `out_camera` using the given `desc`.
@@ -129,6 +162,18 @@ FREYA_API void shader_context_set_uniform_array(ShaderContext* ctx, const String
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Animation functions
+
+FREYA_API void animation_create(Animation& out_anim, const AnimationDesc& desc);
+
+FREYA_API void animation_update(Animation& anim, const f32 delta_time);
+
+FREYA_API void animation_reset(Animation& anim);
+
+/// Animation functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Renderer functions
 
 /// Initialize the internal data of the renderer.
@@ -166,6 +211,11 @@ FREYA_API void renderer_queue_texture(const AssetID& texture_id, const Transform
 
 /// Queue a quad using `transform` with a `color`.
 FREYA_API void renderer_queue_quad(const Transform& transform, const Vec4& color);
+
+/// Queue an animation using the given `animation`, transformed with `transform` with a `tint`.
+///
+/// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
+FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& transform, const Vec4& tint = Vec4(1.0f));
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

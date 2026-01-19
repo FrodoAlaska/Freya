@@ -2,9 +2,12 @@
 
 - Systems to work on 
     - 2D animations
+        - Add the animator to the GUI
+        - Documentation
     - 2D cpu-based particles
     - physics 
     - Readme
+    - Make it public
 
 - Other systems to work on in the future 
     - User-friendly post-process effects

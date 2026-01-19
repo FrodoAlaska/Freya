@@ -37,17 +37,31 @@ using OnCollisionEnterFn = std::function<void(EntityWorld& world, EntityID& entt
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// RenderableComponent
-struct RenderableComponent {
+/// SpriteComponent
+struct SpriteComponent {
   /// The ID of the asset to be rendered. 
   /// Must be a texture asset.
-  AssetID renderable_id; 
+  AssetID texture_id; 
 
   /// The color/tint that will be used 
   /// in the render command. 
   Vec4 color;
 };
-/// RenderableComponent
+/// SpriteComponent
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// AnimatorComponent
+struct AnimatorComponent {
+  /// Animation itself that will be 
+  /// updated and rendered.
+  Animation animation; 
+
+  /// The tint that will be used 
+  /// in the render command. 
+  Vec4 tint;
+};
+/// AnimatorComponent
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -56,16 +70,6 @@ struct RenderableComponent {
 /// Clear (and thereby destroy) the given `world` of any 
 /// entities and their components.
 FREYA_API void entity_world_clear(EntityWorld& world);
-
-/// Create an return a new entity in the given `world`, with `position`, 
-/// `scale`, and `rotation` as its transform properties.
-FREYA_API EntityID entity_world_create_entity(EntityWorld& world,
-                                               const Vec2& position, 
-                                               const Vec2& scale, 
-                                               const f32 rotation = 0.0f);
-
-/// Destroy the given `entt` and remove it and its components from `world`.
-FREYA_API void entity_world_destroy_entity(EntityWorld& world, EntityID& entt);
 
 /// Update all the components of `world` in a data-oriented manner, using 
 /// `delta_time` as the time scale. 
@@ -84,6 +88,16 @@ FREYA_API void entity_world_render(const EntityWorld& world);
 
 /// ----------------------------------------------------------------------
 /// EntityID functions
+
+/// Create an return a new entity in the given `world`, with `position`, 
+/// `scale`, and `rotation` as its transform properties.
+FREYA_API EntityID entity_create(EntityWorld& world,
+                                 const Vec2& position, 
+                                 const Vec2& scale, 
+                                 const f32 rotation = 0.0f);
+
+/// Destroy the given `entt` and remove it and its components from `world`.
+FREYA_API void entity_destroy(EntityWorld& world, EntityID& entt);
 
 /// Add a generic component `Comp` with `Args` initialization arguments 
 /// to the given `entt` in the respective `world`.
@@ -112,9 +126,13 @@ FREYA_API void entity_add_timer(EntityWorld& world,
                                  const bool one_shot, 
                                  const bool active = true);
 
-/// A helper function to add a renderable component to `entt`, using the given
-/// `renderable_id` and `color` to give to the render command.
-FREYA_API void entity_add_renderable(EntityWorld& world, EntityID& entt, const AssetID& renderable_id, const Vec4& color = Vec4(1.0f));
+/// A helper function to add an animation component to `entt`, using the given 
+/// `desc` and `tint`.
+FREYA_API void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint = Vec4(1.0f));
+
+/// A helper function to add a sprite component to `entt`, using the given
+/// `texture_id` and `color` to give to the render command.
+FREYA_API void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color = Vec4(1.0f));
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///
