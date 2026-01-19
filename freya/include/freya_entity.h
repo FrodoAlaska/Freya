@@ -39,9 +39,12 @@ using OnCollisionEnterFn = std::function<void(EntityWorld& world, EntityID& entt
 /// ----------------------------------------------------------------------
 /// SpriteComponent
 struct SpriteComponent {
-  /// The ID of the asset to be rendered. 
-  /// Must be a texture asset.
-  AssetID texture_id; 
+  /// The texture that will 
+  /// be given to the render command.
+  ///
+  /// @NOTE: If this texture is left as a 
+  /// `nullptr`, the default texture will be used.
+  GfxTexture* texture = nullptr; 
 
   /// The color/tint that will be used 
   /// in the render command. 

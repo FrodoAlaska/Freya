@@ -91,7 +91,7 @@ struct AnimationDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animation
 struct Animation {
-  AssetID texture_id; 
+  GfxTexture* texture; 
   Vec2 frame_size;
 
   i32 current_frame;
@@ -198,16 +198,16 @@ FREYA_API const Vec4& renderer_get_clear_color();
 FREYA_API GfxContext* renderer_get_context();
 
 /// Queue a texture to be drawn by the end of the frame, using
-/// the given `texture_id` at `src` and render into `dest`, tinted with `tint`.
+/// the given `texture` at `src` and render into `dest`, tinted with `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
-FREYA_API void renderer_queue_texture(const AssetID& texture_id, const Rect2D& src, const Rect2D& dest, const Vec4& tint = Vec4(1.0f));
+FREYA_API void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Vec4& tint = Vec4(1.0f));
 
 /// Queue a texture to be drawn by the end of the frame, using
-/// the given `texture_id`, and transform, with `tint` color.
+/// the given `texture`, and transform, with `tint` color.
 ///
 /// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
-FREYA_API void renderer_queue_texture(const AssetID& texture_id, const Transform& transform, const Vec4& tint = Vec4(1.0f));
+FREYA_API void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Vec4& tint = Vec4(1.0f));
 
 /// Queue a quad using `transform` with a `color`.
 FREYA_API void renderer_queue_quad(const Transform& transform, const Vec4& color);

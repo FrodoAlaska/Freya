@@ -322,7 +322,7 @@ void gui_edit_transform(const char* name, Transform* transform) {
 
   // Rotation
 
-  if(ImGui::DragFloat2("Rotation", &transform->rotation, s_gui.big_step)) {
+  if(ImGui::DragFloat("Rotation (in radians)", &transform->rotation, s_gui.big_step)) {
     transform_rotate(*transform, transform->rotation);
   }
   
@@ -345,13 +345,13 @@ void gui_edit_camera(const char* name, Camera* camera) {
 
   // Zoom
 
-  if(ImGui::DragFloat("Zoom (in degrees)", &camera->transform.scale[0], s_gui.big_step)) {
-    transform_scale(camera->transform, camera->transform.scale * Vec2(DEG2RAD, 0.0f));
+  if(ImGui::DragFloat("Zoom", &camera->transform.scale[0], s_gui.big_step)) {
+    transform_scale(camera->transform, camera->transform.scale);
   }
 
   // Rotation
 
-  if(ImGui::DragFloat2("Rotation", &camera->transform.rotation, s_gui.big_step)) {
+  if(ImGui::DragFloat("Rotation (in radians)", &camera->transform.rotation, s_gui.big_step)) {
     transform_rotate(camera->transform, camera->transform.rotation);
   }
 

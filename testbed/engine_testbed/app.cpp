@@ -33,6 +33,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   
   freya::CameraDesc cam_desc = {
     .position = freya::Vec2(0.0f),
+    .zoom     = 0.1f,
   };
   freya::camera_create(app->camera, cam_desc);
 
@@ -50,11 +51,11 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Entities init
 
-  freya::EntityID entt_id = freya::entity_create(app->world, freya::Vec2(100.0f), freya::Vec2(64.0f));
+  freya::EntityID entt_id = freya::entity_create(app->world, freya::Vec2(100.0f), freya::Vec2(1.0f));
 
   freya::AnimationDesc anim_desc = {
     .texture_id = freya::asset_group_get_id(app->group_id, "key_animation"),
-    .frame_size = freya::Vec2(256.0f, 214.0f),
+    .frame_size = freya::Vec2(256.0f),
     .flip_speed = 0.1f,
   };
   freya::entity_add_animation(app->world, entt_id, anim_desc);
@@ -109,7 +110,11 @@ void app_render_gui(freya::App* app) {
   }
 
   freya::gui_begin(); 
-  freya::gui_debug_info();
+  freya::gui_begin_panel("Editor");
+
+  freya::gui_edit_camera("Camera", &app->camera);
+
+  freya::gui_end_panel();
   freya::gui_end();
 }
 

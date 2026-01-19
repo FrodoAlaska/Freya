@@ -10,15 +10,15 @@ namespace freya { // Start of freya
 void animation_create(Animation& out_anim, const AnimationDesc& desc) {
   // Texture and sizes init
 
-  out_anim.texture_id = desc.texture_id;
+  out_anim.texture    = asset_group_get_texture(desc.texture_id);
   out_anim.frame_size = desc.frame_size; 
 
   // Frames init
 
-  GfxTextureDesc& tex_desc = gfx_texture_get_desc(asset_group_get_texture(out_anim.texture_id));
+  GfxTextureDesc& tex_desc = gfx_texture_get_desc(out_anim.texture);
 
   out_anim.current_frame = 0;
-  out_anim.frames_count  = (out_anim.frame_size.x / tex_desc.width) - 1;
+  out_anim.frames_count  = (tex_desc.width / out_anim.frame_size.x) - 1;
   out_anim.direction     = desc.is_reversed ? -1 : 1;
 
   // Animation logic init
@@ -55,6 +55,13 @@ void animation_update(Animation& anim, const f32 delta_time) {
     anim.current_frame += anim.direction;
   }
 
+  // Calculate the source rectangle to be used by the renderer
+
+  anim.src_rect = Rect2D {
+    .size     = anim.frame_size,
+    .position = Vec2((f32)anim.current_frame * anim.frame_size.x, 0.0f), 
+  };
+
   // The animation is not done yet... defer the 
   // other logic for when it is 
 
@@ -77,13 +84,6 @@ void animation_update(Animation& anim, const f32 delta_time) {
 
   // Clamp the animation frames for safety
   anim.current_frame = clamp_int(anim.current_frame, 0, anim.frames_count);
-
-  // Calculate the source rectangle to be used by the renderer
-
-  anim.src_rect = Rect2D {
-    .size     = anim.frame_size,
-    .position = Vec2((f32)anim.current_frame * anim.frame_size.x, 0.0f), 
-  };
 }
 
 void animation_reset(Animation& anim) {

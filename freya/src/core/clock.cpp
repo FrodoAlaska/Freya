@@ -26,9 +26,9 @@ static ClockState s_state;
 void clock_update() {
   // Calculating the delta time 
  
-  s_state.current_time = glfwGetTime();
+  s_state.current_time = glfwGetTime(); // @TODO (Clock): Maybe don't have a refrence to GLFW?
 
-  s_state.delta_time      = s_state.current_time - s_state.last_frame_time; // @TODO (Clock): Maybe don't have a refrence to GLFW?
+  s_state.delta_time      = s_state.current_time - s_state.last_frame_time;
   s_state.last_frame_time = s_state.current_time;
 
   // Calculating the FPS 

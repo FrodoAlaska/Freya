@@ -46,7 +46,7 @@ struct Renderer {
   GfxPipelineDesc pipe_desc;
   GfxPipeline* pipeline;
 
-  AssetID default_texture;
+  GfxTexture* default_texture;
 
   //
   // Batching
@@ -77,19 +77,19 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   Vertex2D v1 = {
     .position       = dest.position,
     .normal         = Vec2(0.0f, 1.0f),
-    .texture_coords = src.position / src.size,
+    .texture_coords = src.position / dest.size,
 
     .color         = color,
     .texture_index = (f32)texture_index,
   };
   batch.vertices.push_back(v1);
 
-  // Top-right
+  // Bottom-left
   
   Vertex2D v2 = {
-    .position       = Vec2(dest.position.x + dest.size.x, dest.position.y),
-    .normal         = Vec2(1.0f, 0.0f),
-    .texture_coords = Vec2((src.position.x + src.size.x) / src.size.x, src.position.y / src.size.y),
+    .position       = Vec2(dest.position.x, dest.position.y + dest.size.y),
+    .normal         = Vec2(-1.0f, 0.0f),
+    .texture_coords = Vec2(src.position.x / dest.size.x, (src.position.y + src.size.y) / dest.size.y),
 
     .color          = color,
     .texture_index  = (f32)texture_index,
@@ -101,7 +101,7 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   Vertex2D v3 = {
     .position       = dest.position + dest.size,
     .normal         = Vec2(0.0f, -1.0f),
-    .texture_coords = (src.position + src.size) / src.size,
+    .texture_coords = (src.position + src.size) / dest.size,
 
     .color          = color,
     .texture_index  = (f32)texture_index,
@@ -109,12 +109,12 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   batch.vertices.push_back(v3);
   batch.vertices.push_back(v3);
 
-  // Bottom-left
+  // Top-right
   
   Vertex2D v4 = {
-    .position       = Vec2(dest.position.x, dest.position.y + dest.size.y),
-    .normal         = Vec2(-1.0f, 0.0f),
-    .texture_coords = Vec2(src.position.x / src.size.x, (src.position.y + src.size.y) / src.size.y),
+    .position       = Vec2(dest.position.x + dest.size.x, dest.position.y),
+    .normal         = Vec2(1.0f, 0.0f),
+    .texture_coords = Vec2((src.position.x + src.size.x) / dest.size.x, src.position.y / dest.size.y),
 
     .color          = color,
     .texture_index  = (f32)texture_index,
@@ -225,7 +225,7 @@ void renderer_init(Window* window) {
   tex_desc.format = GFX_TEXTURE_FORMAT_RGBA8;
   tex_desc.data   = &pixels;
 
-  s_renderer.default_texture = asset_group_push_texture(ASSET_CACHE_ID, tex_desc);
+  s_renderer.default_texture = asset_group_get_texture(asset_group_push_texture(ASSET_CACHE_ID, tex_desc));
 
   //
   // Default shader init
@@ -318,11 +318,8 @@ GfxContext* renderer_get_context() {
   return s_renderer.ctx;
 }
 
-void renderer_queue_texture(const AssetID& texture_id, const Rect2D& src, const Rect2D& dest, const Vec4& tint) {
-  // Get the pure texture representation
-  
-  GfxTexture* texture = asset_group_get_texture(texture_id);
-  sizei index         = 0;
+void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Vec4& tint) {
+  sizei index = 0;
 
   // Save the texture in the map if it never existed before
   
@@ -346,18 +343,20 @@ void renderer_queue_texture(const AssetID& texture_id, const Rect2D& src, const 
   batch_generate_quad(s_renderer.quad_batch, src, dest, tint, index);  
 }
 
-void renderer_queue_texture(const AssetID& texture_id, const Transform& transform, const Vec4& tint) {
+void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Vec4& tint) {
+  GfxTextureDesc& tex_desc = gfx_texture_get_desc(texture);
+
   Rect2D src = {
-    .size     = transform.scale,
+    .size     = Vec2(tex_desc.width, tex_desc.height),
     .position = Vec2(0.0f),
   };
   
   Rect2D dest = {
-    .size     = transform.scale,
+    .size     = Vec2(tex_desc.width, tex_desc.height) * transform.scale,
     .position = transform.position, 
   };
 
-  renderer_queue_texture(texture_id, src, dest, tint);  
+  renderer_queue_texture(texture, src, dest, tint);  
 }
 
 void renderer_queue_quad(const Transform& transform, const Vec4& color) {
@@ -365,12 +364,14 @@ void renderer_queue_quad(const Transform& transform, const Vec4& color) {
 }
 
 void renderer_queue_animation(const Animation& anim, const Transform& transform, const Vec4& tint) {
+  GfxTextureDesc& tex_desc = gfx_texture_get_desc(anim.texture);
+  
   Rect2D dest = {
-    .size     = transform.scale,
+    .size     = Vec2(tex_desc.width, tex_desc.height) * transform.scale,
     .position = transform.position, 
   };
 
-  renderer_queue_texture(anim.texture_id, anim.src_rect, dest, tint);  
+  renderer_queue_texture(anim.texture, anim.src_rect, dest, tint);
 }
 
 /// Renderer functions

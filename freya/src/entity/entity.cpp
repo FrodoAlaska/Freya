@@ -61,8 +61,8 @@ void entity_world_render(const EntityWorld& world) {
 
       // Render a texture (if it's a valid)
 
-      if(sprite.texture_id.get_id() != ASSET_ID_INVALID) {
-        renderer_queue_texture(sprite.texture_id, transform, sprite.color);
+      if(sprite.texture) {
+        renderer_queue_texture(sprite.texture, transform, sprite.color);
         continue;
       }
 
@@ -168,7 +168,7 @@ void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDes
 }
 
 void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
-  world.emplace<SpriteComponent>(entt, texture_id, color);
+  world.emplace<SpriteComponent>(entt, asset_group_get_texture(texture_id), color);
 }
 
 /// EntityID functions
