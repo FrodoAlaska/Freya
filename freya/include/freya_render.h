@@ -98,7 +98,7 @@ struct Animation {
   i32 frames_count;
   i32 direction;
 
-  f32 counter, flip_speed, flip_time;
+  f32 counter, flip_speed;
   bool is_active, can_loop, can_alternate;
 
   Rect2D src_rect;

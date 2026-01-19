@@ -65,7 +65,7 @@ void animation_update(Animation& anim, const f32 delta_time) {
   // The animation is not done yet... defer the 
   // other logic for when it is 
 
-  if(anim.current_frame < anim.frames_count) {
+  if(anim.current_frame >= 0 && anim.current_frame < anim.frames_count) {
     return;
   }
 
@@ -79,7 +79,7 @@ void animation_update(Animation& anim, const f32 delta_time) {
     anim.current_frame = 0;
   }
   else if(anim.can_alternate) {
-    anim.direction = -anim.direction;
+    anim.direction *= -1;
   }
 
   // Clamp the animation frames for safety

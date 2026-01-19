@@ -2,7 +2,6 @@
 
 - Systems to work on 
     - 2D animations
-        - Add the animator to the GUI
         - Documentation
     - 2D cpu-based particles
     - physics 

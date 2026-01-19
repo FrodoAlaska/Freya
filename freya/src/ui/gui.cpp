@@ -499,6 +499,28 @@ void gui_edit_timer(const char* name, Timer* timer) {
   ImGui::PopID(); 
 }
 
+void gui_edit_animation(const char* name, Animation* anim) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  // Current frame
+  ImGui::DragInt("Current frame", &anim->current_frame, s_gui.small_step, 0, anim->frames_count);
+ 
+  // Direction
+  ImGui::DragInt("Direction", &anim->direction, s_gui.small_step, -1, 1);
+ 
+  // Speed
+  ImGui::DragFloat("Speed", &anim->flip_speed, s_gui.small_step, 0.0f);
+
+  // Booleans
+  
+  ImGui::Checkbox("Active", &anim->is_active);
+  ImGui::Checkbox("Loop", &anim->can_loop);
+  ImGui::Checkbox("Alternate", &anim->can_alternate);
+  
+  ImGui::PopID(); 
+}
+
 /// Editor functions
 ///---------------------------------------------------------------------------------------------------------------------
 

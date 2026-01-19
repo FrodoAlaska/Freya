@@ -199,6 +199,9 @@ FREYA_API void gui_edit_audio_listener(const char* name);
 /// Add a timer section identified by `name` to edit the given `timer`.
 FREYA_API void gui_edit_timer(const char* name, Timer* timer);
 
+/// Add an animation section identified by `name` to edit the given `anim`.
+FREYA_API void gui_edit_animation(const char* name, Animation* anim);
+
 /// GUI functions
 ///---------------------------------------------------------------------------------------------------------------------
 
