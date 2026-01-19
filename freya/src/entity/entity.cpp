@@ -45,6 +45,17 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
       timer_update(timer, delta_time);
     }
   }
+
+  // ParticleEmitters
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(ParticleEmitter)");
+
+    auto view = world.view<ParticleEmitter>();
+    for(auto entt : view) {
+      ParticleEmitter& emitter = view.get<ParticleEmitter>(entt);
+      particle_emitter_update(emitter, delta_time);
+    }
+  }
 }
 
 void entity_world_render(const EntityWorld& world) {
@@ -81,6 +92,17 @@ void entity_world_render(const EntityWorld& world) {
       const AnimatorComponent& anim = view.get<AnimatorComponent>(entt);
 
       renderer_queue_animation(anim.animation, transform, anim.tint);
+    }
+  }
+
+  // ParticleEmitters
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(ParticleEmitter)");
+
+    auto view = world.view<ParticleEmitter>();
+    for(auto entt : view) {
+      const ParticleEmitter& emitter = view.get<ParticleEmitter>(entt);
+      renderer_queue_particles(emitter);
     }
   }
 }
@@ -169,6 +191,16 @@ void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDes
 
 void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
   world.emplace<SpriteComponent>(entt, asset_group_get_texture(texture_id), color);
+}
+
+void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {
+  Transform& transform = world.get<Transform>(entt);
+  desc.position        = transform.position;
+
+  ParticleEmitter emitter; 
+  particle_emitter_create(emitter, desc);
+
+  world.emplace<ParticleEmitter>(entt, emitter);
 }
 
 /// EntityID functions

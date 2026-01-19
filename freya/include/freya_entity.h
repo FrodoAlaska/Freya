@@ -96,7 +96,7 @@ FREYA_API void entity_world_render(const EntityWorld& world);
 /// `scale`, and `rotation` as its transform properties.
 FREYA_API EntityID entity_create(EntityWorld& world,
                                  const Vec2& position, 
-                                 const Vec2& scale, 
+                                 const Vec2& scale  = Vec2(1.0f), 
                                  const f32 rotation = 0.0f);
 
 /// Destroy the given `entt` and remove it and its components from `world`.
@@ -136,6 +136,14 @@ FREYA_API void entity_add_animation(EntityWorld& world, EntityID& entt, const An
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id` and `color` to give to the render command.
 FREYA_API void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color = Vec4(1.0f));
+
+/// A helper function to add a particle emitter to `entt`, using the information 
+/// in `desc`.
+///
+/// @NOTE: The position of the given `desc` will be set inside the function
+/// using the current position of `entt`.
+/// However, the rest of the memebers of `desc` must be filled by the caller.
+FREYA_API void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc);
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///

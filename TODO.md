@@ -2,6 +2,9 @@
 
 - Systems to work on 
     - 2D cpu-based particles
+        - Basic logic 
+        - Add to the entities 
+        - Add to the GUI
     - physics 
     - Readme
     - Make it public

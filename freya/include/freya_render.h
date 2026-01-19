@@ -12,7 +12,19 @@ namespace freya { // Start of freya
 /// The maximum amount of zoom the camera can achieve.
 const f32 CAMERA_MAX_ZOOM = 180.0f;
 
+/// The maximum amount of particles tha can be emitted per emitter.
+const sizei PARTICLES_MAX = 1024;
+
 /// Consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// ParticleDistributionType
+enum ParticleDistributionType {
+  DISTRIBUTION_RANDOM = 0, 
+  DISTRIBUTION_SQUARE,
+};
+/// ParticleDistributionType
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -135,6 +147,92 @@ struct Animation {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// ParticleEmitterDesc
+struct ParticleEmitterDesc {
+  /// The starting position of the particles.
+  Vec2 position; 
+
+  /// The velocity of each particle that will be applied 
+  /// in the update loop. 
+  Vec2 velocity;
+
+  /// The unit scale of each particle in the system. 
+  ///
+  /// @NOTE: The default scale is set to `Vec2(1.0f, 1.0f)`.
+  Vec2 scale                            = Vec2(1.0f);
+
+  /// The texture ID to be used when rendering the particles. 
+  ///
+  /// @NOTE: This can be set to be invalid to render the 
+  /// default texture.
+  AssetID texture_id                    = {};
+
+  /// The color/tint of the particles when rendered. 
+  ///
+  /// @NOTE: The default values is `Vec4(1.0f, 1.0f, 1.0f, 1.0f)`.
+  Vec4 color                            = Vec4(1.0f);
+
+  /// The maximum amount of time a particle can 
+  /// live for after being activated.
+  ///
+  /// @NOTE: The default lifetime is set to `2.5f`.
+  f32 lifetime                          = 2.5f;
+
+  /// The gravity contributor of each particle in the system.
+  ///
+  /// @NOTE: The default gravity is set to `-9.81f`.
+  f32 gravity_factor                    = -9.81f;
+
+  /// Defines how the particles will be distributed 
+  /// when emitted. 
+  ///
+  /// @NOTE: The default distribution is set to `DISTRIBUTION_RANDOM`.
+  ParticleDistributionType distribution = DISTRIBUTION_RANDOM;
+
+  /// The area or radius of the distribution being applied. 
+  /// The radius will act differently depending on the specific distribution. 
+  ///
+  /// For example, for the `DISTRIBUTION_RANDOM` type, the radius will 
+  /// be the maxium value of the random function. While the negation of 
+  /// the radius will be the minimum value of the random function.
+  ///
+  /// @NOTE: The default distribution radius is set to `1.0f`.
+  f32 distribution_radius               = 1.0f;
+
+  /// The amount of particles to emit. 
+  ///
+  /// @NOTE: This variable CANNOT exceed `PARTICLES_CPU_MAX`.
+  sizei count                           = 0; 
+};
+/// ParticleEmitterDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// ParticleEmitter 
+struct ParticleEmitter {
+  Vec2 initial_position = Vec3(0.0f);
+  Vec2 initial_velocity = Vec3(0.0f);
+
+  Transform transforms[PARTICLES_MAX];
+  Vec2 forces[PARTICLES_MAX];
+  Vec2 velocities[PARTICLES_MAX];
+
+  sizei particles_count = 0;
+  Timer lifetime; 
+
+  GfxTexture* texture; 
+  Vec4 color;
+  
+  f32 distribution_radius               = 1.0f;
+  ParticleDistributionType distribution = DISTRIBUTION_RANDOM;
+
+  f32 gravity_factor = 0.0f; 
+  bool is_active     = false;
+};
+/// ParticleEmitter 
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Camera functions
 
 /// Fill the information in `out_camera` using the given `desc`.
@@ -205,6 +303,25 @@ FREYA_API void animation_reset(Animation& anim);
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// ParticleEmitter functions
+
+/// Create a particle emitter `out_emitter`, using the information in `desc`.
+FREYA_API void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitterDesc& desc);
+
+/// A physics update of each particle in the given `emitter` using the scale of `delta_time`. 
+FREYA_API void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time); 
+
+/// Emit the particles of `emitter`.
+FREYA_API void particle_emitter_emit(ParticleEmitter& emitter);
+
+/// Reset the given `emitter` to its initial state.
+FREYA_API void particle_emitter_reset(ParticleEmitter& emitter);
+
+/// ParticleEmitter functions
+///---------------------------------------------------------------------------------------------------------------------
+
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Renderer functions
 
 /// Initialize the internal data of the renderer.
@@ -247,6 +364,9 @@ FREYA_API void renderer_queue_quad(const Transform& transform, const Vec4& color
 ///
 /// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
 FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& transform, const Vec4& tint = Vec4(1.0f));
+
+/// Queue particles using the given `emitter`.
+FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

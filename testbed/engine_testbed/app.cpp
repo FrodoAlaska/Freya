@@ -35,7 +35,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   
   freya::CameraDesc cam_desc = {
     .position = freya::Vec2(0.0f),
-    .zoom     = 0.1f,
+    .zoom     = 1.0f,
   };
   freya::camera_create(app->camera, cam_desc);
 
@@ -53,16 +53,20 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Entities init
 
-  app->entt_id = freya::entity_create(app->world, freya::Vec2(100.0f), freya::Vec2(1.0f));
+  app->entt_id = freya::entity_create(app->world, freya::Vec2(10.0f), freya::Vec2(1.0f));
 
   freya::AnimationDesc anim_desc = {
     .texture_id = freya::asset_group_get_id(app->group_id, "key_animation"),
     .frame_size = freya::Vec2(256.0f),
     .flip_speed = 0.1f,
-
-    .start_row = 6,
   };
-  freya::entity_add_animation(app->world, app->entt_id, anim_desc);
+  // freya::entity_add_animation(app->world, app->entt_id, anim_desc);
+
+  freya::ParticleEmitterDesc emitter_desc = {
+    .velocity = freya::Vec2(20.0f), 
+    .scale    = freya::Vec2(256.0f),
+  };
+  freya::entity_add_particle_emitter(app->world, app->entt_id, emitter_desc);
 
   // Done!
   return app;
@@ -118,8 +122,11 @@ void app_render_gui(freya::App* app) {
 
   freya::gui_edit_camera("Camera", &app->camera);
 
-  freya::AnimatorComponent& anim = freya::entity_get_component<freya::AnimatorComponent>(app->world, app->entt_id);
-  freya::gui_edit_animation("Animation", &anim.animation);
+  // freya::AnimatorComponent& anim = freya::entity_get_component<freya::AnimatorComponent>(app->world, app->entt_id);
+  // freya::gui_edit_animation("Animation", &anim.animation);
+  
+  freya::Transform& transform = freya::entity_get_component<freya::Transform>(app->world, app->entt_id);
+  freya::gui_edit_transform("Transform", &transform);
 
   freya::gui_end_panel();
   freya::gui_end();
