@@ -76,13 +76,27 @@ struct Font {
 ///---------------------------------------------------------------------------------------------------------------------
 /// AnimationDesc
 struct AnimationDesc {
+  /// The ID of the animation texture to 
+  /// be used for this animation.
   AssetID texture_id; 
-  
+ 
+  /// The size of each indivisual frame 
+  /// in the animation.
   Vec2 frame_size;
+
+  /// The speed of the animation. 
   f32 flip_speed;
 
+  /// Indicates whether the animation 
+  /// can loop to the beginning when finished.
   bool can_loop      = true;
+
+  /// Indicates whether the animation can 
+  /// alternate directions when finished.
   bool can_alternate = false;
+
+  /// Indicates whether to play the animation 
+  /// in reverse order
   bool is_reversed   = false;
 };
 /// AnimationDesc
@@ -164,10 +178,13 @@ FREYA_API void shader_context_set_uniform_array(ShaderContext* ctx, const String
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animation functions
 
+/// Initialize an animation `out_anim` using the information found in `desc`.
 FREYA_API void animation_create(Animation& out_anim, const AnimationDesc& desc);
 
+/// Update the given `anim` scaled to `delta_time`.
 FREYA_API void animation_update(Animation& anim, const f32 delta_time);
 
+/// Reset the given `anim` to its initial state.
 FREYA_API void animation_reset(Animation& anim);
 
 /// Animation functions

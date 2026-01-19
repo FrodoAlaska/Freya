@@ -1,8 +1,6 @@
 # TODO 
 
 - Systems to work on 
-    - 2D animations
-        - Documentation
     - 2D cpu-based particles
     - physics 
     - Readme
