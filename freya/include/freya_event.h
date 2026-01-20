@@ -180,6 +180,10 @@ struct Event {
   /// `EVENT_PHYSICS_SENSOR_CONTACT_REMOVED`. 
   SensorCollisionData sensor_data;
 
+  /// The ray cast result given to this event 
+  /// by `EVENT_PHYSICS_RAYCAST_HIT`.
+  RayCastResult cast_result;
+
   /// The entity ID given to this event by 
   /// either `EVENT_ENTITY_ADDED` or `EVENT_ENTITY_DESTROYED`.
   u32 entt_id;

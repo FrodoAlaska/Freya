@@ -61,6 +61,35 @@ b2BodyType body_type_to_b2_type(const PhysicsBodyType& type) {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Callbacks
+
+static f32 on_ray_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fraction, void* context) {
+  // Build the result
+
+  RayCastResult result = {
+    .body = b2Shape_GetBody(shape),
+
+    .point    = b2vec_to_vec(point),
+    .normal   = b2vec_to_vec(normal),
+    .fraction = fraction,
+  };
+
+  // Dispatch en event
+
+  Event event = {
+    .type        = EVENT_PHYSICS_RAYCAST_HIT,
+    .cast_result = result,
+  };
+  event_dispatch(event);
+
+  // Done!
+  return fraction;
+}
+
+/// Callbacks
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Physics world functions
 
 void physics_world_init(const Vec2& gravity) {
@@ -188,6 +217,23 @@ void physics_world_step(const f32 delta_time, const i32 sub_steps) {
   }
 }
 
+void physics_world_cast_ray(const RayCastDesc& cast_desc) {
+  // Build the filter
+
+  b2QueryFilter filter = b2DefaultQueryFilter();
+  filter.categoryBits  = (u64)cast_desc.layer;
+  filter.maskBits      = (u64)cast_desc.mask_layers;
+
+  // Cast a ray into the world
+
+  b2World_CastRay(s_world.id, 
+                  vec_to_b2vec(cast_desc.origin), 
+                  vec_to_b2vec(cast_desc.direction) * cast_desc.distance,
+                  filter, 
+                  on_ray_cast_hit, 
+                  nullptr);
+}
+
 void physics_world_set_gravity(const Vec2& gravity) {
   b2World_SetGravity(s_world.id, vec_to_b2vec(gravity));
 }
@@ -243,7 +289,7 @@ ColliderID physics_body_add_collider(PhysicsBodyID& body, const ColliderDesc& de
   b2ShapeDef shape_def = b2DefaultShapeDef();
 
   shape_def.filter              = b2DefaultFilter();
-  shape_def.filter.categoryBits = (u64)desc.layers;
+  shape_def.filter.categoryBits = (u64)desc.layer;
   shape_def.filter.maskBits     = (u64)desc.mask_layers;
 
   shape_def.density             = desc.density;
@@ -373,9 +419,9 @@ void collider_set_restitution(ColliderID& collider, const f32 restitution) {
   b2Shape_SetRestitution(collider, restitution);
 }
 
-void collider_set_mask_layers(ColliderID& collider, const u64 layers, const u64 mask_layers) {
+void collider_set_mask_layers(ColliderID& collider, const u64 layer, const u64 mask_layers) {
   b2Filter filter     = b2DefaultFilter();
-  filter.categoryBits = layers; 
+  filter.categoryBits = layer; 
   filter.maskBits     = mask_layers; 
 
   b2Shape_SetFilter(collider, filter);
@@ -391,7 +437,7 @@ ColliderDesc collider_get_desc(ColliderID& collider) {
     .friction    = b2Shape_GetFriction(collider),
     .restitution = b2Shape_GetRestitution(collider),
 
-    .layers      = (PhysicsObjectLayer)b2Shape_GetFilter(collider).categoryBits,
+    .layer       = (PhysicsObjectLayer)b2Shape_GetFilter(collider).categoryBits,
     .mask_layers = (PhysicsObjectLayer)b2Shape_GetFilter(collider).maskBits,
 
     .is_sensor = b2Shape_IsSensor(collider),

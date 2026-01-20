@@ -128,16 +128,26 @@ struct SensorCollisionData {
 /// RayCastDesc
 struct RayCastDesc {
   /// The starting point of the ray.
-  Vec3 origin    = Vec3(0.0f); 
+  Vec2 origin    = Vec2(0.0f); 
 
   /// The direction which the ray will be pointing towards.
-  Vec3 direction = Vec3(0.0f);
+  Vec2 direction = Vec2(0.0f);
 
   /// The distance of the ray towards `direction`.
   ///
   /// @NOTE: If you wanted to simulate an "infinite" ray, 
   /// simply make this number large, i.e `100000000.0f`.
   f32 distance   = 1.0f;
+
+  /// The layer that the ray will be generated in.
+  ///
+  /// @NOTE: By default, this value is set to `PHYSICS_OBJECT_LAYER_0`.
+  PhysicsObjectLayer layer       = PHYSICS_OBJECT_LAYER_0;
+
+  /// The ray will only collide with bodies in those layers.
+  ///
+  /// @NOTE: By default, this value is set to `PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1`.
+  PhysicsObjectLayer mask_layers = (PhysicsObjectLayer)(PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1);
 };
 /// RayCastDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -146,13 +156,16 @@ struct RayCastDesc {
 /// RayCastResult
 struct RayCastResult {
   /// The body that was hit by the ray.
-  PhysicsBodyID* body  = {};
+  PhysicsBodyID body;
 
   /// The exact point in world space of the hit point.
-  Vec3 point         = Vec3(0.0f);
+  Vec2 point   = Vec2(0.0f);
 
-  /// The original direction of the ray that hit the body. 
-  Vec3 ray_direction = Vec3(0.0f);
+  /// The normal vector at the point of intersection.
+  Vec2 normal  = Vec2(0.0f);
+
+  /// The fraction along ray at the point of intersection.
+  f32 fraction = 0.0f;
 };
 /// RayCastResult
 ///---------------------------------------------------------------------------------------------------------------------
@@ -237,10 +250,10 @@ struct ColliderDesc {
   /// @NOTE: This value is set to `0.1f` by default.
   f32 restitution                = 0.0f;
   
-  /// The object layers which this shape will live in.
+  /// The object layer which this shape will live in.
   ///
   /// @NOTE: This value is set to `PHYSICS_OBJECT_LAYER_0` by default.
-  PhysicsObjectLayer layers      = PHYSICS_OBJECT_LAYER_0;
+  PhysicsObjectLayer layer       = PHYSICS_OBJECT_LAYER_0;
 
   /// The object layers this shape is allowed to collide with.
   ///
@@ -278,7 +291,7 @@ FREYA_API void physics_world_step(const f32 delta_time, const i32 sub_steps = 4)
 
 /// Cast a ray using the information provided by `cast_desc` into the world, 
 /// firing the `EVENT_PHYSICS_RAYCAST_HIT` event upon any successful intersections.
-FREYA_API const bool physics_world_cast_ray(const RayCastDesc& cast_desc);
+FREYA_API void physics_world_cast_ray(const RayCastDesc& cast_desc);
 
 /// Set the gravity of the physics world to the given `gravity`.
 FREYA_API void physics_world_set_gravity(const Vec2& gravity);
@@ -401,9 +414,9 @@ FREYA_API void collider_set_friction(ColliderID& collider, const f32 friction);
 /// Set the restitution of the given `collider` to `restitution`.
 FREYA_API void collider_set_restitution(ColliderID& collider, const f32 restitution);
 
-/// Set both the layers and the mask layers of the given `collider` 
-/// to `layers` and `mask_layers`.
-FREYA_API void collider_set_layers(ColliderID& collider, const u64 layers, const u64 mask_layers);
+/// Set both the layer and the mask layers of the given `collider` 
+/// to `layer` and `mask_layers`.
+FREYA_API void collider_set_layers(ColliderID& collider, const u64 layer, const u64 mask_layers);
 
 /// Enable/disable contact events of the given `collider`.
  void collider_enable_hit_events(ColliderID& collider, const bool enabled);
