@@ -16,7 +16,7 @@ struct PhysicsWorld {
   bool is_paused = false;
 };
 
-static PhysicsWorld s_world;
+static PhysicsWorld s_world{};
 /// PhysicsWorld
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -24,11 +24,11 @@ static PhysicsWorld s_world;
 /// Private functions
 
 Vec2 b2vec_to_vec(const b2Vec2& vec) {
-  return Vec2(vec.x, vec.y) * PHYSICS_DEFAULT_PIXELS_PER_METER;
+  return Vec2(vec.x, vec.y) * PHYSICS_METERS_TO_PIXELS;
 }
 
 b2Vec2 vec_to_b2vec(const Vec2& vec) {
-  return b2Vec2(vec.x, vec.y) * PHYSICS_DEFAULT_METERS_PER_PIXEL;
+  return b2Vec2(vec.x * PHYSICS_PIXELS_TO_METERS, vec.y * PHYSICS_PIXELS_TO_METERS);
 }
 
 PhysicsBodyType b2_type_to_body_type(const b2BodyType& type) {
@@ -259,10 +259,10 @@ const bool physics_world_is_paused() {
 PhysicsBodyID physics_body_create(const PhysicsBodyDesc& desc) {
   // Body def init
   
-  b2BodyDef body_def;
-  body_def.position = vec_to_b2vec(desc.position);
-  body_def.type     = body_type_to_b2_type(desc.type);
-  body_def.rotation = b2MakeRot(desc.rotation); 
+  b2BodyDef body_def = b2DefaultBodyDef();
+  body_def.position  = vec_to_b2vec(desc.position);
+  body_def.type      = body_type_to_b2_type(desc.type);
+  body_def.rotation  = b2MakeRot(desc.rotation); 
 
   body_def.linearVelocity  = vec_to_b2vec(desc.linear_velocity);
   body_def.angularVelocity = desc.angular_velocity;

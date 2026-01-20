@@ -370,7 +370,6 @@ void renderer_queue_animation(const Animation& anim, const Transform& transform,
     .size     = Vec2(tex_desc.width, tex_desc.height) * transform.scale,
     .position = transform.position, 
   };
-
   renderer_queue_texture(anim.texture, anim.src_rect, dest, tint);
 }
 

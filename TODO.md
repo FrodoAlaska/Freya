@@ -2,11 +2,10 @@
 
 - Systems to work on 
     - physics 
-        - Add to the GUI
         - Debug draw? 
+        - Add different kinds of colliders
         - Explosions?
         - Documentation
-    - Add the entity to the GUI
     - Add rotations
     - Readme
     - Make it public

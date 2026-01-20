@@ -23,6 +23,20 @@ void entity_world_clear(EntityWorld& world) {
 
 void entity_world_update(EntityWorld& world, const f32 delta_time) {
   FREYA_PROFILE_FUNCTION();
+  
+  // PhysicsBody
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(PhysicsBodyID)");
+
+    auto view = world.view<PhysicsComponent, Transform>();
+    for(auto entt : view) {
+      PhysicsComponent& body = view.get<PhysicsComponent>(entt);
+      Transform& transform   = view.get<Transform>(entt); 
+
+      transform.position = physics_body_get_position(body.body);
+      transform.rotation = physics_body_get_rotation(body.body);
+    }
+  }
 
   // Animators
   {
@@ -152,7 +166,11 @@ void entity_destroy(EntityWorld& world, EntityID& entt) {
   event_dispatch(event);
 
   // Destroy any components that require it 
-  // @TODO (Entity)
+
+  if(entity_has_component<PhysicsComponent>(world, entt)) {
+    PhysicsComponent& body = world.get<PhysicsComponent>(entt);
+    physics_body_destroy(body.body);
+  }
 
   // Destroy the entity in the world
   world.destroy(entt); 

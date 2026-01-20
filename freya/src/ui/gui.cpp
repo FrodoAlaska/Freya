@@ -562,6 +562,147 @@ void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter) {
   ImGui::PopID(); 
 }
 
+void gui_edit_physics_body(const char* name, PhysicsBodyID& body) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+ 
+  PhysicsBodyType body_type = physics_body_get_type(body);
+
+  if(body_type != PHYSICS_BODY_STATIC) {
+    // Position and rotation
+    {
+      Vec2 position = physics_body_get_position(body);
+      f32 rotation  = physics_body_get_rotation(body);
+
+      bool changed_position = ImGui::DragFloat2("Position", &position[0], s_gui.big_step); 
+      bool changed_rotation = ImGui::DragFloat("Rotation (in radians)", &rotation, s_gui.small_step); 
+
+      if(changed_position) {
+        physics_body_set_transform(body, position, rotation);
+      }
+      
+      if(changed_rotation) {
+        physics_body_set_transform(body, position, rotation);
+      }
+    }
+
+    // Linear velocity
+    {
+      Vec2 linear = physics_body_get_linear_velocity(body);
+      if(ImGui::DragFloat2("Linear velocity", &linear[0], s_gui.big_step)) {
+        physics_body_set_linear_velocity(body, linear);
+      }
+    }
+
+    // Angular velocity
+    {
+      f32 angular = physics_body_get_angular_velocity(body);
+      if(ImGui::DragFloat("Angular velocity", &angular, s_gui.big_step)) {
+        physics_body_set_angular_velocity(body, angular);
+      }
+    }
+  }
+
+  // Active
+  {
+    bool active = physics_body_is_active(body);
+    if(ImGui::Checkbox("Active", &active)) {
+      physics_body_set_active(body, active);
+    }
+  }
+
+  // Body type
+  {
+    i32 current_type    = (i32)body_type;
+    const char* options = "Static\0Dynamic\0Kinematic\0\0";
+
+    if(ImGui::Combo("Type", &current_type, options)) {
+      physics_body_set_type(body, (PhysicsBodyType)current_type);
+    }
+  }
+
+  // Gravity factor
+  {
+    f32 factor = physics_body_get_gravity_factor(body);
+    if(ImGui::DragFloat("Gravity factor", &factor, s_gui.big_step)) {
+      physics_body_set_gravity_factor(body, factor);
+    }
+  }
+
+  ImGui::PopID(); 
+}
+
+void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+ 
+  // Transform
+ 
+  if(ImGui::TreeNode("Transform")) {
+    Transform& transform = entity_get_component<Transform>(world, entt);
+    gui_edit_transform("", &transform);
+
+    ImGui::TreePop();
+  }
+
+  // Physics body
+
+  if(entity_has_component<PhysicsComponent>(world, entt)) {
+    if(ImGui::TreeNode("Physics body")) {
+      PhysicsComponent& comp = entity_get_component<PhysicsComponent>(world, entt);
+      gui_edit_physics_body("", comp.body);
+
+      ImGui::TreePop();
+    }
+  }
+
+  // Audio 
+
+  if(entity_has_component<AudioSourceID>(world, entt)) {
+    if(ImGui::TreeNode("Audio source")) {
+      AudioSourceID& source = entity_get_component<AudioSourceID>(world, entt);
+      gui_edit_audio_source("", source);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Timer 
+
+  if(entity_has_component<Timer>(world, entt)) {
+    if(ImGui::TreeNode("Timer")) {
+      Timer& timer = entity_get_component<Timer>(world, entt);
+      gui_edit_timer("", &timer);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Particles 
+
+  if(entity_has_component<ParticleEmitter>(world, entt)) {
+    if(ImGui::TreeNode("Particle emitter")) {
+      ParticleEmitter& emitter = entity_get_component<ParticleEmitter>(world, entt);
+      gui_edit_particle_emitter("", &emitter);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Animation
+
+  if(entity_has_component<AnimatorComponent>(world, entt)) {
+    if(ImGui::TreeNode("Animation")) {
+      AnimatorComponent& anim = entity_get_component<AnimatorComponent>(world, entt);
+      gui_edit_animation("", &anim.animation);
+
+      ImGui::TreePop();
+    }
+  }
+
+  ImGui::PopID(); 
+}
+
 /// Editor functions
 ///---------------------------------------------------------------------------------------------------------------------
 

@@ -12,10 +12,10 @@ namespace freya { // Start of freya
 /// Consts
 
 /// The default conversion between meters to pixels. 
-const f32 PHYSICS_DEFAULT_METERS_PER_PIXEL = 60.0f;
+const f32 PHYSICS_METERS_TO_PIXELS = 50.0f;
 
 /// The default conversion between pixels to meters. 
-const f32 PHYSICS_DEFAULT_PIXELS_PER_METER = 1.0f / PHYSICS_DEFAULT_METERS_PER_PIXEL;
+const f32 PHYSICS_PIXELS_TO_METERS = 0.02f;
 
 /// Consts
 ///---------------------------------------------------------------------------------------------------------------------

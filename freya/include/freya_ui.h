@@ -1,9 +1,6 @@
 #pragma once
 
-#include "freya_file.h"
-#include "freya_window.h"
-#include "freya_render.h"
-#include "freya_physics.h"
+#include "freya_entity.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -205,6 +202,12 @@ FREYA_API void gui_edit_animation(const char* name, Animation* anim);
 
 /// Add a particle emitter section identified by `name` to edit the given `emitter`.
 FREYA_API void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter);
+
+/// Add a physics body section identified by `name` to edit the given `body`.
+FREYA_API void gui_edit_physics_body(const char* name, PhysicsBodyID& body);
+
+/// Add an entity section identified by `name` to edit the given `entt`.
+FREYA_API void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt);
 
 /// GUI functions
 ///---------------------------------------------------------------------------------------------------------------------
