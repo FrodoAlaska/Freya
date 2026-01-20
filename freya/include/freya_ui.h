@@ -3,6 +3,7 @@
 #include "freya_file.h"
 #include "freya_window.h"
 #include "freya_render.h"
+#include "freya_physics.h"
 
 //////////////////////////////////////////////////////////////////////////
 

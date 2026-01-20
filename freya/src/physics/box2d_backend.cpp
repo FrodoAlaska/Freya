@@ -1,6 +1,7 @@
 #include "freya_physics.h"
 #include "freya_math.h"
 #include "freya_logger.h"
+#include "freya_event.h"
 
 #include <box2d/box2d.h>
 
@@ -71,9 +72,7 @@ void physics_world_init(const Vec2& gravity) {
   // World init
   s_world.id = b2CreateWorld(&world_def);
 
-  // Set listeners/callbacks
-  // @TODO (Physics)
-
+  // Done!
   FREYA_LOG_INFO("Successfully initialized the physics world");
 }
 
@@ -88,7 +87,105 @@ void physics_world_step(const f32 delta_time, const i32 sub_steps) {
     return;
   }
 
+  // Step the physics world
   b2World_Step(s_world.id, delta_time, sub_steps);
+
+  //
+  // Handle contact events
+  //
+
+  b2ContactEvents events = b2World_GetContactEvents(s_world.id);
+
+  // Begin contact events
+
+  for(i32 i = 0; i < events.beginCount; i++) {
+    b2ContactBeginTouchEvent* event = events.beginEvents + i;
+    CollisionData coll_data         = {};
+
+    // Get the bodies attached to the shapes 
+
+    coll_data.body1  = b2Shape_GetBody(event->shapeIdA);
+    coll_data.body2  = b2Shape_GetBody(event->shapeIdB);
+    coll_data.normal = b2vec_to_vec(event->manifold.normal); 
+
+    // Dispatch an event 
+
+    Event coll_event = {
+      .type           = EVENT_PHYSICS_CONTACT_ADDED, 
+      .collision_data = coll_data,
+    };
+    event_dispatch(coll_event);
+  }
+
+  // End contact events
+
+  for(i32 i = 0; i < events.endCount; i++) {
+    b2ContactEndTouchEvent* event = events.endEvents + i;
+    CollisionData coll_data       = {};
+
+    // Get the bodies attached to the shapes (if they're available)
+    
+    if(b2Shape_IsValid(event->shapeIdA) && b2Shape_IsValid(event->shapeIdB)) {
+      coll_data.body1 = b2Shape_GetBody(event->shapeIdA);
+      coll_data.body2 = b2Shape_GetBody(event->shapeIdB);
+    }
+
+    // Dispatch an event 
+
+    Event coll_event = {
+      .type           = EVENT_PHYSICS_CONTACT_REMOVED, 
+      .collision_data = coll_data,
+    };
+    event_dispatch(coll_event);
+  }
+
+  // 
+  // Handle sensor contact events
+  //
+
+  b2SensorEvents sensor_events = b2World_GetSensorEvents(s_world.id);
+
+  // Begin contact events
+
+  for(i32 i = 0; i < sensor_events.beginCount; i++) {
+    b2SensorBeginTouchEvent* event = sensor_events.beginEvents + i;
+    SensorCollisionData coll_data  = {};
+
+    // Get the bodies attached to the shapes 
+
+    coll_data.sensor_body  = b2Shape_GetBody(event->sensorShapeId);
+    coll_data.visitor_body = b2Shape_GetBody(event->visitorShapeId);
+
+    // Dispatch an event 
+
+    Event coll_event = {
+      .type        = EVENT_PHYSICS_SENSOR_CONTACT_ADDED, 
+      .sensor_data = coll_data,
+    };
+    event_dispatch(coll_event);
+  }
+
+  // End contact events
+
+  for(i32 i = 0; i < sensor_events.endCount; i++) {
+    b2SensorEndTouchEvent* event  = sensor_events.endEvents + i;
+    SensorCollisionData coll_data = {};
+
+    // Get the bodies attached to the shapes (if they're available)
+    
+    if(b2Shape_IsValid(event->sensorShapeId) && b2Shape_IsValid(event->visitorShapeId)) {
+      coll_data.sensor_body  = b2Shape_GetBody(event->sensorShapeId);
+      coll_data.visitor_body = b2Shape_GetBody(event->visitorShapeId);
+    }
+
+    // Dispatch an event 
+
+    Event coll_event = {
+      .type        = EVENT_PHYSICS_SENSOR_CONTACT_REMOVED, 
+      .sensor_data = coll_data,
+    };
+    event_dispatch(coll_event);
+  }
 }
 
 void physics_world_set_gravity(const Vec2& gravity) {
@@ -145,14 +242,18 @@ ColliderID physics_body_add_collider(PhysicsBodyID& body, const ColliderDesc& de
   
   b2ShapeDef shape_def = b2DefaultShapeDef();
 
-  shape_def.density = desc.density;
-  shape_def.filter  = b2DefaultFilter();
+  shape_def.filter              = b2DefaultFilter();
+  shape_def.filter.categoryBits = (u64)desc.layers;
+  shape_def.filter.maskBits     = (u64)desc.mask_layers;
 
+  shape_def.density             = desc.density;
   shape_def.material.friction   = desc.friction;
   shape_def.material.restitution = desc.restitution;
 
-  shape_def.isSensor           = desc.is_sensor;
-  shape_def.enableSensorEvents = desc.is_sensor;
+  shape_def.isSensor            = desc.is_sensor;
+  shape_def.enableSensorEvents  = desc.is_sensor;
+  shape_def.enableContactEvents = true;
+  shape_def.enableHitEvents     = false;
 
   // Shape init
   b2Polygon shape = b2MakeBox(extents.x, extents.y);
@@ -272,6 +373,14 @@ void collider_set_restitution(ColliderID& collider, const f32 restitution) {
   b2Shape_SetRestitution(collider, restitution);
 }
 
+void collider_set_mask_layers(ColliderID& collider, const u64 layers, const u64 mask_layers) {
+  b2Filter filter     = b2DefaultFilter();
+  filter.categoryBits = layers; 
+  filter.maskBits     = mask_layers; 
+
+  b2Shape_SetFilter(collider, filter);
+}
+
 void collider_enable_hit_events(ColliderID& collider, const bool enabled) {
   b2Shape_EnableHitEvents(collider, enabled);
 }
@@ -281,6 +390,9 @@ ColliderDesc collider_get_desc(ColliderID& collider) {
     .density     = b2Shape_GetDensity(collider),
     .friction    = b2Shape_GetFriction(collider),
     .restitution = b2Shape_GetRestitution(collider),
+
+    .layers      = (PhysicsObjectLayer)b2Shape_GetFilter(collider).categoryBits,
+    .mask_layers = (PhysicsObjectLayer)b2Shape_GetFilter(collider).maskBits,
 
     .is_sensor = b2Shape_IsSensor(collider),
   };

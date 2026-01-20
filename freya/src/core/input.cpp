@@ -200,7 +200,7 @@ f32 input_mouse_scroll_value() {
 }
 
 void input_cursor_show(const bool show) {
-  event_dispatch(Event {
+  event_dispatch(Event{
     .type         = EVENT_MOUSE_CURSOR_SHOWN, 
     .cursor_shown = show,
   });

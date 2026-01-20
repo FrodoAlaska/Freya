@@ -2,14 +2,7 @@
 
 #include "freya_math.h"
 
-///---------------------------------------------------------------------------------------------------------------------
-/// Box2D definitions to avoid including it
-
-struct b2BodyId;
-struct b2ShapeId;
-
-/// Box2D definitions to avoid including it
-///---------------------------------------------------------------------------------------------------------------------
+#include <box2d/id.h> // @TODO (Physics): NOOOOOOO!!!!!!
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -25,6 +18,33 @@ const f32 PHYSICS_DEFAULT_METERS_PER_PIXEL = 60.0f;
 const f32 PHYSICS_DEFAULT_PIXELS_PER_METER = 1.0f / PHYSICS_DEFAULT_METERS_PER_PIXEL;
 
 /// Consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// PhysicsObjectLayer
+enum PhysicsObjectLayer {
+  /// This flag indicates a "none" layer, 
+  /// which can be used to disable collisions 
+  /// with certain layers in the layers matrix.
+  PHYSICS_OBJECT_LAYER_NONE = 0x00,
+  
+  /// The rest of the available layers, with 
+  /// the starting layer being set to `0x01`.
+  
+  PHYSICS_OBJECT_LAYER_0 = 0x01,
+  PHYSICS_OBJECT_LAYER_1 = 0x02,
+
+  PHYSICS_OBJECT_LAYER_2 = 0x03,
+  PHYSICS_OBJECT_LAYER_3 = 0x04,
+  
+  PHYSICS_OBJECT_LAYER_4 = 0x05,
+  PHYSICS_OBJECT_LAYER_5 = 0x06,
+
+  /// The maximum number of layers that 
+  /// currently can be used.
+  PHYSICS_OBJECT_LAYERS_MAX = 6,
+};
+/// PhysicsObjectLayer
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -78,12 +98,30 @@ using ColliderID   = b2ShapeId;
 ///---------------------------------------------------------------------------------------------------------------------
 /// CollisionData
 struct CollisionData {
-  /// The physics body that were involved in the collision.
+  /// The physics body that were involved 
+  /// in the collision.
   
-  PhysicsBodyID* body1;
-  PhysicsBodyID* body2; 
+  PhysicsBodyID body1;
+  PhysicsBodyID body2; 
+
+  /// The normal that was generated from the 
+  /// collision event.
+  Vec2 normal;
 };
 /// CollisionData
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// SensorCollisionData
+struct SensorCollisionData {
+  /// The body of the sensor. 
+  PhysicsBodyID sensor_body;
+
+  /// The body that was collided 
+  /// with the sensor.
+  PhysicsBodyID visitor_body;
+};
+/// SensorCollisionData
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -185,19 +223,29 @@ struct ColliderDesc {
   /// The density of the collider, which is usually in kg/m^2.
   ///
   /// @NOTE: This value is set to `0.0f` by default.
-  f32 density     = 0.0f;
+  f32 density                    = 0.0f;
   
   /// The starting friction of the physics body.
   /// Make sure to set this value between a range of `[0, 1]`. 
   ///
   /// @NOTE: This value is set to `0.0f` by default.
-  f32 friction    = 0.0f;
+  f32 friction                   = 0.0f;
   
   /// The starting restitution of the physics body.
   /// Make sure to set this value between a range of `[0, 1]`. 
   ///
   /// @NOTE: This value is set to `0.1f` by default.
-  f32 restitution = 0.0f;
+  f32 restitution                = 0.0f;
+  
+  /// The object layers which this shape will live in.
+  ///
+  /// @NOTE: This value is set to `PHYSICS_OBJECT_LAYER_0` by default.
+  PhysicsObjectLayer layers      = PHYSICS_OBJECT_LAYER_0;
+
+  /// The object layers this shape is allowed to collide with.
+  ///
+  /// @NOTE: This value is set to `PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1` by default.
+  PhysicsObjectLayer mask_layers = (PhysicsObjectLayer)(PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1);
 
   /// If this flag is set to `true`, the body will 
   /// act as a sensor, which will detect collisions 
@@ -205,7 +253,7 @@ struct ColliderDesc {
   /// as a trigger.
   ///
   /// @NOTE: By default, this value is set to `false`.
-  bool is_sensor      = false;    
+  bool is_sensor                 = false;
 };
 /// ColliderDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -352,6 +400,10 @@ FREYA_API void collider_set_friction(ColliderID& collider, const f32 friction);
 
 /// Set the restitution of the given `collider` to `restitution`.
 FREYA_API void collider_set_restitution(ColliderID& collider, const f32 restitution);
+
+/// Set both the layers and the mask layers of the given `collider` 
+/// to `layers` and `mask_layers`.
+FREYA_API void collider_set_layers(ColliderID& collider, const u64 layers, const u64 mask_layers);
 
 /// Enable/disable contact events of the given `collider`.
  void collider_enable_hit_events(ColliderID& collider, const bool enabled);

@@ -2,10 +2,9 @@
 
 - Systems to work on 
     - physics 
-        - Abstraction 
-        - Add the events
         - Add to the ECS 
         - Add to the GUI
+        - Filters?
         - Debug draw? 
         - Explosions?
         - Documentation

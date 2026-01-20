@@ -1,6 +1,5 @@
 #pragma once
 
-#include "freya_base.h"
 #include "freya_ui.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -83,6 +82,16 @@ enum EventType {
   
   EVENT_UI_ELEMENT_TAB_CHANGED,
 
+  /// Physics events
+
+  EVENT_PHYSICS_CONTACT_ADDED,
+  EVENT_PHYSICS_CONTACT_REMOVED,
+  
+  EVENT_PHYSICS_SENSOR_CONTACT_ADDED,
+  EVENT_PHYSICS_SENSOR_CONTACT_REMOVED,
+  
+  EVENT_PHYSICS_RAYCAST_HIT,
+
   /// Entity events
   
   EVENT_ENTITY_ADDED, 
@@ -160,6 +169,16 @@ struct Event {
   /// The index of the tab that was changed into 
   /// upon the dispatch of the `EVENT_UI_ELEMENT_TAB_CHANGED` event.
   i32 tab_index;
+
+  /// The collision data given to this event 
+  /// by either `EVENT_PHYSICS_CONTACT_ADDED` or
+  /// `EVENT_PHYSICS_CONTACT_REMOVED`. 
+  CollisionData collision_data;
+
+  /// The sensor collision data given to this event 
+  /// by either `EVENT_PHYSICS_SENSOR_CONTACT_ADDED` or
+  /// `EVENT_PHYSICS_SENSOR_CONTACT_REMOVED`. 
+  SensorCollisionData sensor_data;
 
   /// The entity ID given to this event by 
   /// either `EVENT_ENTITY_ADDED` or `EVENT_ENTITY_DESTROYED`.
