@@ -181,14 +181,13 @@ void gui_renderer_info() {
   }
  
   // Clear color
-  // @TODO (GUI) 
  
-  // Vec4 clear_color = renderer_get_clear_color();
-  // bool is_picked   = ImGui::ColorPicker4("Clear color", &clear_color[0], ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
-  //
-  // if(is_picked) {
-  //   renderer_set_clear_color(clear_color);
-  // }
+  Vec4 clear_color = renderer_get_clear_color();
+  bool is_picked   = ImGui::ColorPicker4("Clear color", &clear_color[0], ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoSmallPreview);
+
+  if(is_picked) {
+    renderer_set_clear_color(clear_color);
+  }
 
   gui_end_panel();
 }
@@ -517,6 +516,48 @@ void gui_edit_animation(const char* name, Animation* anim) {
   ImGui::Checkbox("Active", &anim->is_active);
   ImGui::Checkbox("Loop", &anim->can_loop);
   ImGui::Checkbox("Alternate", &anim->can_alternate);
+  
+  ImGui::PopID(); 
+}
+
+void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+
+  //
+  // Physics
+  //
+
+  ImGui::DragFloat2("Position", &emitter->initial_position[0], s_gui.big_step);
+  ImGui::DragFloat2("Velocity", &emitter->initial_velocity[0], s_gui.big_step);
+  
+  ImGui::DragFloat("Lifetime", &emitter->lifetime.limit, s_gui.big_step, 0.0f, 512.0f);
+  ImGui::DragFloat("Gravity", &emitter->gravity_factor, s_gui.big_step);
+ 
+  // Rendering
+  
+  ImGui::DragFloat2("Scale", &emitter->initial_scale[0], s_gui.big_step);
+  ImGui::ColorEdit4("Color", &emitter->color[0]);
+
+  //
+  // Distribution
+  //
+  
+  ImGui::DragFloat("Distribution radius", &emitter->distribution_radius, s_gui.big_step);
+
+  i32 current_dist = emitter->distribution;
+  if(ImGui::Combo("Distributions", &current_dist, "Random\0Square\0Circular\0\0")) {
+    emitter->distribution = (ParticleDistributionType)current_dist;
+  }
+
+  //
+  // Particles count
+  // 
+
+  i32 count = (i32)emitter->particles_count;
+  if(ImGui::SliderInt("Count", &count, 1, (i32)(PARTICLES_MAX - 1))) {
+    emitter->particles_count = (sizei)count;
+  }
   
   ImGui::PopID(); 
 }

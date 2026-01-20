@@ -202,6 +202,9 @@ FREYA_API void gui_edit_timer(const char* name, Timer* timer);
 /// Add an animation section identified by `name` to edit the given `anim`.
 FREYA_API void gui_edit_animation(const char* name, Animation* anim);
 
+/// Add a particle emitter section identified by `name` to edit the given `emitter`.
+FREYA_API void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter);
+
 /// GUI functions
 ///---------------------------------------------------------------------------------------------------------------------
 

@@ -23,6 +23,7 @@ const sizei PARTICLES_MAX = 1024;
 enum ParticleDistributionType {
   DISTRIBUTION_RANDOM = 0, 
   DISTRIBUTION_SQUARE,
+  DISTRIBUTION_CIRCULAR,
 };
 /// ParticleDistributionType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -152,14 +153,19 @@ struct ParticleEmitterDesc {
   /// The starting position of the particles.
   Vec2 position; 
 
+  /// The unit scale of each particle in the system. 
+  ///
+  /// @NOTE: The default scale is set to `Vec2(1.0f, 1.0f)`.
+  Vec2 scale;
+
   /// The velocity of each particle that will be applied 
   /// in the update loop. 
   Vec2 velocity;
 
-  /// The unit scale of each particle in the system. 
+  /// The amount of particles to emit. 
   ///
-  /// @NOTE: The default scale is set to `Vec2(1.0f, 1.0f)`.
-  Vec2 scale                            = Vec2(1.0f);
+  /// @NOTE: This variable CANNOT exceed `PARTICLES_CPU_MAX`.
+  sizei count; 
 
   /// The texture ID to be used when rendering the particles. 
   ///
@@ -180,8 +186,8 @@ struct ParticleEmitterDesc {
 
   /// The gravity contributor of each particle in the system.
   ///
-  /// @NOTE: The default gravity is set to `-9.81f`.
-  f32 gravity_factor                    = -9.81f;
+  /// @NOTE: The default gravity is set to `240.0f`.
+  f32 gravity_factor                    = 240.0f;
 
   /// Defines how the particles will be distributed 
   /// when emitted. 
@@ -198,11 +204,6 @@ struct ParticleEmitterDesc {
   ///
   /// @NOTE: The default distribution radius is set to `1.0f`.
   f32 distribution_radius               = 1.0f;
-
-  /// The amount of particles to emit. 
-  ///
-  /// @NOTE: This variable CANNOT exceed `PARTICLES_CPU_MAX`.
-  sizei count                           = 0; 
 };
 /// ParticleEmitterDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -210,8 +211,9 @@ struct ParticleEmitterDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// ParticleEmitter 
 struct ParticleEmitter {
-  Vec2 initial_position = Vec3(0.0f);
-  Vec2 initial_velocity = Vec3(0.0f);
+  Vec2 initial_position = Vec2(0.0f);
+  Vec2 initial_scale    = Vec2(0.0f);
+  Vec2 initial_velocity = Vec2(0.0f);
 
   Transform transforms[PARTICLES_MAX];
   Vec2 forces[PARTICLES_MAX];

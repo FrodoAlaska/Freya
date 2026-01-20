@@ -375,6 +375,10 @@ void renderer_queue_animation(const Animation& anim, const Transform& transform,
 }
 
 void renderer_queue_particles(const ParticleEmitter& emitter) {
+  if(!emitter.is_active) {
+    return;
+  }
+
   for(sizei i = 0; i < emitter.particles_count; i++) {
     if(emitter.texture) {
       renderer_queue_texture(emitter.texture, emitter.transforms[i], emitter.color);

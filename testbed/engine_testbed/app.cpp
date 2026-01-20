@@ -53,7 +53,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Entities init
 
-  app->entt_id = freya::entity_create(app->world, freya::Vec2(10.0f), freya::Vec2(1.0f));
+  app->entt_id = freya::entity_create(app->world, freya::Vec2(300.0f));
 
   freya::AnimationDesc anim_desc = {
     .texture_id = freya::asset_group_get_id(app->group_id, "key_animation"),
@@ -63,8 +63,11 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // freya::entity_add_animation(app->world, app->entt_id, anim_desc);
 
   freya::ParticleEmitterDesc emitter_desc = {
-    .velocity = freya::Vec2(20.0f), 
-    .scale    = freya::Vec2(256.0f),
+    .scale    = freya::Vec2(4.0f),
+    .velocity = freya::Vec2(200.0f), 
+
+    .count = 1024,
+    .color = freya::Vec4(1.0f, 0.0f, 0.0f, 1.0f),
   };
   freya::entity_add_particle_emitter(app->world, app->entt_id, emitter_desc);
 
@@ -93,6 +96,13 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   
   if(freya::input_key_pressed(freya::KEY_F1)) {
     freya::gui_toggle_active();
+  }
+
+  // Emit particles
+
+  if(freya::input_key_pressed(freya::KEY_P)) {
+    freya::ParticleEmitter& emitter = freya::entity_get_component<freya::ParticleEmitter>(app->world, app->entt_id);
+    freya::particle_emitter_emit(emitter);
   }
 
   // Entity world update
@@ -124,6 +134,9 @@ void app_render_gui(freya::App* app) {
 
   // freya::AnimatorComponent& anim = freya::entity_get_component<freya::AnimatorComponent>(app->world, app->entt_id);
   // freya::gui_edit_animation("Animation", &anim.animation);
+   
+  freya::ParticleEmitter& emitter = freya::entity_get_component<freya::ParticleEmitter>(app->world, app->entt_id);
+  freya::gui_edit_particle_emitter("Emitter", &emitter);
   
   freya::Transform& transform = freya::entity_get_component<freya::Transform>(app->world, app->entt_id);
   freya::gui_edit_transform("Transform", &transform);
