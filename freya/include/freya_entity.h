@@ -1,6 +1,7 @@
 #pragma once
 
 #include "freya_render.h"
+#include "freya_physics.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -51,6 +52,20 @@ struct SpriteComponent {
   Vec4 color;
 };
 /// SpriteComponent
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// PhysicsComponent
+struct PhysicsComponent {
+  /// The internal handle of the physics body, 
+  /// to be used with `physics_body_*` functions.
+  PhysicsBodyID body; 
+
+  /// A collision callback to be initiated once 
+  /// the body is collided.
+  OnCollisionEnterFn coll_func;
+};
+/// PhysicsComponent
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -144,6 +159,17 @@ FREYA_API void entity_add_sprite(EntityWorld& world, EntityID& entt, const Asset
 /// using the current position of `entt`.
 /// However, the rest of the memebers of `desc` must be filled by the caller.
 FREYA_API void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc);
+
+/// A helper function to add a physics body to `entt`, using the information 
+/// in `desc`, and `coll_func` to call later on collision events. 
+///
+/// @NOTE: The position, rotation, and user data of the given `desc` will be
+/// set inside the function using the transform of `entt` and its ID respectively.
+/// However, the rest of the memebers of `desc` must be filled by the caller.
+FREYA_API void entity_add_physics_body(EntityWorld& world, 
+                                       EntityID& entt, 
+                                       PhysicsBodyDesc& desc, 
+                                       const OnCollisionEnterFn& coll_func = nullptr);
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///

@@ -329,7 +329,7 @@ void physics_body_set_active(PhysicsBodyID& body, const bool active) {
   }
 }
 
-void physics_body_set_user_data(PhysicsBodyID& body, const u64 user_data) {
+void physics_body_set_user_data(PhysicsBodyID& body, const void* user_data) {
   b2Body_SetUserData(body, (void*)user_data);
 }
 
@@ -389,8 +389,8 @@ const bool physics_body_is_active(const PhysicsBodyID& body) {
   return b2Body_IsEnabled(body);
 }
 
-const u64 physics_body_get_user_data(const PhysicsBodyID& body) {
-  return *(u64*)(b2Body_GetUserData(body));
+void* physics_body_get_user_data(const PhysicsBodyID& body) {
+  return b2Body_GetUserData(body);
 }
 
 const f32 physics_body_get_gravity_factor(const PhysicsBodyID& body) {

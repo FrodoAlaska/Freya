@@ -213,7 +213,7 @@ struct PhysicsBodyDesc {
 
   /// User-specific data to keep in the physics body 
   /// for later retrieval.
-  u64 user_data       = 0;
+  void* user_data     = nullptr;
 
   /// Indicates whether the body should be  
   /// initially active/awake or not.
@@ -346,7 +346,7 @@ FREYA_API void physics_body_set_angular_velocity(PhysicsBodyID& body, const f32 
 FREYA_API void physics_body_set_active(PhysicsBodyID& body, const bool active);
 
 /// Set the internal user data of the given `body` to `user_data`.
-FREYA_API void physics_body_set_user_data(PhysicsBodyID& body, const u64 user_data);
+FREYA_API void physics_body_set_user_data(PhysicsBodyID& body, const void* user_data);
 
 /// Set the gravity factor of the given `body` to `gravity_factor`.
 FREYA_API void physics_body_set_gravity_factor(PhysicsBodyID& body, const f32 factor);
@@ -391,7 +391,7 @@ FREYA_API const f32 physics_body_get_angular_velocity(const PhysicsBodyID& body)
 FREYA_API const bool physics_body_is_active(const PhysicsBodyID& body);
 
 /// Retrieve internal user data of the given `body`.
-FREYA_API const u64 physics_body_get_user_data(const PhysicsBodyID& body);
+FREYA_API void* physics_body_get_user_data(const PhysicsBodyID& body);
 
 /// Retrieve the gravity factor of the given `body`.
 FREYA_API const f32 physics_body_get_gravity_factor(const PhysicsBodyID& body);

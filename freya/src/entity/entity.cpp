@@ -203,6 +203,20 @@ void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmi
   world.emplace<ParticleEmitter>(entt, emitter);
 }
 
+void entity_add_physics_body(EntityWorld& world, 
+                             EntityID& entt, 
+                             PhysicsBodyDesc& desc, 
+                             const OnCollisionEnterFn& coll_func) {
+  Transform& transform = world.get<Transform>(entt);
+
+  desc.position      = transform.position;
+  desc.rotation      = transform.rotation;
+  desc.user_data     = (void*)entt;
+  PhysicsBodyID body = physics_body_create(desc);
+
+  world.emplace<PhysicsComponent>(entt, body, coll_func);
+}
+
 /// EntityID functions
 /// ----------------------------------------------------------------------
 
