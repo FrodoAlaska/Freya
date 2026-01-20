@@ -84,6 +84,9 @@ void engine_init(const AppDesc& desc) {
   // Audio init
   audio_device_init(nullptr);
 
+  // Physics world init
+  physics_world_init(Vec2(0.0f, -9.81f));
+
   // Check for any command line arguments
   
   Args cli_args; 
@@ -125,6 +128,7 @@ void engine_run() {
 void engine_shutdown() {
   CHECK_VALID_CALLBACK(s_engine.app_desc.shutdown_fn, s_engine.app);
 
+  physics_world_shutdown();
   audio_device_shutdown();
   ui_renderer_shutdown();
   renderer_shutdown();

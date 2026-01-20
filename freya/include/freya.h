@@ -18,3 +18,4 @@
 #include <freya_render.h>
 #include <freya_app.h>
 #include <freya_entity.h>
+#include <freya_physics.h>

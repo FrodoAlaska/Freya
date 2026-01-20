@@ -2,6 +2,15 @@
 
 - Systems to work on 
     - physics 
+        - Abstraction 
+        - Add the events
+        - Add to the ECS 
+        - Add to the GUI
+        - Debug draw? 
+        - Explosions?
+        - Documentation
+    - Add the entity to the GUI
+    - Add rotations
     - Readme
     - Make it public
 

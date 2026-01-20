@@ -63,6 +63,13 @@ FetchContent_Declare(
   URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.12.2.zip
 )
 
+# Box2D
+
+FetchContent_Declare(
+  box2d 
+  URL https://github.com/erincatto/box2d/archive/refs/tags/v3.1.1.zip
+)
+
 # RmlUI (fork)
 
 FetchContent_Declare(
@@ -71,7 +78,7 @@ FetchContent_Declare(
   GIT_TAG        f6875a7c13fddd23e79b378065211eaeef5f9509 
 )
 
-FetchContent_MakeAvailable(glfw-3.4 glm OpenAL tracy rmlui)
+FetchContent_MakeAvailable(glfw-3.4 glm OpenAL tracy box2d rmlui)
 ############################################################
 
 ### Project Variables ###
@@ -89,12 +96,14 @@ set(FREYA_INCLUDES
   ${glm_SOURCE_DIR}
   ${OpenAL_SOURCE_DIR}/include
   ${tracy_SOURCE_DIR}/public
+  ${box2d_SOURCE_DIR}/public
   ${rmlui_SOURCE_DIR}/Include
 )
 
 set(FREYA_LIBRARIES 
   glfw 
   OpenAL
+  box2d
   rmlui
   rmlui_debugger
 )

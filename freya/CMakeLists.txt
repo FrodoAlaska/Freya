@@ -62,6 +62,9 @@ set(FREYA_SOURCES
   
   # Entity
   ${FREYA_SRC_DIR}/entity/entity.cpp
+  
+  # Physics
+  ${FREYA_SRC_DIR}/physics/box2d_backend.cpp
 )
 
 set(FREYA_HEADERS
@@ -84,6 +87,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_render.h
   ${FREYA_INCLUDE_DIR}/freya_app.h
   ${FREYA_INCLUDE_DIR}/freya_entity.h
+  ${FREYA_INCLUDE_DIR}/freya_physics.h
 )
 
 set(FREYA_PCH
