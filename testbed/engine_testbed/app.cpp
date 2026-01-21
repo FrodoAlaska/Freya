@@ -53,10 +53,8 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Entities init
 
-  freya::i32 hex = freya::color_rgb_to_hex(freya::COLOR_GREEN);
-
   app->entt_id = freya::entity_create(app->world, freya::Vec2(100.0f));
-  freya::entity_add_sprite(app->world, app->entt_id, freya::asset_group_get_id(app->group_id, "enemy_skeleton1_death"), freya::color_hex_to_rgb(hex));
+  freya::entity_add_sprite(app->world, app->entt_id, freya::asset_group_get_id(app->group_id, "enemy_skeleton1_death"));
   
   freya::PhysicsBodyDesc body_desc{
     .type = freya::PHYSICS_BODY_DYNAMIC,
@@ -108,6 +106,7 @@ void app_render(freya::App* app) {
   // 2D render
 
   freya::renderer_begin(app->camera);
+  freya::renderer_queue_circle(freya::Vec2(200.0f, 100.0f), 32.0f, freya::COLOR_RED);
   freya::entity_world_render(app->world);
   freya::renderer_end();
 

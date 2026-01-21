@@ -1,14 +1,13 @@
 # TODO 
 
 - Systems to work on 
+    - renderer rework
+        - Add rotations
     - physics 
         - Debug draw 
         - Add different kinds of colliders
         - Explosions?
         - Documentation
-    - renderer rework
-        - Add rotations
-        - Add different shapes to render (circles, capsules, lines?)
     - Entity rework? 
         - Add an `Entity` struct that will contain a few useful variables 
         - `is_active`

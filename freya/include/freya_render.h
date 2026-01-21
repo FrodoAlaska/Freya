@@ -407,6 +407,9 @@ FREYA_API void renderer_queue_texture(GfxTexture* texture, const Transform& tran
 /// Queue a quad using `transform` with a `color`.
 FREYA_API void renderer_queue_quad(const Transform& transform, const Color& color);
 
+/// Queue a cirlce at `position` with `radius` and `color`.
+FREYA_API void renderer_queue_circle(const Vec2& position, const f32 radius, const Color& color);
+
 /// Queue an animation using the given `animation`, transformed with `transform` with a `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.

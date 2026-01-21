@@ -1,7 +1,7 @@
 #include "freya_render.h"
 #include "freya_logger.h"
 
-#include "shaders/batch_shader.h"
+#include "shaders/batch_shaders.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -54,6 +54,7 @@ struct Renderer {
 
   HashMap<GfxTexture*, sizei> textures;
   RenderBatch quad_batch;
+  RenderBatch circle_batch;
 
   Mat4 view         = Mat4(1.0f);
   Color clear_color = Color(1.0f);
@@ -69,6 +70,61 @@ static Renderer s_renderer;
 static void batch_clear(RenderBatch& batch) {
   batch.textures.clear();
   batch.vertices.clear();
+}
+
+static void batch_flush(RenderBatch& batch) {
+  // Update the vertex buffer
+  
+  gfx_buffer_upload_data(s_renderer.pipe_desc.vertex_buffer, 
+                         0, 
+                         sizeof(Vertex2D) * batch.vertices.size(), 
+                         batch.vertices.data());
+  
+  s_renderer.pipe_desc.vertices_count = batch.vertices.size();
+  gfx_pipeline_update(s_renderer.pipeline, s_renderer.pipe_desc); 
+
+  // Use the resources
+  
+  GfxBindingDesc bind_desc = {
+    .shader = batch.shader->shader,
+
+    .textures       = batch.textures.data(), 
+    .textures_count = batch.textures.size(),
+  };
+  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+
+  // Render the batch
+  
+  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.pipeline); 
+  gfx_context_draw(s_renderer.ctx, 0);
+
+  // Start on a clean slate
+  batch_clear(batch);
+}
+
+static sizei batch_find_texture(RenderBatch& batch, GfxTexture* texture) {
+  sizei index = 0;
+
+  // Save the texture in the map if it never existed before
+  
+  if(s_renderer.textures.find(texture) == s_renderer.textures.end()) {
+    sizei index = batch.textures.size();
+    batch.textures.push_back(texture);
+    
+    s_renderer.textures[texture] = index;
+  }
+  else { // Otherwise, retrieve the relevant index
+    index = s_renderer.textures[texture];
+  }
+
+  // Make sure we flush the batch if it exceeds any limits
+  
+  if(batch.textures.size() >= TEXTURES_MAX) {
+    batch_flush(batch);
+  }
+
+  // Done!
+  return index;
 }
 
 static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rect2D& dest, const Color& color, const sizei texture_index) {
@@ -121,36 +177,6 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   };
   batch.vertices.push_back(v4);
   batch.vertices.push_back(v1);
-}
-
-static void batch_flush(RenderBatch& batch) {
-  // Update the vertex buffer
-  
-  gfx_buffer_upload_data(s_renderer.pipe_desc.vertex_buffer, 
-                         0, 
-                         sizeof(Vertex2D) * batch.vertices.size(), 
-                         batch.vertices.data());
-  
-  s_renderer.pipe_desc.vertices_count = batch.vertices.size();
-  gfx_pipeline_update(s_renderer.pipeline, s_renderer.pipe_desc); 
-
-  // Use the resources
-  
-  GfxBindingDesc bind_desc = {
-    .shader = batch.shader->shader,
-
-    .textures       = batch.textures.data(), 
-    .textures_count = batch.textures.size(),
-  };
-  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
-
-  // Render the batch
-  
-  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.pipeline); 
-  gfx_context_draw(s_renderer.ctx, 0);
-
-  // Start on a clean slate
-  batch_clear(batch);
 }
 
 /// Private functions
@@ -228,8 +254,10 @@ void renderer_init(Window* window) {
   s_renderer.default_texture = asset_group_get_texture(asset_group_push_texture(ASSET_CACHE_ID, tex_desc));
 
   //
-  // Default shader init
+  // Default shaders init
   //
+
+  // Quad shader
 
   AssetID shader_context_id    = asset_group_push_shader_context(ASSET_CACHE_ID, generate_batch_quad_shader());
   s_renderer.quad_batch.shader = asset_group_get_shader_context(shader_context_id); 
@@ -243,6 +271,11 @@ void renderer_init(Window* window) {
 
   shader_context_set_uniform_array(s_renderer.quad_batch.shader, "u_textures", texture_ids, TEXTURES_MAX);
   gfx_buffer_bind_point(s_renderer.matrix_buffer, SHADER_MATRIX_BUFFER_INDEX);
+
+  // Circle shader
+  
+  shader_context_id              = asset_group_push_shader_context(ASSET_CACHE_ID, generate_batch_circle_shader());
+  s_renderer.circle_batch.shader = asset_group_get_shader_context(shader_context_id); 
 
   //
   // Default framebuffer init
@@ -304,6 +337,9 @@ void renderer_end() {
 
   // Flush the quad batch
   batch_flush(s_renderer.quad_batch);
+
+  // Flush the cirlce batch
+  batch_flush(s_renderer.circle_batch);
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -319,28 +355,11 @@ GfxContext* renderer_get_context() {
 }
 
 void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Color& tint) {
-  sizei index = 0;
-
-  // Save the texture in the map if it never existed before
-  
-  if(s_renderer.textures.find(texture) == s_renderer.textures.end()) {
-    sizei index = s_renderer.quad_batch.textures.size();
-    s_renderer.quad_batch.textures.push_back(texture);
-    
-    s_renderer.textures[texture] = index;
-  }
-  else { // Otherwise, retrieve the relevant index
-    index = s_renderer.textures[texture];
-  }
-
-  // Make sure we flush the batch if it exceeds any limits
-  
-  if(s_renderer.quad_batch.textures.size() >= TEXTURES_MAX) {
-    batch_flush(s_renderer.quad_batch);
-  }
+  // Get the appropriate texture index
+  sizei texture_index = batch_find_texture(s_renderer.quad_batch, texture);
 
   // Generate a quad 
-  batch_generate_quad(s_renderer.quad_batch, src, dest, tint, index);  
+  batch_generate_quad(s_renderer.quad_batch, src, dest, tint, texture_index); 
 }
 
 void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint) {
@@ -386,6 +405,25 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
 
     renderer_queue_quad(emitter.transforms[i], emitter.color);
   }
+}
+
+void renderer_queue_circle(const Vec2& position, const f32 radius, const Color& color) {
+  // Get the appropriate texture index
+  sizei texture_index = batch_find_texture(s_renderer.circle_batch, s_renderer.default_texture);
+  
+  // Generate a quad 
+  
+  Rect2D src = {
+    .size     = Vec2(radius),
+    .position = Vec2(0.0f),
+  };
+  
+  Rect2D dest = {
+    .size     = Vec2(radius),
+    .position = position, 
+  };
+
+  batch_generate_quad(s_renderer.circle_batch, src, dest, color, texture_index); 
 }
 
 /// Renderer functions
