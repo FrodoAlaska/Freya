@@ -236,56 +236,96 @@ void gui_debug_info() {
   }
 
   // FPS 
-  
-  ImGui::Text("FPS: %.3lf", clock_get_fps());
-  ImGui::Separator();
+  {
+    ImGui::Text("FPS: %.3lf", clock_get_fps());
+    ImGui::Separator();
+  }
 
   // Mouse
- 
-  if(ImGui::CollapsingHeader("Mouse")) {
-    Vec2 mouse_pos    = input_mouse_position();
-    Vec2 mouse_offset = input_mouse_offset();
+  { 
+    if(ImGui::CollapsingHeader("Mouse")) {
+      Vec2 mouse_pos    = input_mouse_position();
+      Vec2 mouse_offset = input_mouse_offset();
 
-    ImGui::Text("Position: %s", vec2_to_string(mouse_pos).c_str());
-    ImGui::Text("Offset: %s", vec2_to_string(mouse_offset).c_str());
-  } 
+      ImGui::Text("Position: %s", vec2_to_string(mouse_pos).c_str());
+      ImGui::Text("Offset: %s", vec2_to_string(mouse_offset).c_str());
+    } 
+  }
 
   // Gamepad
+  {
+    if(ImGui::CollapsingHeader("Gamepads")) {
+      for(sizei i = JOYSTICK_ID_0; i < JOYSTICK_ID_LAST; i++) {
+        JoystickID joy_id = (JoystickID)i;
 
-  if(ImGui::CollapsingHeader("Gamepads")) {
-    for(sizei i = JOYSTICK_ID_0; i < JOYSTICK_ID_LAST; i++) {
-      JoystickID joy_id = (JoystickID)i;
+        if(!input_gamepad_connected(joy_id)) {
+          continue;
+        }
 
-      if(!input_gamepad_connected(joy_id)) {
-        continue;
+        // Name 
+
+        String name = ("Gamepad" + String(input_gamepad_get_name(joy_id)));
+        ImGui::SeparatorText(name.c_str());
+
+        // Axises values
+
+        Vec2 left_axis = input_gamepad_axis_value(joy_id, GAMEPAD_AXIS_LEFT); 
+        ImGui::Text("Left axis: X = %0.3f, Y = %0.3f", left_axis.x, left_axis.y);
+
+        Vec2 right_axis = input_gamepad_axis_value(joy_id, GAMEPAD_AXIS_RIGHT); 
+        ImGui::Text("Right axis: X = %0.3f, Y = %0.3f", right_axis.x, right_axis.y);
+
+        Vec2 triggers = input_gamepad_axis_value(joy_id, GAMEPAD_AXIS_TRIGGER); 
+        ImGui::Text("Trigger: Left = %0.3f, Right = %0.3f", triggers.x, triggers.y);
       }
-
-      // Name 
-      
-      String name = ("Gamepad" + String(input_gamepad_get_name(joy_id)));
-      ImGui::SeparatorText(name.c_str());
-
-      // Axises values
-    
-      Vec2 left_axis = input_gamepad_axis_value(joy_id, GAMEPAD_AXIS_LEFT); 
-      ImGui::Text("Left axis: X = %0.3f, Y = %0.3f", left_axis.x, left_axis.y);
-   
-      Vec2 right_axis = input_gamepad_axis_value(joy_id, GAMEPAD_AXIS_RIGHT); 
-      ImGui::Text("Right axis: X = %0.3f, Y = %0.3f", right_axis.x, right_axis.y);
-   
-      Vec2 triggers = input_gamepad_axis_value(joy_id, GAMEPAD_AXIS_TRIGGER); 
-      ImGui::Text("Trigger: Left = %0.3f, Right = %0.3f", triggers.x, triggers.y);
     }
   }
 
   // Memory
- 
-  if(ImGui::CollapsingHeader("Memory")) {
-    ImGui::Text("Allocations: %zu", memory_get_allocations_count());
+  { 
+    if(!ImGui::CollapsingHeader("Memory")) {
+      ImGui::Text("Allocations: %zu", memory_get_allocations_count());
 
-    sizei mbytes = memory_get_allocation_bytes() / MiB(1);
-    ImGui::Text("Bytes allocated: %zuMiB", mbytes);
-  } 
+      sizei mbytes = memory_get_allocation_bytes() / MiB(1);
+      ImGui::Text("Bytes allocated: %zuMiB", mbytes);
+    } 
+  }
+
+  // Renderer
+  {
+    if(ImGui::CollapsingHeader("Renderer")) {
+      // Clear color
+
+      Vec4 clear_color = renderer_get_clear_color();
+      bool is_picked   = ImGui::ColorEdit4("Clear color", &clear_color[0]);
+
+      if(is_picked) {
+        renderer_set_clear_color(clear_color);
+      }
+
+      // Debug draw 
+      // @TODO
+    }
+  }
+
+  // Physics
+  {
+    if(ImGui::CollapsingHeader("Physics")) {
+      // Gravity 
+
+      Vec2 gravity = physics_world_get_gravity();
+      if(ImGui::DragFloat2("Gravity", &gravity[0])) {
+        physics_world_set_gravity(gravity);
+      }
+
+      // Paused
+
+      bool paused = physics_world_is_paused();
+      if(ImGui::Checkbox("Paused", &paused)) {
+        physics_world_toggle_paused();
+      }
+    }
+  }
 
   gui_end_panel();
 }
@@ -601,6 +641,14 @@ void gui_edit_physics_body(const char* name, PhysicsBodyID& body) {
         physics_body_set_angular_velocity(body, angular);
       }
     }
+
+    // Gravity factor
+    {
+      f32 factor = physics_body_get_gravity_factor(body);
+      if(ImGui::DragFloat("Gravity factor", &factor, s_gui.big_step)) {
+        physics_body_set_gravity_factor(body, factor);
+      }
+    }
   }
 
   // Active
@@ -618,14 +666,6 @@ void gui_edit_physics_body(const char* name, PhysicsBodyID& body) {
 
     if(ImGui::Combo("Type", &current_type, options)) {
       physics_body_set_type(body, (PhysicsBodyType)current_type);
-    }
-  }
-
-  // Gravity factor
-  {
-    f32 factor = physics_body_get_gravity_factor(body);
-    if(ImGui::DragFloat("Gravity factor", &factor, s_gui.big_step)) {
-      physics_body_set_gravity_factor(body, factor);
     }
   }
 

@@ -57,6 +57,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/shader_context.cpp
   ${FREYA_SRC_DIR}/renderer/animation.cpp
   ${FREYA_SRC_DIR}/renderer/particles.cpp
+  ${FREYA_SRC_DIR}/renderer/color.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
   ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
   

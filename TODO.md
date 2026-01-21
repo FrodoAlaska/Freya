@@ -2,11 +2,19 @@
 
 - Systems to work on 
     - physics 
-        - Debug draw? 
+        - Debug draw 
         - Add different kinds of colliders
         - Explosions?
         - Documentation
-    - Add rotations
+    - renderer rework
+        - Add rotations
+        - Add different shapes to render (circles, capsules, lines?)
+    - Entity rework? 
+        - Add an `Entity` struct that will contain a few useful variables 
+        - `is_active`
+        - the internal `EntityWorld`,
+        - and the `EntityID`, of course.
+        - Maybe other things, too?
     - Readme
     - Make it public
 

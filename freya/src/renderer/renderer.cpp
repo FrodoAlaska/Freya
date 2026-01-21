@@ -55,8 +55,8 @@ struct Renderer {
   HashMap<GfxTexture*, sizei> textures;
   RenderBatch quad_batch;
 
-  Mat4 view        = Mat4(1.0f);
-  Vec4 clear_color = Vec4(1.0f);
+  Mat4 view         = Mat4(1.0f);
+  Color clear_color = Color(1.0f);
 };
 
 static Renderer s_renderer;
@@ -71,7 +71,7 @@ static void batch_clear(RenderBatch& batch) {
   batch.vertices.clear();
 }
 
-static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rect2D& dest, const Vec4& color, const sizei texture_index) {
+static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rect2D& dest, const Color& color, const sizei texture_index) {
   // Top-left
  
   Vertex2D v1 = {
@@ -290,7 +290,7 @@ void renderer_begin(const Camera& camera) {
 
   gfx_context_set_target(s_renderer.ctx, nullptr);
 
-  Vec4& col = s_renderer.clear_color;
+  Color& col = s_renderer.clear_color;
   gfx_context_clear(s_renderer.ctx, col.r, col.g, col.b, col.a);
 
   // Clean the slate!
@@ -306,11 +306,11 @@ void renderer_end() {
   batch_flush(s_renderer.quad_batch);
 }
 
-void renderer_set_clear_color(const Vec4& color) {
+void renderer_set_clear_color(const Color& color) {
   s_renderer.clear_color = color;
 }
 
-const Vec4& renderer_get_clear_color() {
+const Color& renderer_get_clear_color() {
   return s_renderer.clear_color;
 }
 
@@ -318,7 +318,7 @@ GfxContext* renderer_get_context() {
   return s_renderer.ctx;
 }
 
-void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Vec4& tint) {
+void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Color& tint) {
   sizei index = 0;
 
   // Save the texture in the map if it never existed before
@@ -343,7 +343,7 @@ void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D
   batch_generate_quad(s_renderer.quad_batch, src, dest, tint, index);  
 }
 
-void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Vec4& tint) {
+void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint) {
   GfxTextureDesc& tex_desc = gfx_texture_get_desc(texture);
 
   Rect2D src = {
@@ -359,11 +359,11 @@ void renderer_queue_texture(GfxTexture* texture, const Transform& transform, con
   renderer_queue_texture(texture, src, dest, tint);  
 }
 
-void renderer_queue_quad(const Transform& transform, const Vec4& color) {
+void renderer_queue_quad(const Transform& transform, const Color& color) {
   renderer_queue_texture(s_renderer.default_texture, transform, color);
 }
 
-void renderer_queue_animation(const Animation& anim, const Transform& transform, const Vec4& tint) {
+void renderer_queue_animation(const Animation& anim, const Transform& transform, const Color& tint) {
   GfxTextureDesc& tex_desc = gfx_texture_get_desc(anim.texture);
   
   Rect2D dest = {

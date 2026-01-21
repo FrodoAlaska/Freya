@@ -53,13 +53,18 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Entities init
 
+  freya::i32 hex = freya::color_rgb_to_hex(freya::COLOR_GREEN);
+
   app->entt_id = freya::entity_create(app->world, freya::Vec2(100.0f));
-  freya::entity_add_sprite(app->world, app->entt_id, freya::asset_group_get_id(app->group_id, "enemy_skeleton1_death"));
+  freya::entity_add_sprite(app->world, app->entt_id, freya::asset_group_get_id(app->group_id, "enemy_skeleton1_death"), freya::color_hex_to_rgb(hex));
   
-  freya::PhysicsBodyDesc body_desc = {
+  freya::PhysicsBodyDesc body_desc{
     .type = freya::PHYSICS_BODY_DYNAMIC,
   };
   freya::entity_add_physics_body(app->world, app->entt_id, body_desc);
+
+  freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->entt_id);
+  freya::collider_create(comp.body, freya::ColliderDesc{}, freya::Vec2(1.0f));
 
   // Done!
   return app;
@@ -118,12 +123,19 @@ void app_render_gui(freya::App* app) {
   }
 
   freya::gui_begin(); 
+ 
+  // Debug
+  freya::gui_debug_info();
+
+  // Editor
+
   freya::gui_begin_panel("Editor");
 
   freya::gui_edit_camera("Camera", &app->camera);
   freya::gui_edit_entity("Entity", app->world, app->entt_id);
 
   freya::gui_end_panel();
+
   freya::gui_end();
 }
 

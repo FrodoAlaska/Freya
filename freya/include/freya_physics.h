@@ -322,10 +322,6 @@ FREYA_API PhysicsBodyID physics_body_create(const PhysicsBodyDesc& desc);
 /// @NOTE: Make sure to call `physics_world_remove_body` _before_ this function.
 FREYA_API void physics_body_destroy(PhysicsBodyID& body);
 
-/// Add a box collider to `body` using the information in `desc` with 
-/// the `extents` being the size of the box collider in unit scale.
-FREYA_API ColliderID physics_body_add_collider(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& extents);
-
 /// Set the position of the given `body` to `position` and the roation (in radians) to `rotation`.
 ///
 /// @NOTE: This works as a teleport and is generally more expensive. 
@@ -405,6 +401,10 @@ FREYA_API const PhysicsBodyType physics_body_get_type(const PhysicsBodyID& body)
 ///---------------------------------------------------------------------------------------------------------------------
 /// Collider functions
 
+/// Add a box collider to `body` using the information in `desc` with 
+/// the `extents` being the size of the box collider in unit scale.
+FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& extents);
+
 /// Set the density of the given `collider` to `density`.
 FREYA_API void collider_set_density(ColliderID& collider, const f32 density);
 
@@ -419,7 +419,7 @@ FREYA_API void collider_set_restitution(ColliderID& collider, const f32 restitut
 FREYA_API void collider_set_layers(ColliderID& collider, const u64 layer, const u64 mask_layers);
 
 /// Enable/disable contact events of the given `collider`.
- void collider_enable_hit_events(ColliderID& collider, const bool enabled);
+FREYA_API void collider_enable_hit_events(ColliderID& collider, const bool enabled);
 
 /// Get the information of `collider` in the form of a `ColliderDesc`
 FREYA_API ColliderDesc collider_get_desc(ColliderID& collider);

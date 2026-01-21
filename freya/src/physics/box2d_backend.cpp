@@ -101,6 +101,9 @@ void physics_world_init(const Vec2& gravity) {
   // World init
   s_world.id = b2CreateWorld(&world_def);
 
+  // Debug draw init
+  // b2DebugDraw draw_def = b2DefaultDebugDraw();
+
   // Done!
   FREYA_LOG_INFO("Successfully initialized the physics world");
 }
@@ -283,31 +286,6 @@ void physics_body_destroy(PhysicsBodyID& body) {
   b2DestroyBody(body);
 }
 
-ColliderID physics_body_add_collider(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& extents) {
-  // Shape def init
-  
-  b2ShapeDef shape_def = b2DefaultShapeDef();
-
-  shape_def.filter              = b2DefaultFilter();
-  shape_def.filter.categoryBits = (u64)desc.layer;
-  shape_def.filter.maskBits     = (u64)desc.mask_layers;
-
-  shape_def.density             = desc.density;
-  shape_def.material.friction   = desc.friction;
-  shape_def.material.restitution = desc.restitution;
-
-  shape_def.isSensor            = desc.is_sensor;
-  shape_def.enableSensorEvents  = desc.is_sensor;
-  shape_def.enableContactEvents = true;
-  shape_def.enableHitEvents     = false;
-
-  // Shape init
-  b2Polygon shape = b2MakeBox(extents.x, extents.y);
-
-  // Done!
-  return b2CreatePolygonShape(body, &shape_def, &shape);
-}
-
 void physics_body_set_transform(PhysicsBodyID& body, const Vec2 position, const f32 rotation) {
   b2Body_SetTransform(body, vec_to_b2vec(position), b2MakeRot(rotation));
 }
@@ -406,6 +384,31 @@ const PhysicsBodyType physics_body_get_type(const PhysicsBodyID& body) {
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Collider functions
+
+ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& extents) {
+  // Shape def init
+  
+  b2ShapeDef shape_def = b2DefaultShapeDef();
+
+  shape_def.filter              = b2DefaultFilter();
+  shape_def.filter.categoryBits = (u64)desc.layer;
+  shape_def.filter.maskBits     = (u64)desc.mask_layers;
+
+  shape_def.density             = desc.density;
+  shape_def.material.friction   = desc.friction;
+  shape_def.material.restitution = desc.restitution;
+
+  shape_def.isSensor            = desc.is_sensor;
+  shape_def.enableSensorEvents  = desc.is_sensor;
+  shape_def.enableContactEvents = true;
+  shape_def.enableHitEvents     = false;
+
+  // Shape init
+  b2Polygon shape = b2MakeBox(extents.x / 2.0f, extents.y / 2.0f);
+
+  // Done!
+  return b2CreatePolygonShape(body, &shape_def, &shape);
+}
 
 void collider_set_density(ColliderID& collider, const f32 density) {
   b2Shape_SetDensity(collider, density, true);

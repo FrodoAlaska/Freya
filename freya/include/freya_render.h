@@ -29,6 +29,29 @@ enum ParticleDistributionType {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Color
+using Color = Vec4;
+/// Color
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Color consts
+
+/// Predefined colors for ease-of-use.
+
+const Color COLOR_WHITE  = Color(1.0f);
+const Color COLOR_BLACK  = Color(0.0f, 0.0f, 0.0f, 1.0f);
+const Color COLOR_RED    = Color(1.0f, 0.0f, 0.0f, 1.0f);
+const Color COLOR_GREEN  = Color(0.0f, 1.0f, 0.0f, 1.0f);
+const Color COLOR_BLUE   = Color(0.0f, 0.0f, 1.0f, 1.0f);
+const Color COLOR_YELLOW = Color(1.0f, 1.0f, 0.0f, 1.0f);
+const Color COLOR_CYAN   = Color(0.0f, 1.0f, 1.0f, 1.0f);
+const Color COLOR_PURPLE = Color(1.0f, 0.0f, 1.0f, 1.0f);
+
+/// Color consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// CameraDesc
 struct CameraDesc {
   Vec2 position; 
@@ -235,6 +258,28 @@ struct ParticleEmitter {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Color functions
+
+/// Return a new RGB `Color` from the given `hex_color`. 
+///
+/// @NOTE: The given hex color should be arranged as follows: `0xRRGGBBAA`.
+FREYA_API Color color_hex_to_rgb(const u32 hex_color);
+
+/// Return a new HEX value from the given `rgb` color.
+///
+/// @NOTE: The returned hex color will be arranged as follows: `0xRRGGBBAA`.
+FREYA_API u32 color_rgb_to_hex(const Color& rgb);
+
+/// Lerp the given `color` towards `other` by `delta`.
+FREYA_API void color_lerp(Color& color, const Color& other, const f32 delta);
+
+/// Use smoothstep to interpolate the given `color` towards `other` by `amount`.
+FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount);
+
+/// Color functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Camera functions
 
 /// Fill the information in `out_camera` using the given `desc`.
@@ -339,10 +384,10 @@ FREYA_API void renderer_begin(const Camera& camera);
 FREYA_API void renderer_end();
 
 /// Set renderer's clear color to the given `color`.
-FREYA_API void renderer_set_clear_color(const Vec4& color);
+FREYA_API void renderer_set_clear_color(const Color& color);
 
 /// Retrieve the renderer's current clear color.
-FREYA_API const Vec4& renderer_get_clear_color();
+FREYA_API const Color& renderer_get_clear_color();
 
 /// Retrieve the internal `GfxContext` of the global renderer.
 FREYA_API GfxContext* renderer_get_context();
@@ -350,22 +395,22 @@ FREYA_API GfxContext* renderer_get_context();
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture` at `src` and render into `dest`, tinted with `tint`.
 ///
-/// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
-FREYA_API void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Vec4& tint = Vec4(1.0f));
+/// @NOTE: By default, `tint` is set to `Color(1.0f)`.
+FREYA_API void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Color& tint = Color(1.0f));
 
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture`, and transform, with `tint` color.
 ///
-/// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
-FREYA_API void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Vec4& tint = Vec4(1.0f));
+/// @NOTE: By default, `tint` is set to `Color(1.0f)`.
+FREYA_API void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint = Color(1.0f));
 
 /// Queue a quad using `transform` with a `color`.
-FREYA_API void renderer_queue_quad(const Transform& transform, const Vec4& color);
+FREYA_API void renderer_queue_quad(const Transform& transform, const Color& color);
 
 /// Queue an animation using the given `animation`, transformed with `transform` with a `tint`.
 ///
-/// @NOTE: By default, `tint` is set to `Vec4(1.0f)`.
-FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& transform, const Vec4& tint = Vec4(1.0f));
+/// @NOTE: By default, `tint` is set to `Color(1.0f)`.
+FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& transform, const Color& tint = Color(1.0f));
 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
