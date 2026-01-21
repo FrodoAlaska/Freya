@@ -171,6 +171,34 @@ struct RayCastResult {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// ExplosionDesc
+struct ExplosionDesc {
+  /// The position (and center) of the explosion.
+  Vec2 position;
+
+  /// The radius of the explosion.
+  f32 radius;
+
+  /// The fall off distance beyond the radius.
+  ///
+  /// @NOTE: By default, this values is `0.1f`.
+  f32 fall_off                   = 0.1f;
+
+  /// The amount of impulse to add to the body 
+  /// that is facing the explosion.
+  ///
+  /// @NOTE: By default, this values is `1.0f`.
+  f32 impulse_per_length         = 1.0f;
+
+  /// The layers the explosion is allowed to affect.
+  ///
+  /// @NOTE: By default, this value is `PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1`
+  PhysicsObjectLayer mask_layers = (PhysicsObjectLayer)(PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1);
+};
+/// ExplosionDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// PhysicsBodyDesc
 struct PhysicsBodyDesc {
   /// The starting position of the physics body.
@@ -292,6 +320,10 @@ FREYA_API void physics_world_step(const f32 delta_time, const i32 sub_steps = 4)
 /// Cast a ray using the information provided by `cast_desc` into the world, 
 /// firing the `EVENT_PHYSICS_RAYCAST_HIT` event upon any successful intersections.
 FREYA_API void physics_world_cast_ray(const RayCastDesc& cast_desc);
+
+/// Add an explosion defined by the given `desc`, firing collision
+/// events if the explosion affects any bodies in the simulation.
+FREYA_API void physics_world_add_explosion(const ExplosionDesc& desc);
 
 /// Set the gravity of the physics world to the given `gravity`.
 FREYA_API void physics_world_set_gravity(const Vec2& gravity);

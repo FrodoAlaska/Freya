@@ -285,6 +285,20 @@ void physics_world_cast_ray(const RayCastDesc& cast_desc) {
                   nullptr);
 }
 
+void physics_world_add_explosion(const ExplosionDesc& desc) {
+  // Explosion def init
+  
+  b2ExplosionDef def   = b2DefaultExplosionDef();
+  def.position         = vec_to_b2vec(desc.position);
+  def.radius           = desc.radius;
+  def.falloff          = desc.fall_off;
+  def.impulsePerLength = desc.impulse_per_length;
+  def.maskBits         = (u64)desc.mask_layers;
+
+  // Explode!
+  b2World_Explode(s_world.id, &def);
+}
+
 void physics_world_set_gravity(const Vec2& gravity) {
   b2World_SetGravity(s_world.id, vec_to_b2vec(gravity));
 }

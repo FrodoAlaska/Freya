@@ -2,7 +2,6 @@
 
 - Systems to work on 
     - physics 
-        - Explosions?
         - Characters?
         - Documentation
     - Entity rework? 
