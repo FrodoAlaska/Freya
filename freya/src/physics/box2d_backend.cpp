@@ -2,6 +2,7 @@
 #include "freya_math.h"
 #include "freya_logger.h"
 #include "freya_event.h"
+#include "freya_render.h"
 
 #include <box2d/box2d.h>
 
@@ -13,7 +14,10 @@ namespace freya { // Start of freya
 /// PhysicsWorld
 struct PhysicsWorld {
   b2WorldId id; 
+  b2DebugDraw draw_def;
+
   bool is_paused = false;
+  bool is_debug  = false;
 };
 
 static PhysicsWorld s_world{};
@@ -86,6 +90,34 @@ static f32 on_ray_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fra
   return fraction;
 }
 
+static void b2draw_circle(b2Vec2 center, f32 radius, b2HexColor b2color, void* context) {
+  Color color   = color_hex_to_rgb(b2color);
+  Vec2 position = b2vec_to_vec(center); 
+
+  renderer_draw_debug_circle(position, radius, color);
+}
+
+static void b2draw_polygon(const b2Vec2* vertices, i32 vertexCount, b2HexColor b2color, void* context) {
+  Color color = color_hex_to_rgb(b2color);
+
+  Vec2 min = Vec2(FLOAT_MAX);
+  Vec2 max = Vec2(FLOAT_MIN);
+
+  for(i32 i = 0; i < vertexCount; i++) {
+    min = vec2_min(min, b2vec_to_vec(vertices[i]));
+    max = vec2_max(min, b2vec_to_vec(vertices[i]));
+  }
+
+  renderer_draw_debug_quad(min, min + max, 0.0f, color);
+}
+
+static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
+  Color color   = color_hex_to_rgb(b2color);
+  Vec2 position = b2vec_to_vec(p); 
+
+  renderer_draw_debug_quad(position, Vec2(size), 0.0f, color);
+}
+
 /// Callbacks
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -101,8 +133,14 @@ void physics_world_init(const Vec2& gravity) {
   // World init
   s_world.id = b2CreateWorld(&world_def);
 
-  // Debug draw init
-  // b2DebugDraw draw_def = b2DefaultDebugDraw();
+  // Debug draw def init
+  
+  s_world.draw_def            = b2DefaultDebugDraw();
+  s_world.draw_def.drawShapes = true;
+
+  s_world.draw_def.DrawCircleFcn  = b2draw_circle;
+  s_world.draw_def.DrawPolygonFcn = b2draw_polygon;
+  s_world.draw_def.DrawPointFcn   = b2draw_point;
 
   // Done!
   FREYA_LOG_INFO("Successfully initialized the physics world");
@@ -121,6 +159,16 @@ void physics_world_step(const f32 delta_time, const i32 sub_steps) {
 
   // Step the physics world
   b2World_Step(s_world.id, delta_time, sub_steps);
+  
+  // Draw the debug mode (if enabled)
+
+  if(s_world.is_debug) {
+    ///
+    /// @TODO (Physics): Debug drawing doesn't generate any 
+    /// commands from Box2D's side for some reason.
+    ///
+    b2World_Draw(s_world.id, &s_world.draw_def);
+  }
 
   //
   // Handle contact events
@@ -249,8 +297,16 @@ void physics_world_toggle_paused() {
   s_world.is_paused = !s_world.is_paused;
 }
 
+void physics_world_toggle_debug() {
+  s_world.is_debug = !s_world.is_debug;
+}
+
 const bool physics_world_is_paused() {
   return s_world.is_paused;
+}
+
+const bool physics_world_is_debug() {
+  return s_world.is_debug;
 }
 
 /// Physics world functions

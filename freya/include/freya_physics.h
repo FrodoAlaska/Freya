@@ -304,8 +304,15 @@ FREYA_API Vec2 physics_world_get_gravity();
 /// all the bodies to stop simulating physics.
 FREYA_API void physics_world_toggle_paused();
 
+/// Toggle debug mode either on or off, depending on the current state. 
+/// Debug mode will ensure that all of the colliders are drawn appropriately.
+FREYA_API void physics_world_toggle_debug();
+
 /// Retrieve the current pause state of the physics world.
 FREYA_API const bool physics_world_is_paused();
+
+/// Retrieve the current debug state of the physics world.
+FREYA_API const bool physics_world_is_debug();
 
 /// Physics world functions
 ///---------------------------------------------------------------------------------------------------------------------

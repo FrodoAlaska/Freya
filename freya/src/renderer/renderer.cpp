@@ -17,6 +17,18 @@ const sizei SHADER_MATRIX_BUFFER_INDEX = 0;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// ShaderDebugID
+enum ShaderDebugID {
+  SHADER_DEBUG_QUAD = 0, 
+  SHADER_DEBUG_CIRCLE,
+  SHADER_DEBUG_POLYGON,
+
+  SHADER_DEBUG_MAX,
+};
+/// ShaderDebugID
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// RenderBatch
 struct RenderBatch {
   ShaderContext* shader;
@@ -45,8 +57,13 @@ struct Renderer {
 
   GfxPipelineDesc pipe_desc;
   GfxPipeline* pipeline;
+  
+  GfxPipelineDesc debug_pipe_desc;
+  GfxPipeline* debug_pipeline;
 
   GfxTexture* default_texture;
+
+  ShaderContext* debug_shaders[SHADER_DEBUG_MAX];
 
   //
   // Batching
@@ -54,9 +71,7 @@ struct Renderer {
 
   HashMap<GfxTexture*, sizei> textures;
   RenderBatch quad_batch;
-  RenderBatch circle_batch;
 
-  Mat4 view         = Mat4(1.0f);
   Color clear_color = Color(1.0f);
 };
 
@@ -280,6 +295,44 @@ void renderer_init(Window* window) {
   s_renderer.pipeline = gfx_pipeline_create(s_renderer.ctx, s_renderer.pipe_desc);
 
   //
+  // Debug pipeline init
+  //
+
+  // Vertex buffer init
+
+  f32 vertices[] = {
+    -0.5f, -0.5f, 0.0f, 0.0f,
+     0.5f, -0.5f, 1.0f, 0.0f,
+     0.5f,  0.5f, 1.0f, 1.0f,
+    
+     0.5f,  0.5f, 1.0f, 1.0f,
+    -0.5f,  0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.0f, 0.0f,
+  };
+
+  buff_desc = {
+    .data  = vertices, 
+    .size  = sizeof(vertices),
+    .type  = GFX_BUFFER_VERTEX, 
+    .usage = GFX_BUFFER_USAGE_STATIC_DRAW,
+  };
+
+  s_renderer.debug_pipe_desc.vertex_buffer  = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
+  s_renderer.debug_pipe_desc.vertices_count = 6;
+  
+  // Layout init
+  
+  s_renderer.debug_pipe_desc.layouts[0].attributes[0]    = GFX_LAYOUT_FLOAT2; // Position 
+  s_renderer.debug_pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_FLOAT2; // Texture coords
+  s_renderer.debug_pipe_desc.layouts[0].attributes_count = 2;
+
+  // Draw mode init 
+  s_renderer.debug_pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE;
+
+  // Pipeline init
+  s_renderer.debug_pipeline = gfx_pipeline_create(s_renderer.ctx, s_renderer.debug_pipe_desc);
+
+  //
   // Default texture init
   //
 
@@ -313,10 +366,19 @@ void renderer_init(Window* window) {
   shader_context_set_uniform_array(s_renderer.quad_batch.shader, "u_textures", texture_ids, TEXTURES_MAX);
   gfx_buffer_bind_point(s_renderer.matrix_buffer, SHADER_MATRIX_BUFFER_INDEX);
 
-  // Circle shader
-  
-  shader_context_id              = asset_group_push_shader_context(ASSET_CACHE_ID, generate_batch_circle_shader());
-  s_renderer.circle_batch.shader = asset_group_get_shader_context(shader_context_id); 
+  //
+  // Debug shaders init
+  //  
+
+  AssetID shader_ids[SHADER_DEBUG_MAX] = {
+    asset_group_push_shader(ASSET_CACHE_ID, generate_quad_shader()),
+    asset_group_push_shader(ASSET_CACHE_ID, generate_circle_shader()),
+    asset_group_push_shader(ASSET_CACHE_ID, generate_polygon_shader()),
+  };
+
+  for(sizei i = 0; i < SHADER_DEBUG_MAX; i++) {
+    s_renderer.debug_shaders[i] = asset_group_get_shader_context(asset_group_push_shader_context(ASSET_CACHE_ID, shader_ids[i]));
+  }
 
   //
   // Default framebuffer init
@@ -333,8 +395,10 @@ void renderer_shutdown() {
   s_renderer.textures.clear();
   batch_clear(s_renderer.quad_batch);
 
-  // Destroy the default pipeline
+  // Destroy the default pipelines
+  
   gfx_pipeline_destroy(s_renderer.pipeline);
+  gfx_pipeline_destroy(s_renderer.debug_pipeline);
 
   // Destroy the context
   gfx_context_shutdown(s_renderer.ctx);
@@ -362,7 +426,7 @@ void renderer_begin(Camera& camera) {
                          sizeof(Mat4), 
                          mat4_raw_data(ortho * camera.view));
 
-  // @TODO (Renderer): Set the renderer's framebuffer
+  // @TODO (Renderer/post-process): Set the renderer's framebuffer
 
   gfx_context_set_target(s_renderer.ctx, nullptr);
 
@@ -380,9 +444,6 @@ void renderer_end() {
 
   // Flush the quad batch
   batch_flush(s_renderer.quad_batch);
-
-  // Flush the cirlce batch
-  batch_flush(s_renderer.circle_batch);
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -450,23 +511,83 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
   }
 }
 
-void renderer_queue_circle(const Vec2& position, const f32 radius, const Color& color) {
-  // Get the appropriate texture index
-  sizei texture_index = batch_find_texture(s_renderer.circle_batch, s_renderer.default_texture);
-  
-  // Generate a quad 
-  
-  Rect2D src = {
-    .size     = Vec2(radius),
-    .position = Vec2(0.0f),
-  };
-  
-  Rect2D dest = {
-    .size     = Vec2(radius),
-    .position = position, 
-  };
+void renderer_draw_debug_quad(const Vec2& position, const Vec2& size, const f32 rotation, const Color& color) {
+  // Set uniform variables
 
-  batch_generate_quad(s_renderer.circle_batch, src, dest, 0.0f, color, texture_index); 
+  ShaderContext* shader = s_renderer.debug_shaders[SHADER_DEBUG_QUAD];
+  shader_context_set_uniform(shader, "u_color", color);
+  
+  Transform transform = {
+    .position = position, 
+    .scale    = size, 
+    .rotation = rotation,
+  };
+  shader_context_set_uniform(shader, "u_model", mat4_transform(transform));
+
+  // Use the resources
+  
+  GfxBindingDesc bind_desc = {
+    .shader = shader->shader,
+  };
+  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+
+  // Render the batch
+  
+  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+  gfx_context_draw(s_renderer.ctx, 0);
+}
+
+void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Color& color) {
+  // Set uniform variables
+
+  ShaderContext* shader = s_renderer.debug_shaders[SHADER_DEBUG_CIRCLE];
+  shader_context_set_uniform(shader, "u_color", color);
+
+  Transform transform = {
+    .position = position, 
+    .scale    = Vec2(radius), 
+  };
+  shader_context_set_uniform(shader, "u_model", mat4_transform(transform));
+
+  // Use the resources
+  
+  GfxBindingDesc bind_desc = {
+    .shader = shader->shader,
+  };
+  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+
+  // Render the batch
+  
+  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+  gfx_context_draw(s_renderer.ctx, 0);
+}
+
+void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const u32 sides, const Vec4& color) {
+  // Set uniform variables
+
+  ShaderContext* shader = s_renderer.debug_shaders[SHADER_DEBUG_POLYGON];
+
+  shader_context_set_uniform(shader, "u_color", color);
+  shader_context_set_uniform(shader, "u_radius", radius);
+  shader_context_set_uniform(shader, "u_sides", (i32)sides);
+
+  Transform transform = {
+    .position = center, 
+    .scale    = Vec2(radius),
+  };
+  shader_context_set_uniform(shader, "u_model", mat4_transform(transform));
+
+  // Use the resources
+  
+  GfxBindingDesc bind_desc = {
+    .shader = shader->shader,
+  };
+  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+
+  // Render the batch
+  
+  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+  gfx_context_draw(s_renderer.ctx, 0);
 }
 
 /// Renderer functions

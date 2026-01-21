@@ -64,6 +64,12 @@ const Mat4 mat4_scale(const Vec3& scale) {
   return glm::scale(Mat4(1.0f), scale);
 }
 
+const Mat4 mat4_transform(const Transform& transform) {
+  return mat4_translate(Vec3(transform.position.x, transform.position.y, 0.0f)) * 
+         mat4_rotate(Vec3(0.0f, 0.0f, 1.0f), transform.rotation)                *
+         mat4_scale(Vec3(transform.scale.x, transform.scale.y, 0.0f));
+}
+
 const Mat4 mat4_perspective(const f32 fov, const f32 aspect_ratio, const f32 near, const f32 far) {
   return glm::perspective(fov, aspect_ratio, near, far);
 }

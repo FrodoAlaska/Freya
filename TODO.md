@@ -1,10 +1,7 @@
 # TODO 
 
 - Systems to work on 
-    - renderer rework
-        - Debug-only shapes 
     - physics 
-        - Debug draw 
         - Add different kinds of colliders
         - Explosions?
         - Documentation

@@ -422,6 +422,10 @@ FREYA_API const Mat4 mat4_rotate(const Vec3& axis, const f32 angle);
 /// Returns the sclae matrix affected by `scale`
 FREYA_API const Mat4 mat4_scale(const Vec3& scale);
 
+/// Return a matrix that has been translated, rotated, 
+/// and scaled according to `transform`.
+FREYA_API const Mat4 mat4_transform(const Transform& transform);
+
 /// Generates a 4x4 matrix for a symmetric perspective view frustrum, using the left hand coordinate system.
 ///
 /// @NOTE: The fov is in radians.

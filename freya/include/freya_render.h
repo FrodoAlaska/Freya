@@ -413,9 +413,6 @@ FREYA_API void renderer_queue_texture(GfxTexture* texture, const Transform& tran
 /// Queue a quad using `transform` with a `color`.
 FREYA_API void renderer_queue_quad(const Transform& transform, const Color& color);
 
-/// Queue a cirlce at `position` with `radius` and `color`.
-FREYA_API void renderer_queue_circle(const Vec2& position, const f32 radius, const Color& color);
-
 /// Queue an animation using the given `animation`, transformed with `transform` with a `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.
@@ -423,6 +420,28 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
+
+/// Draw a quad at `position`, with a `size` size, rotated by `rotation`, and with `color`. 
+///
+/// @NOTE: This function is only intended for debug uses. 
+/// It is extremely slow since it draws the geometry immediately. Do not 
+/// use it other than for simple debug purposes.
+FREYA_API void renderer_draw_debug_quad(const Vec2& position, const Vec2& size, const f32 rotation, const Color& color);
+
+/// Draw a circle at `position`, with a `radius` size, and with `color`. 
+///
+/// @NOTE: This function is only intended for debug uses. 
+/// It is extremely slow since it draws the geometry immediately. Do not 
+/// use it other than for simple debug purposes.
+FREYA_API void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Color& color);
+
+/// Draw a polygon at `center` with `sides` amount of sides and 
+/// with a radius of `radius`, colored as `color`.
+///
+/// @NOTE: This function is only intended for debug uses. 
+/// It is extremely slow since it draws the geometry immediately. Do not 
+/// use it other than for simple debug purposes.
+FREYA_API void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const u32 sides, const Vec4& color);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

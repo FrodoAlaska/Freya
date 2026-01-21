@@ -99,6 +99,7 @@ void engine_init(const AppDesc& desc) {
   FREYA_DEBUG_ASSERT(s_engine.app_desc.init_fn, "Cannot start the engine with an invalid application initialization callback");
   s_engine.app = s_engine.app_desc.init_fn(cli_args, s_engine.window);
 
+  // Done!
   FREYA_LOG_INFO("Successfully initialized the application \'%s\'", desc.window_title.c_str());
 }
 
@@ -108,7 +109,7 @@ void engine_run() {
     window_poll_events(s_engine.window);
 
     // Physics world update
-    physics_world_step(1 / 60.0f);
+    physics_world_step((f32)clock_get_delta_time());
 
     // Update 
     CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, s_engine.app, (f32)clock_get_delta_time());
