@@ -2,8 +2,8 @@
 
 - Systems to work on 
     - physics 
-        - Add different kinds of colliders
         - Explosions?
+        - Characters?
         - Documentation
     - Entity rework? 
         - Add an `Entity` struct that will contain a few useful variables 

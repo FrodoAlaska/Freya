@@ -91,12 +91,26 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
     freya::gui_toggle_active();
   }
 
-  // Emit particles
+  // Move the entity
 
-  if(freya::input_key_pressed(freya::KEY_P)) {
-    freya::ParticleEmitter& emitter = freya::entity_get_component<freya::ParticleEmitter>(app->world, app->entt_id);
-    freya::particle_emitter_emit(emitter);
+  freya::Vec2 direction = freya::Vec2(0.0f);
+  
+  if(freya::input_key_down(freya::KEY_W)) {
+    direction.y = -1.0f; 
   }
+  else if(freya::input_key_down(freya::KEY_S)) {
+    direction.y = 1.0f; 
+  }
+  
+  if(freya::input_key_down(freya::KEY_D)) {
+    direction.x = 1.0f;
+  }
+  else if(freya::input_key_down(freya::KEY_A)) {
+    direction.x = -1.0f;
+  }
+  
+  freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->entt_id);
+  freya::physics_body_set_linear_velocity(comp.body, direction * 320.0f);
 
   // Entity world update
   freya::entity_world_update(app->world, delta_time);

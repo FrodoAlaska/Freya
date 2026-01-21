@@ -412,6 +412,16 @@ FREYA_API const PhysicsBodyType physics_body_get_type(const PhysicsBodyID& body)
 /// the `extents` being the size of the box collider in unit scale.
 FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& extents);
 
+/// Add a circle collider to `body` using the information in `desc` with 
+/// the `center` being the local center of the collider and `radius`
+/// as the radius of the circle.
+FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center, const f32 radius);
+
+/// Add a capsule collider to `body` using the information in `desc` with 
+/// the `center1` being the first local center, `center2` the second local center 
+/// of the capsule, and `radius` as the radius of the capsule.
+FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center1, const Vec2& center2, const f32 radius);
+
 /// Set the density of the given `collider` to `density`.
 FREYA_API void collider_set_density(ColliderID& collider, const f32 density);
 

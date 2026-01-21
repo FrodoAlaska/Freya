@@ -466,6 +466,63 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
   return b2CreatePolygonShape(body, &shape_def, &shape);
 }
 
+ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center, const f32 radius) {
+  // Shape def init
+  
+  b2ShapeDef shape_def = b2DefaultShapeDef();
+
+  shape_def.filter              = b2DefaultFilter();
+  shape_def.filter.categoryBits = (u64)desc.layer;
+  shape_def.filter.maskBits     = (u64)desc.mask_layers;
+
+  shape_def.density             = desc.density;
+  shape_def.material.friction   = desc.friction;
+  shape_def.material.restitution = desc.restitution;
+
+  shape_def.isSensor            = desc.is_sensor;
+  shape_def.enableSensorEvents  = desc.is_sensor;
+  shape_def.enableContactEvents = true;
+  shape_def.enableHitEvents     = false;
+
+  // Shape init
+  
+  b2Circle shape;
+  shape.center = vec_to_b2vec(center);
+  shape.radius = radius;
+
+  // Done!
+  return b2CreateCircleShape(body, &shape_def, &shape);
+}
+
+ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center1, const Vec2& center2, const f32 radius) {
+  // Shape def init
+  
+  b2ShapeDef shape_def = b2DefaultShapeDef();
+
+  shape_def.filter              = b2DefaultFilter();
+  shape_def.filter.categoryBits = (u64)desc.layer;
+  shape_def.filter.maskBits     = (u64)desc.mask_layers;
+
+  shape_def.density             = desc.density;
+  shape_def.material.friction   = desc.friction;
+  shape_def.material.restitution = desc.restitution;
+
+  shape_def.isSensor            = desc.is_sensor;
+  shape_def.enableSensorEvents  = desc.is_sensor;
+  shape_def.enableContactEvents = true;
+  shape_def.enableHitEvents     = false;
+
+  // Shape init
+  
+  b2Capsule shape;
+  shape.center1 = vec_to_b2vec(center1);
+  shape.center2 = vec_to_b2vec(center2);
+  shape.radius = radius;
+
+  // Done!
+  return b2CreateCapsuleShape(body, &shape_def, &shape);
+}
+
 void collider_set_density(ColliderID& collider, const f32 density) {
   b2Shape_SetDensity(collider, density, true);
 }
