@@ -138,8 +138,6 @@ struct Transform {
   Vec2 position = Vec2(0.0f); 
   Vec2 scale    = Vec2(1.0f);
   f32 rotation  = 0.0f;
-  
-  Mat4 model = Mat4(1.0f);
 };
 /// Transform
 ///---------------------------------------------------------------------------------------------------------------------
@@ -494,23 +492,6 @@ FREYA_API const Vec3 quat_to_euler(const Quat& q);
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Transform functions
-
-/// Apply the transformation given the position, rotation, and scale memebers of `trans`.
-/// 
-/// @NOTE: This is more performant method to edit transforms, sicne it will only update 
-/// the internal matrix once instead of three times.
-FREYA_API void transform_apply(Transform& trans);
-
-/// Translate the given `trans` by `pos`
-FREYA_API void transform_translate(Transform& trans, const Vec2& pos);
-
-/// Rotate the given `trans` by `rot`
-///
-/// @NOTE: Internally, the given `rot` quaternion is normalized for better precision.
-FREYA_API void transform_rotate(Transform& trans, const f32 rot);
-
-/// Scale the given `trans` by `scale`
-FREYA_API void transform_scale(Transform& trans, const Vec2& scale);
 
 /// Lerp between the two given transforms `trans_a` and `trans_b` by the given `delta` value.
 FREYA_API void transform_lerp(Transform& trans_a, const Transform& trans_b, const f32 delta);

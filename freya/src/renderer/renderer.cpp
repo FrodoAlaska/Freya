@@ -127,11 +127,52 @@ static sizei batch_find_texture(RenderBatch& batch, GfxTexture* texture) {
   return index;
 }
 
-static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rect2D& dest, const Color& color, const sizei texture_index) {
+static void batch_generate_quad(RenderBatch& batch, 
+                                const Rect2D& src, 
+                                const Rect2D& dest, 
+                                const f32 rotation, 
+                                const Color& color, 
+                                const sizei texture_index) {
+  ///  
+  /// @NOTE:
+  /// Most of this code came from the wonderful Raylib library. 
+  /// In particular, it was taken from here: https://github.com/raysan5/raylib/blob/master/src/rtextures.c
+  ///
+
+  // Set the default destination rects
+
+  Vec2 top_left     = dest.position;
+  Vec2 bottom_left  = Vec2(dest.position.x, dest.position.y + dest.size.y);
+  Vec2 bottom_right = dest.position + dest.size;
+  Vec2 top_right    = Vec2(dest.position.x + dest.size.x, dest.position.y);
+
+  // Calculate the rotation of each vertex (if there is any rotation)
+  
+  if(rotation != 0.0f) {
+    // Calculate the sine and cosine
+
+    f32 sin_rot = freya::sin(rotation);
+    f32 cos_rot = freya::cos(rotation);
+
+    // Rotate each corner
+
+    top_left.x = (dest.position.x * cos_rot) - (dest.position.y * sin_rot);
+    top_left.y = (dest.position.y * sin_rot) + (dest.position.y * cos_rot);
+
+    bottom_left.x = (dest.position.x * cos_rot) - ((dest.position.y + dest.size.y) * sin_rot);
+    bottom_left.y = (dest.position.y * sin_rot) + ((dest.position.y + dest.size.y) * cos_rot);
+
+    bottom_right.x = ((dest.position.x + dest.size.x) * cos_rot) - ((dest.position.y + dest.size.y) * sin_rot);
+    bottom_right.y = ((dest.position.y + dest.size.x) * sin_rot) + ((dest.position.y + dest.size.y) * cos_rot);
+
+    top_right.x = ((dest.position.x + dest.size.x) * cos_rot) - (dest.position.y * sin_rot);
+    top_right.y = ((dest.position.y + dest.size.x) * sin_rot) + (dest.position.y * cos_rot);
+  }
+
   // Top-left
  
   Vertex2D v1 = {
-    .position       = dest.position,
+    .position       = top_left,
     .normal         = Vec2(0.0f, 1.0f),
     .texture_coords = src.position / dest.size,
 
@@ -143,7 +184,7 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   // Bottom-left
   
   Vertex2D v2 = {
-    .position       = Vec2(dest.position.x, dest.position.y + dest.size.y),
+    .position       = bottom_left,
     .normal         = Vec2(-1.0f, 0.0f),
     .texture_coords = Vec2(src.position.x / dest.size.x, (src.position.y + src.size.y) / dest.size.y),
 
@@ -155,7 +196,7 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   // Bottom-right
   
   Vertex2D v3 = {
-    .position       = dest.position + dest.size,
+    .position       = bottom_right,
     .normal         = Vec2(0.0f, -1.0f),
     .texture_coords = (src.position + src.size) / dest.size,
 
@@ -168,7 +209,7 @@ static void batch_generate_quad(RenderBatch& batch, const Rect2D& src, const Rec
   // Top-right
   
   Vertex2D v4 = {
-    .position       = Vec2(dest.position.x + dest.size.x, dest.position.y),
+    .position       = top_right,
     .normal         = Vec2(1.0f, 0.0f),
     .texture_coords = Vec2((src.position.x + src.size.x) / dest.size.x, src.position.y / dest.size.y),
 
@@ -302,22 +343,24 @@ void renderer_shutdown() {
   FREYA_LOG_INFO("Successfully shutdown the renderer context");
 }
 
-void renderer_begin(const Camera& camera) {
+void renderer_begin(Camera& camera) {
   FREYA_PROFILE_FUNCTION();
  
   // Update the camera projection
 
+  camera.view  = mat4_translate(Vec3(camera.position.x, camera.position.y, 0.0f)) * 
+                 mat4_rotate(Vec3(0.0f, 0.0f, 1.0f), camera.rotation)             *
+                 mat4_scale(Vec3(camera.zoom));
+  
   IVec2 window_size = window_get_size(s_renderer.ctx_desc.window);
-
-  Mat4 ortho = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
-  Mat4 view  = ortho * camera.transform.model;
+  Mat4 ortho        = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
 
   // Update the camera buffer
   
   gfx_buffer_upload_data(s_renderer.matrix_buffer, 
                          0, 
                          sizeof(Mat4), 
-                         mat4_raw_data(view));
+                         mat4_raw_data(ortho * camera.view));
 
   // @TODO (Renderer): Set the renderer's framebuffer
 
@@ -354,12 +397,12 @@ GfxContext* renderer_get_context() {
   return s_renderer.ctx;
 }
 
-void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Color& tint) {
+void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const f32 rotation, const Color& tint) {
   // Get the appropriate texture index
   sizei texture_index = batch_find_texture(s_renderer.quad_batch, texture);
 
   // Generate a quad 
-  batch_generate_quad(s_renderer.quad_batch, src, dest, tint, texture_index); 
+  batch_generate_quad(s_renderer.quad_batch, src, dest, rotation, tint, texture_index); 
 }
 
 void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint) {
@@ -375,7 +418,7 @@ void renderer_queue_texture(GfxTexture* texture, const Transform& transform, con
     .position = transform.position, 
   };
 
-  renderer_queue_texture(texture, src, dest, tint);  
+  renderer_queue_texture(texture, src, dest, transform.rotation, tint);  
 }
 
 void renderer_queue_quad(const Transform& transform, const Color& color) {
@@ -389,7 +432,7 @@ void renderer_queue_animation(const Animation& anim, const Transform& transform,
     .size     = Vec2(tex_desc.width, tex_desc.height) * transform.scale,
     .position = transform.position, 
   };
-  renderer_queue_texture(anim.texture, anim.src_rect, dest, tint);
+  renderer_queue_texture(anim.texture, anim.src_rect, dest, transform.rotation, tint);
 }
 
 void renderer_queue_particles(const ParticleEmitter& emitter) {
@@ -423,7 +466,7 @@ void renderer_queue_circle(const Vec2& position, const f32 radius, const Color& 
     .position = position, 
   };
 
-  batch_generate_quad(s_renderer.circle_batch, src, dest, color, texture_index); 
+  batch_generate_quad(s_renderer.circle_batch, src, dest, 0.0f, color, texture_index); 
 }
 
 /// Renderer functions

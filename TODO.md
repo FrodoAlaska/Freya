@@ -2,7 +2,7 @@
 
 - Systems to work on 
     - renderer rework
-        - Add rotations
+        - Debug-only shapes 
     - physics 
         - Debug draw 
         - Add different kinds of colliders

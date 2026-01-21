@@ -106,7 +106,6 @@ void app_render(freya::App* app) {
   // 2D render
 
   freya::renderer_begin(app->camera);
-  freya::renderer_queue_circle(freya::Vec2(200.0f, 100.0f), 32.0f, freya::COLOR_RED);
   freya::entity_world_render(app->world);
   freya::renderer_end();
 

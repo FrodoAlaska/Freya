@@ -140,7 +140,6 @@ EntityID entity_create(EntityWorld& world,
   transform.position = position; 
   transform.rotation = rotation; 
   transform.scale    = scale;
-  transform_apply(transform);
 
   world.emplace<Transform>(entt, transform);
 

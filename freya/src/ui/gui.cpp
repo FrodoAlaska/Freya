@@ -348,22 +348,13 @@ void gui_edit_transform(const char* name, Transform* transform) {
   // 
   
   // Position
-  
-  if(ImGui::DragFloat2("Position", &transform->position[0], s_gui.big_step)) {
-    transform_translate(*transform, transform->position);
-  }
+  ImGui::DragFloat2("Position", &transform->position[0], s_gui.big_step);
 
   // Scale
-
-  if(ImGui::DragFloat2("Scale", &transform->scale[0], s_gui.big_step)) {
-    transform_scale(*transform, transform->scale);
-  }
+  ImGui::DragFloat2("Scale", &transform->scale[0], s_gui.big_step);
 
   // Rotation
-
-  if(ImGui::DragFloat("Rotation (in radians)", &transform->rotation, s_gui.big_step)) {
-    transform_rotate(*transform, transform->rotation);
-  }
+  ImGui::DragFloat("Rotation (in radians)", &transform->rotation, s_gui.big_step);
   
   ImGui::PopID(); 
 }
@@ -377,22 +368,13 @@ void gui_edit_camera(const char* name, Camera* camera) {
   //
 
   // Position
-  
-  if(ImGui::DragFloat2("Position", &camera->transform.position[0], s_gui.big_step)) {
-    transform_translate(camera->transform, camera->transform.position);
-  }
+  ImGui::DragFloat2("Position", &camera->position[0], s_gui.big_step);
 
   // Zoom
-
-  if(ImGui::DragFloat("Zoom", &camera->transform.scale[0], s_gui.big_step)) {
-    transform_scale(camera->transform, camera->transform.scale);
-  }
+  ImGui::DragFloat("Zoom", &camera->zoom, s_gui.big_step);
 
   // Rotation
-
-  if(ImGui::DragFloat("Rotation (in radians)", &camera->transform.rotation, s_gui.big_step)) {
-    transform_rotate(camera->transform, camera->transform.rotation);
-  }
+  ImGui::DragFloat("Rotation (in radians)", &camera->rotation, s_gui.big_step);
 
   // Sensitivity
   ImGui::DragFloat("Sensitivity", &camera->sensitivity, s_gui.small_step);

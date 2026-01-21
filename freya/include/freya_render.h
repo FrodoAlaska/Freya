@@ -68,8 +68,10 @@ struct CameraDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Camera 
 struct Camera {
-  Transform transform; 
+  Vec2 position; 
+  f32 zoom, rotation;
 
+  Mat4 view       = Mat4(1.0f);
   f32 sensitivity = 0.1f;
   f32 exposure    = 1.0f; 
 };
@@ -378,7 +380,7 @@ FREYA_API void renderer_init(Window* window);
 FREYA_API void renderer_shutdown();
 
 /// Setup the renderer for any proceeding render operation, using the given `cam`.
-FREYA_API void renderer_begin(const Camera& camera);
+FREYA_API void renderer_begin(Camera& camera);
 
 /// Sumbit the results of the renderer to the screen.
 FREYA_API void renderer_end();
@@ -393,10 +395,14 @@ FREYA_API const Color& renderer_get_clear_color();
 FREYA_API GfxContext* renderer_get_context();
 
 /// Queue a texture to be drawn by the end of the frame, using
-/// the given `texture` at `src` and render into `dest`, tinted with `tint`.
+/// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.
-FREYA_API void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const Color& tint = Color(1.0f));
+FREYA_API void renderer_queue_texture(GfxTexture* texture, 
+                                      const Rect2D& src, 
+                                      const Rect2D& dest, 
+                                      const f32 rotation = 0.0f,
+                                      const Color& tint  = Color(1.0f));
 
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture`, and transform, with `tint` color.

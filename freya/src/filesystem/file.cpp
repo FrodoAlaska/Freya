@@ -384,7 +384,6 @@ void file_read_bytes(File& file, Transform* transform) {
   transform->position = Vec2(raw_data[0], raw_data[1]);
   transform->scale    = Vec2(raw_data[2], raw_data[3]);
   transform->rotation = raw_data[4];
-  transform_apply(*transform); 
 }
 
 void file_read_bytes(File& file, AudioSourceID* source) {
