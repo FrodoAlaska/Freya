@@ -263,8 +263,8 @@ struct PhysicsBodyDesc {
 struct ColliderDesc {
   /// The density of the collider, which is usually in kg/m^2.
   ///
-  /// @NOTE: This value is set to `0.0f` by default.
-  f32 density                    = 0.0f;
+  /// @NOTE: This value is set to `1.0f` by default.
+  f32 density                    = 1.0f;
   
   /// The starting friction of the physics body.
   /// Make sure to set this value between a range of `[0, 1]`. 
@@ -472,6 +472,9 @@ FREYA_API void collider_enable_hit_events(ColliderID& collider, const bool enabl
 
 /// Get the information of `collider` in the form of a `ColliderDesc`
 FREYA_API ColliderDesc collider_get_desc(ColliderID& collider);
+
+/// Get the body that `collider` is attached to.
+FREYA_API PhysicsBodyID collider_get_body(ColliderID& collider);
 
 /// Collider functions
 ///---------------------------------------------------------------------------------------------------------------------

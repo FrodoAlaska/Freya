@@ -207,7 +207,8 @@ void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDes
 }
 
 void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
-  world.emplace<SpriteComponent>(entt, asset_group_get_texture(texture_id), color);
+  GfxTexture* texture = (texture_id.get_id() != ASSET_ID_INVALID) ? asset_group_get_texture(texture_id) : nullptr;
+  world.emplace<SpriteComponent>(entt, texture, color);
 }
 
 void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {

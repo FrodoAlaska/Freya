@@ -2,14 +2,7 @@
 
 - Systems to work on 
     - physics 
-        - Characters?
-        - Documentation
-    - Entity rework? 
-        - Add an `Entity` struct that will contain a few useful variables 
-        - `is_active`
-        - the internal `EntityWorld`,
-        - and the `EntityID`, of course.
-        - Maybe other things, too?
+        - Debug draw
     - Readme
     - Make it public
 

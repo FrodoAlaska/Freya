@@ -354,6 +354,7 @@ PhysicsBodyID physics_body_create(const PhysicsBodyDesc& desc) {
 
 void physics_body_destroy(PhysicsBodyID& body) {
   b2DestroyBody(body);
+  body = b2_nullBodyId;
 }
 
 void physics_body_set_transform(PhysicsBodyID& body, const Vec2 position, const f32 rotation) {
@@ -572,6 +573,10 @@ ColliderDesc collider_get_desc(ColliderID& collider) {
 
     .is_sensor = b2Shape_IsSensor(collider),
   };
+}
+
+PhysicsBodyID collider_get_body(ColliderID& collider) {
+  return b2Shape_GetBody(collider);
 }
 
 /// Collider functions

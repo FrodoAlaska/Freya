@@ -154,12 +154,15 @@ static void batch_generate_quad(RenderBatch& batch,
   /// In particular, it was taken from here: https://github.com/raysan5/raylib/blob/master/src/rtextures.c
   ///
 
+  Vec2 center     = dest.size / 2.0f;
+  Vec2 origin_pos = dest.position - center;
+
   // Set the default destination rects
 
-  Vec2 top_left     = dest.position;
-  Vec2 bottom_left  = Vec2(dest.position.x, dest.position.y + dest.size.y);
-  Vec2 bottom_right = dest.position + dest.size;
-  Vec2 top_right    = Vec2(dest.position.x + dest.size.x, dest.position.y);
+  Vec2 top_left     = origin_pos;
+  Vec2 bottom_left  = Vec2(origin_pos.x, origin_pos.y + dest.size.y);
+  Vec2 bottom_right = origin_pos + dest.size;
+  Vec2 top_right    = Vec2(origin_pos.x + dest.size.x, origin_pos.y);
 
   // Calculate the rotation of each vertex (if there is any rotation)
   
@@ -245,9 +248,9 @@ void renderer_init(Window* window) {
   // Context init
 
   s_renderer.ctx_desc = {
-    .window       = window,
-    .states       = GFX_STATE_DEPTH | GFX_STATE_STENCIL | GFX_STATE_BLEND | GFX_STATE_MSAA,
-    .has_vsync    = false,
+    .window    = window,
+    .states    = GFX_STATE_DEPTH | GFX_STATE_STENCIL | GFX_STATE_BLEND | GFX_STATE_MSAA,
+    .has_vsync = false,
   };
 
   s_renderer.ctx = gfx_context_init(s_renderer.ctx_desc);
