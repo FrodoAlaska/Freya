@@ -1,8 +1,6 @@
 # TODO 
 
 - Systems to work on 
-    - physics 
-        - Debug draw
     - Readme
     - Make it public
 

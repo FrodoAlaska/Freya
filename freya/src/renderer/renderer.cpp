@@ -40,6 +40,24 @@ struct RenderBatch {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// DebugBatch
+struct DebugBatch {
+  ShaderDebugID shader_id;
+
+  // Common uniforms
+
+  Mat4 model;
+  Color color;
+
+  // Uniforms that are specific to shaders
+  
+  f32 radius;
+  i32 sides;
+};
+/// DebugBatch
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Renderer
 struct Renderer {
   //
@@ -71,6 +89,8 @@ struct Renderer {
 
   HashMap<GfxTexture*, sizei> textures;
   RenderBatch quad_batch;
+  
+  DynamicArray<DebugBatch> debug_batches;
 
   Color clear_color = Color(1.0f);
 };
@@ -447,6 +467,46 @@ void renderer_end() {
 
   // Flush the quad batch
   batch_flush(s_renderer.quad_batch);
+
+  // Flush the debug batches
+
+  for(auto& batch : s_renderer.debug_batches) {
+    // Get the corresponding shader
+    ShaderContext* shader = s_renderer.debug_shaders[batch.shader_id];
+
+    // Set the common uniforms 
+  
+    shader_context_set_uniform(shader, "u_color", batch.color);
+    shader_context_set_uniform(shader, "u_model", batch.model);
+
+    // Set uniform that are specific to the shader
+ 
+    switch(batch.shader_id) {
+      case SHADER_DEBUG_QUAD:
+      case SHADER_DEBUG_CIRCLE:
+        break;
+      case SHADER_DEBUG_POLYGON:
+        shader_context_set_uniform(shader, "u_radius", batch.radius);
+        shader_context_set_uniform(shader, "u_sides", batch.sides);
+        break;
+      default:
+        break;
+    }
+
+    // Use the resources
+
+    GfxBindingDesc bind_desc = {
+      .shader = shader->shader,
+    };
+    gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+
+    // Render the batch
+
+    gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+    gfx_context_draw(s_renderer.ctx, 0);
+  }
+
+  s_renderer.debug_batches.clear();
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -515,82 +575,55 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
 }
 
 void renderer_draw_debug_quad(const Vec2& position, const Vec2& size, const f32 rotation, const Color& color) {
-  // Set uniform variables
+  // Construct the transform
 
-  ShaderContext* shader = s_renderer.debug_shaders[SHADER_DEBUG_QUAD];
-  shader_context_set_uniform(shader, "u_color", color);
-  
   Transform transform = {
     .position = position, 
-    .scale    = size, 
+    .scale    = size,
     .rotation = rotation,
   };
-  shader_context_set_uniform(shader, "u_model", mat4_transform(transform));
-
-  // Use the resources
   
-  GfxBindingDesc bind_desc = {
-    .shader = shader->shader,
-  };
-  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+  // Add to the batch
 
-  // Render the batch
-  
-  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
-  gfx_context_draw(s_renderer.ctx, 0);
+  s_renderer.debug_batches.emplace_back(SHADER_DEBUG_QUAD, 
+                                        mat4_transform(transform), 
+                                        color, 
+                                        0.0f, 
+                                        0);
 }
 
 void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Color& color) {
-  // Set uniform variables
-
-  ShaderContext* shader = s_renderer.debug_shaders[SHADER_DEBUG_CIRCLE];
-  shader_context_set_uniform(shader, "u_color", color);
+  // Construct the transform
 
   Transform transform = {
     .position = position, 
-    .scale    = Vec2(radius), 
+    .scale    = Vec2(radius),
   };
-  shader_context_set_uniform(shader, "u_model", mat4_transform(transform));
-
-  // Use the resources
   
-  GfxBindingDesc bind_desc = {
-    .shader = shader->shader,
-  };
-  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+  // Add to the batch
 
-  // Render the batch
-  
-  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
-  gfx_context_draw(s_renderer.ctx, 0);
+  s_renderer.debug_batches.emplace_back(SHADER_DEBUG_CIRCLE, 
+                                        mat4_transform(transform), 
+                                        color, 
+                                        radius, 
+                                        0);
 }
 
-void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const u32 sides, const Vec4& color) {
-  // Set uniform variables
-
-  ShaderContext* shader = s_renderer.debug_shaders[SHADER_DEBUG_POLYGON];
-
-  shader_context_set_uniform(shader, "u_color", color);
-  shader_context_set_uniform(shader, "u_radius", radius);
-  shader_context_set_uniform(shader, "u_sides", (i32)sides);
+void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const i32 sides, const Color& color) {
+  // Construct the transform
 
   Transform transform = {
     .position = center, 
     .scale    = Vec2(radius),
   };
-  shader_context_set_uniform(shader, "u_model", mat4_transform(transform));
-
-  // Use the resources
   
-  GfxBindingDesc bind_desc = {
-    .shader = shader->shader,
-  };
-  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+  // Add to the batch
 
-  // Render the batch
-  
-  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
-  gfx_context_draw(s_renderer.ctx, 0);
+  s_renderer.debug_batches.emplace_back(SHADER_DEBUG_POLYGON, 
+                                        mat4_transform(transform), 
+                                        color, 
+                                        radius, 
+                                        sides);
 }
 
 /// Renderer functions

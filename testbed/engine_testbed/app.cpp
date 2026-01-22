@@ -75,7 +75,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   freya::entity_add_physics_body(app->world, app->player_entt, body_desc);
 
   freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
-  freya::collider_create(comp.body, freya::ColliderDesc{}, freya::Vec2(1.0f));
+  freya::collider_create(comp.body, freya::ColliderDesc{}, freya::Vec2(0.0f), 32.0f);
 
   // Ground init
 
@@ -88,7 +88,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   freya::entity_add_physics_body(app->world, app->ground_entt, body_desc);
 
   freya::PhysicsComponent& ground_comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->ground_entt);
-  freya::collider_create(ground_comp.body, freya::ColliderDesc{}, freya::Vec2(2.1f, 0.9f));
+  freya::collider_create(ground_comp.body, freya::ColliderDesc{}, freya::Vec2(128.0f, 64.0f));
 
   // Events listen
   freya::event_register(freya::EVENT_PHYSICS_CONTACT_ADDED, on_body_hit, app);
@@ -118,6 +118,7 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   
   if(freya::input_key_pressed(freya::KEY_F1)) {
     freya::gui_toggle_active();
+    freya::physics_world_toggle_debug();
   }
 
   // Move the entity
@@ -140,6 +141,18 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
   freya::physics_body_set_linear_velocity(comp.body, direction * 64.0f);
+
+  // Explode!
+
+  if(freya::input_key_pressed(freya::KEY_SPACE)) {
+    freya::ExplosionDesc desc = {
+      .position = freya::Vec2(100.0f, 100.0f),
+      .radius   = 20.0f, 
+
+      .impulse_per_length = 100.0f,
+    };
+    freya::physics_world_add_explosion(desc);
+  }
 
   // Entity world update
   freya::entity_world_update(app->world, delta_time);

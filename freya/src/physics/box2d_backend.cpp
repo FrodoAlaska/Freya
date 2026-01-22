@@ -27,15 +27,15 @@ static PhysicsWorld s_world{};
 ///---------------------------------------------------------------------------------------------------------------------
 /// Private functions
 
-Vec2 b2vec_to_vec(const b2Vec2& vec) {
+static Vec2 b2vec_to_vec(const b2Vec2& vec) {
   return Vec2(vec.x, vec.y) * PHYSICS_METERS_TO_PIXELS;
 }
 
-b2Vec2 vec_to_b2vec(const Vec2& vec) {
+static b2Vec2 vec_to_b2vec(const Vec2& vec) {
   return b2Vec2(vec.x * PHYSICS_PIXELS_TO_METERS, vec.y * PHYSICS_PIXELS_TO_METERS);
 }
 
-PhysicsBodyType b2_type_to_body_type(const b2BodyType& type) {
+static PhysicsBodyType b2_type_to_body_type(const b2BodyType& type) {
   switch(type) {
     case b2_staticBody:
       return PHYSICS_BODY_STATIC;
@@ -48,7 +48,7 @@ PhysicsBodyType b2_type_to_body_type(const b2BodyType& type) {
   }
 }
 
-b2BodyType body_type_to_b2_type(const PhysicsBodyType& type) {
+static b2BodyType body_type_to_b2_type(const PhysicsBodyType& type) {
   switch(type) {
     case PHYSICS_BODY_STATIC:
       return b2_staticBody;
@@ -59,6 +59,25 @@ b2BodyType body_type_to_b2_type(const PhysicsBodyType& type) {
     default: 
       return b2_staticBody;
   }
+}
+
+static b2ShapeDef define_shape_def(const ColliderDesc& desc) {
+  b2ShapeDef shape_def = b2DefaultShapeDef();
+
+  shape_def.filter              = b2DefaultFilter();
+  shape_def.filter.categoryBits = (u64)desc.layer;
+  shape_def.filter.maskBits     = (u64)desc.mask_layers;
+
+  shape_def.density             = desc.density;
+  shape_def.material.friction   = desc.friction;
+  shape_def.material.restitution = desc.restitution;
+
+  shape_def.isSensor            = desc.is_sensor;
+  shape_def.enableSensorEvents  = desc.is_sensor;
+  shape_def.enableContactEvents = true;
+  shape_def.enableHitEvents     = false;
+
+  return shape_def;
 }
 
 /// Private functions
@@ -90,32 +109,29 @@ static f32 on_ray_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fra
   return fraction;
 }
 
-static void b2draw_circle(b2Vec2 center, f32 radius, b2HexColor b2color, void* context) {
-  Color color   = color_hex_to_rgb(b2color);
-  Vec2 position = b2vec_to_vec(center); 
+static void b2draw_circle(b2Transform transform, f32 radius, b2HexColor b2color, void* context) {
+  Color color   = Color(1.0f, 0.0f, 1.0f, 0.5f);
+  Vec2 position = b2vec_to_vec(transform.p); 
 
-  renderer_draw_debug_circle(position, radius, color);
+  renderer_draw_debug_circle(position, radius * 100.0f, color);
 }
 
-static void b2draw_polygon(const b2Vec2* vertices, i32 vertexCount, b2HexColor b2color, void* context) {
-  Color color = color_hex_to_rgb(b2color);
+static void b2draw_polygon(b2Transform transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
+  Color color = Color(1.0f, 0.0f, 1.0f, 0.5f);
 
-  Vec2 min = Vec2(FLOAT_MAX);
-  Vec2 max = Vec2(FLOAT_MIN);
-
-  for(i32 i = 0; i < vertexCount; i++) {
-    min = vec2_min(min, b2vec_to_vec(vertices[i]));
-    max = vec2_max(min, b2vec_to_vec(vertices[i]));
+  b2Vec2 size = vertices[0];
+  for(i32 i = 1; i < vertex_count; i++) {
+    size = b2Max(size, vertices[i]);
   }
 
-  renderer_draw_debug_quad(min, min + max, 0.0f, color);
+  renderer_draw_debug_quad(b2vec_to_vec(transform.p), Vec2(size.x, size.y) * 100.0f, 0.0f, color);
 }
 
 static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
-  Color color   = color_hex_to_rgb(b2color);
+  Color color   = Color(1.0f, 0.0f, 1.0f, 0.5f);
   Vec2 position = b2vec_to_vec(p); 
 
-  renderer_draw_debug_quad(position, Vec2(size), 0.0f, color);
+  renderer_draw_debug_quad(position, Vec2(size) * 100.0f, 0.0f, color);
 }
 
 /// Callbacks
@@ -138,9 +154,9 @@ void physics_world_init(const Vec2& gravity) {
   s_world.draw_def            = b2DefaultDebugDraw();
   s_world.draw_def.drawShapes = true;
 
-  s_world.draw_def.DrawCircleFcn  = b2draw_circle;
-  s_world.draw_def.DrawPolygonFcn = b2draw_polygon;
-  s_world.draw_def.DrawPointFcn   = b2draw_point;
+  s_world.draw_def.DrawSolidCircleFcn  = b2draw_circle;
+  s_world.draw_def.DrawSolidPolygonFcn = b2draw_polygon;
+  s_world.draw_def.DrawPointFcn        = b2draw_point;
 
   // Done!
   FREYA_LOG_INFO("Successfully initialized the physics world");
@@ -163,10 +179,6 @@ void physics_world_step(const f32 delta_time, const i32 sub_steps) {
   // Draw the debug mode (if enabled)
 
   if(s_world.is_debug) {
-    ///
-    /// @TODO (Physics): Debug drawing doesn't generate any 
-    /// commands from Box2D's side for some reason.
-    ///
     b2World_Draw(s_world.id, &s_world.draw_def);
   }
 
@@ -458,24 +470,12 @@ const PhysicsBodyType physics_body_get_type(const PhysicsBodyID& body) {
 
 ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& extents) {
   // Shape def init
-  
-  b2ShapeDef shape_def = b2DefaultShapeDef();
-
-  shape_def.filter              = b2DefaultFilter();
-  shape_def.filter.categoryBits = (u64)desc.layer;
-  shape_def.filter.maskBits     = (u64)desc.mask_layers;
-
-  shape_def.density             = desc.density;
-  shape_def.material.friction   = desc.friction;
-  shape_def.material.restitution = desc.restitution;
-
-  shape_def.isSensor            = desc.is_sensor;
-  shape_def.enableSensorEvents  = desc.is_sensor;
-  shape_def.enableContactEvents = true;
-  shape_def.enableHitEvents     = false;
+  b2ShapeDef shape_def = define_shape_def(desc);
 
   // Shape init
-  b2Polygon shape = b2MakeBox(extents.x / 2.0f, extents.y / 2.0f);
+  
+  b2Vec2 half_extents = vec_to_b2vec(extents / 2.0f); 
+  b2Polygon shape     = b2MakeBox(half_extents.x, half_extents.y);
 
   // Done!
   return b2CreatePolygonShape(body, &shape_def, &shape);
@@ -483,27 +483,13 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
 
 ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center, const f32 radius) {
   // Shape def init
-  
-  b2ShapeDef shape_def = b2DefaultShapeDef();
-
-  shape_def.filter              = b2DefaultFilter();
-  shape_def.filter.categoryBits = (u64)desc.layer;
-  shape_def.filter.maskBits     = (u64)desc.mask_layers;
-
-  shape_def.density             = desc.density;
-  shape_def.material.friction   = desc.friction;
-  shape_def.material.restitution = desc.restitution;
-
-  shape_def.isSensor            = desc.is_sensor;
-  shape_def.enableSensorEvents  = desc.is_sensor;
-  shape_def.enableContactEvents = true;
-  shape_def.enableHitEvents     = false;
+  b2ShapeDef shape_def = define_shape_def(desc);
 
   // Shape init
   
   b2Circle shape;
   shape.center = vec_to_b2vec(center);
-  shape.radius = radius;
+  shape.radius = radius * PHYSICS_PIXELS_TO_METERS;
 
   // Done!
   return b2CreateCircleShape(body, &shape_def, &shape);
@@ -511,28 +497,14 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
 
 ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center1, const Vec2& center2, const f32 radius) {
   // Shape def init
-  
-  b2ShapeDef shape_def = b2DefaultShapeDef();
-
-  shape_def.filter              = b2DefaultFilter();
-  shape_def.filter.categoryBits = (u64)desc.layer;
-  shape_def.filter.maskBits     = (u64)desc.mask_layers;
-
-  shape_def.density             = desc.density;
-  shape_def.material.friction   = desc.friction;
-  shape_def.material.restitution = desc.restitution;
-
-  shape_def.isSensor            = desc.is_sensor;
-  shape_def.enableSensorEvents  = desc.is_sensor;
-  shape_def.enableContactEvents = true;
-  shape_def.enableHitEvents     = false;
+  b2ShapeDef shape_def = define_shape_def(desc);
 
   // Shape init
   
   b2Capsule shape;
   shape.center1 = vec_to_b2vec(center1);
   shape.center2 = vec_to_b2vec(center2);
-  shape.radius = radius;
+  shape.radius  = radius * PHYSICS_PIXELS_TO_METERS;
 
   // Done!
   return b2CreateCapsuleShape(body, &shape_def, &shape);

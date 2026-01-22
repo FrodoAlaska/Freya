@@ -441,7 +441,7 @@ FREYA_API void renderer_draw_debug_circle(const Vec2& position, const f32 radius
 /// @NOTE: This function is only intended for debug uses. 
 /// It is extremely slow since it draws the geometry immediately. Do not 
 /// use it other than for simple debug purposes.
-FREYA_API void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const u32 sides, const Vec4& color);
+FREYA_API void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const i32 sides, const Color& color);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
