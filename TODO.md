@@ -1,12 +1,10 @@
 # TODO 
 
-- Systems to work on 
-    - Readme
-    - Make it public
-
-- Other systems to work on in the future 
+- Renderer
     - User-friendly post-process effects
     - Texture atlas component
     - Tilemap component
     - 2D lighting and shadows?
+
+- Misc.
     - Memory arenas and custom allocaters
