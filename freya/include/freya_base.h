@@ -11,16 +11,16 @@ namespace freya { // Start of freya
 /// Typedefs
 
 /// char
-typedef char  i8; 
+typedef char          i8; 
 
 /// short
-typedef short i16;
+typedef short         i16;
 
 /// int
-typedef int   i32;
+typedef int           i32;
 
 /// long
-typedef long  i64;
+typedef long          i64;
 
 /// unsigned char
 typedef std::uint8_t  u8;
@@ -37,11 +37,14 @@ typedef std::uint64_t u64;
 /// size_t
 typedef size_t        sizei;
 
+/// uintptr_t 
+typedef uintptr_t     uintptr;
+
 /// float
-typedef float  f32;   
+typedef float         f32;
 
 /// double
-typedef double f64;   
+typedef double        f64;
 
 /// Typedefs
 /// ----------------------------------------------------------------------

@@ -21,7 +21,14 @@ struct freya::App {
 /// Private functions
 
 static bool on_body_hit(const freya::Event& event, const void* dispatcher, const void* listener) {
-  FREYA_LOG_TRACE("HERE");
+  freya::App* app = (freya::App*)listener; 
+
+  freya::EntityID entt1 = (freya::EntityID)freya::physics_body_get_user_data(event.collision_data.body1);
+  freya::EntityID entt2 = (freya::EntityID)freya::physics_body_get_user_data(event.collision_data.body2);
+ 
+  freya::SpriteComponent& sprite = freya::entity_get_component<freya::SpriteComponent>(app->world, entt1);
+  sprite.color = freya::COLOR_RED;
+
   return true;
 }
 

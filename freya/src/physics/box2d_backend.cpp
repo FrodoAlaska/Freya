@@ -390,7 +390,7 @@ void physics_body_set_active(PhysicsBodyID& body, const bool active) {
   }
 }
 
-void physics_body_set_user_data(PhysicsBodyID& body, const void* user_data) {
+void physics_body_set_user_data(PhysicsBodyID& body, const uintptr user_data) {
   b2Body_SetUserData(body, (void*)user_data);
 }
 
@@ -466,8 +466,8 @@ void physics_body_get_colliders(const PhysicsBodyID& body, DynamicArray<Collider
   b2Body_GetShapes(body, out_colliders.data(), shapes_count);
 }
 
-void* physics_body_get_user_data(const PhysicsBodyID& body) {
-  return b2Body_GetUserData(body);
+uintptr physics_body_get_user_data(const PhysicsBodyID& body) {
+  return (uintptr)b2Body_GetUserData(body);
 }
 
 const f32 physics_body_get_gravity_factor(const PhysicsBodyID& body) {
