@@ -147,7 +147,7 @@ EntityID entity_create(EntityWorld& world,
 
   Event event = {
     .type    = EVENT_ENTITY_ADDED, 
-    .entt_id = (u32)entt,
+    .entt_id = entt,
   };
   event_dispatch(event);
 
@@ -160,7 +160,7 @@ void entity_destroy(EntityWorld& world, EntityID& entt) {
 
   Event event = {
     .type    = EVENT_ENTITY_DESTROYED, 
-    .entt_id = (u32)entt,
+    .entt_id = entt,
   };
   event_dispatch(event);
 
