@@ -32,7 +32,7 @@ const EntityID ENTITY_NULL = entt::null;
 /// Callbacks
 
 /// Called when the physics body of `entt` is collided with `other` in the physics world.
-using OnCollisionEnterFn = std::function<void(EntityWorld& world, EntityID& entt, EntityID& other)>;
+using OnCollisionFn = std::function<void(EntityWorld& world, EntityID& entt, EntityID& other)>;
 
 /// Callbacks
 /// ----------------------------------------------------------------------
@@ -62,8 +62,12 @@ struct PhysicsComponent {
   PhysicsBodyID body; 
 
   /// A collision callback to be initiated once 
-  /// the body is collided.
-  OnCollisionEnterFn coll_func;
+  /// the body is collided with another.
+  OnCollisionFn enter_func;
+  
+  /// A collision callback to be initiated once 
+  /// the body is has ended its collision with another.
+  OnCollisionFn exit_func;
 };
 /// PhysicsComponent
 /// ----------------------------------------------------------------------
@@ -161,7 +165,7 @@ FREYA_API void entity_add_sprite(EntityWorld& world, EntityID& entt, const Asset
 FREYA_API void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc);
 
 /// A helper function to add a physics body to `entt`, using the information 
-/// in `desc`, and `coll_func` to call later on collision events. 
+/// in `desc`, and `enter_func` and `exit_func` to call later on collision events. 
 ///
 /// @NOTE: The position, rotation, and user data of the given `desc` will be
 /// set inside the function using the transform of `entt` and its ID respectively.
@@ -169,7 +173,8 @@ FREYA_API void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, P
 FREYA_API void entity_add_physics_body(EntityWorld& world, 
                                        EntityID& entt, 
                                        PhysicsBodyDesc& desc, 
-                                       const OnCollisionEnterFn& coll_func = nullptr);
+                                       const OnCollisionFn& enter_func = nullptr, 
+                                       const OnCollisionFn& exit_func  = nullptr);
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///
