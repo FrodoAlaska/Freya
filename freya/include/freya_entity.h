@@ -124,8 +124,8 @@ FREYA_API void entity_destroy(EntityWorld& world, EntityID& entt);
 /// Add a generic component `Comp` with `Args` initialization arguments 
 /// to the given `entt` in the respective `world`.
 template<typename Comp, typename... Args>
-FREYA_API void entity_add_component(EntityWorld& world, EntityID& entt, Args&&... args) {
-  world.emplace<Comp>(entt, std::forward<Args>(args)...);
+FREYA_API Comp& entity_add_component(EntityWorld& world, EntityID& entt, Args&&... args) {
+  return world.emplace<Comp>(entt, std::forward<Args>(args)...);
 }
 
 /// A helper function to add an audio source to `entt`, using the information 
@@ -134,27 +134,27 @@ FREYA_API void entity_add_component(EntityWorld& world, EntityID& entt, Args&&..
 /// @NOTE: The position of the given `desc` will be set inside the function
 /// using the current position of `entt`.
 /// However, the rest of the memebers of `desc` must be filled by the caller.
-FREYA_API void entity_add_audio_source(EntityWorld& world, 
-                                        EntityID& entt, 
-                                        AudioSourceDesc& desc, 
-                                        const AssetID& audio_buffer_id);
+FREYA_API AudioSourceID& entity_add_audio_source(EntityWorld& world, 
+                                                 EntityID& entt, 
+                                                 AudioSourceDesc& desc, 
+                                                 const AssetID& audio_buffer_id);
 
 /// A helper function to add a timer component to `entt`, using the given 
 /// `max_time`, `one_shot`, and `active` parameters, mirroring the 
 /// `timer_create` function.
-FREYA_API void entity_add_timer(EntityWorld& world, 
-                                 EntityID& entt, 
-                                 const f32 max_time, 
-                                 const bool one_shot, 
-                                 const bool active = true);
+FREYA_API Timer& entity_add_timer(EntityWorld& world, 
+                                  EntityID& entt, 
+                                  const f32 max_time, 
+                                  const bool one_shot, 
+                                  const bool active = true);
 
 /// A helper function to add an animation component to `entt`, using the given 
 /// `desc` and `tint`.
-FREYA_API void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint = Vec4(1.0f));
+FREYA_API AnimatorComponent& entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint = Vec4(1.0f));
 
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id` and `color` to give to the render command.
-FREYA_API void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color = Vec4(1.0f));
+FREYA_API SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color = Vec4(1.0f));
 
 /// A helper function to add a particle emitter to `entt`, using the information 
 /// in `desc`.
@@ -162,7 +162,7 @@ FREYA_API void entity_add_sprite(EntityWorld& world, EntityID& entt, const Asset
 /// @NOTE: The position of the given `desc` will be set inside the function
 /// using the current position of `entt`.
 /// However, the rest of the memebers of `desc` must be filled by the caller.
-FREYA_API void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc);
+FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc);
 
 /// A helper function to add a physics body to `entt`, using the information 
 /// in `desc`, and `enter_func` and `exit_func` to call later on collision events. 
@@ -170,11 +170,11 @@ FREYA_API void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, P
 /// @NOTE: The position, rotation, and user data of the given `desc` will be
 /// set inside the function using the transform of `entt` and its ID respectively.
 /// However, the rest of the memebers of `desc` must be filled by the caller.
-FREYA_API void entity_add_physics_body(EntityWorld& world, 
-                                       EntityID& entt, 
-                                       PhysicsBodyDesc& desc, 
-                                       const OnCollisionFn& enter_func = nullptr, 
-                                       const OnCollisionFn& exit_func  = nullptr);
+FREYA_API PhysicsComponent& entity_add_physics_body(EntityWorld& world, 
+                                                    EntityID& entt, 
+                                                    PhysicsBodyDesc& desc, 
+                                                    const OnCollisionFn& enter_func = nullptr, 
+                                                    const OnCollisionFn& exit_func  = nullptr);
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///

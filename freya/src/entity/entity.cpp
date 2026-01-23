@@ -175,57 +175,57 @@ void entity_destroy(EntityWorld& world, EntityID& entt) {
   world.destroy(entt); 
 }
 
-void entity_add_audio_source(EntityWorld& world, 
-                             EntityID& entt, 
-                             AudioSourceDesc& desc, 
-                             const AssetID& audio_buffer_id) {
+AudioSourceID& entity_add_audio_source(EntityWorld& world, 
+                                       EntityID& entt, 
+                                       AudioSourceDesc& desc, 
+                                       const AssetID& audio_buffer_id) {
   Transform& transform = world.get<Transform>(entt);
 
   desc.position      = transform.position; 
   desc.buffers[0]    = asset_group_get_audio_buffer(audio_buffer_id);
   desc.buffers_count = 1;
 
-  world.emplace<AudioSourceID>(entt, audio_source_create(desc));
+  return world.emplace<AudioSourceID>(entt, audio_source_create(desc));
 }
 
-void entity_add_timer(EntityWorld& world, 
-                      EntityID& entt, 
-                      const f32 max_time, 
-                      const bool one_shot, 
-                      const bool active) {
+Timer& entity_add_timer(EntityWorld& world, 
+                        EntityID& entt, 
+                        const f32 max_time, 
+                        const bool one_shot, 
+                        const bool active) {
   Timer timer; 
   timer_create(timer, max_time, one_shot, active);
 
-  world.emplace<Timer>(entt, timer);
+  return world.emplace<Timer>(entt, timer);
 }
 
-void entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
+AnimatorComponent& entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
   Animation anim; 
   animation_create(anim, desc);
 
-  world.emplace<AnimatorComponent>(entt, anim, tint);
+  return world.emplace<AnimatorComponent>(entt, anim, tint);
 }
 
-void entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
+SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
   GfxTexture* texture = (texture_id.get_id() != ASSET_ID_INVALID) ? asset_group_get_texture(texture_id) : nullptr;
-  world.emplace<SpriteComponent>(entt, texture, color);
+  return world.emplace<SpriteComponent>(entt, texture, color);
 }
 
-void entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {
   Transform& transform = world.get<Transform>(entt);
   desc.position        = transform.position;
 
   ParticleEmitter emitter; 
   particle_emitter_create(emitter, desc);
 
-  world.emplace<ParticleEmitter>(entt, emitter);
+  return world.emplace<ParticleEmitter>(entt, emitter);
 }
 
-void entity_add_physics_body(EntityWorld& world, 
-                             EntityID& entt, 
-                             PhysicsBodyDesc& desc, 
-                             const OnCollisionFn& enter_func, 
-                             const OnCollisionFn& exit_func) {
+PhysicsComponent& entity_add_physics_body(EntityWorld& world, 
+                                          EntityID& entt, 
+                                          PhysicsBodyDesc& desc, 
+                                          const OnCollisionFn& enter_func, 
+                                          const OnCollisionFn& exit_func) {
   Transform& transform = world.get<Transform>(entt);
 
   desc.position      = transform.position;
@@ -233,7 +233,7 @@ void entity_add_physics_body(EntityWorld& world,
   desc.user_data     = (void*)entt;
   PhysicsBodyID body = physics_body_create(desc);
 
-  world.emplace<PhysicsComponent>(entt, body, enter_func, exit_func);
+  return world.emplace<PhysicsComponent>(entt, body, enter_func, exit_func);
 }
 
 /// EntityID functions
