@@ -24,7 +24,7 @@ void camera_follow_lerp(Camera& cam, const Vec2& target, const Vec2& offset, con
   cam.position = vec2_lerp(cam.position, target + offset, delta);
 }
 
-Vec2 camera_world_to_screen_space(const Camera& cam, const Vec2 position, const Window* window) {
+Vec2 camera_world_to_screen_space(const Camera& cam, const Vec2& position, const Window* window) {
   // Get the window size
   IVec2 window_size = window_get_size(window); 
 

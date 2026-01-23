@@ -93,6 +93,10 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Events listen
   freya::event_register(freya::EVENT_PHYSICS_CONTACT_ADDED, on_body_hit, app);
 
+  freya::Vec2 screen_space_pos = freya::camera_world_to_screen_space(app->camera, 
+                                                                     freya::physics_body_get_position(comp.body), 
+                                                                     app->window);
+
   // Done!
   return app;
 }
