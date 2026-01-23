@@ -294,7 +294,7 @@ FREYA_API const Vec2 vec2_max(const Vec2& v1, const Vec2& v2);
 FREYA_API const f32 vec2_dot(const Vec2& v1, const Vec2& v2);
 
 /// Returns the distance between `v1` and `v2`
-FREYA_API const Vec2 vec2_distance(const Vec2& vec, const Vec2& target, const f32 );
+FREYA_API const f32 vec2_distance(const Vec2& vec, const Vec2& target);
 
 /// Returns the angle in radians between `point1` and `point2`
 FREYA_API const f32 vec2_angle(const Vec2& point1, const Vec2& point2);
