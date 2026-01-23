@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include <freya.h>
+#include <imgui/imgui.h>
 
 /// ----------------------------------------------------------------------
 /// App
@@ -72,9 +73,8 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
     .rotation_fixed = true,
   };
-  freya::entity_add_physics_body(app->world, app->player_entt, body_desc);
 
-  freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
+  freya::PhysicsComponent& comp = freya::entity_add_physics_body(app->world, app->player_entt, body_desc);
   freya::collider_create(comp.body, freya::ColliderDesc{}, freya::Vec2(0.0f), 32.0f);
 
   // Ground init
@@ -85,17 +85,12 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   body_desc = {
     .type = freya::PHYSICS_BODY_STATIC,
   };
-  freya::entity_add_physics_body(app->world, app->ground_entt, body_desc);
 
-  freya::PhysicsComponent& ground_comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->ground_entt);
+  freya::PhysicsComponent& ground_comp = freya::entity_add_physics_body(app->world, app->ground_entt, body_desc);
   freya::collider_create(ground_comp.body, freya::ColliderDesc{}, freya::Vec2(128.0f, 64.0f));
 
   // Events listen
   freya::event_register(freya::EVENT_PHYSICS_CONTACT_ADDED, on_body_hit, app);
-
-  freya::Vec2 screen_space_pos = freya::camera_world_to_screen_space(app->camera, 
-                                                                     freya::physics_body_get_position(comp.body), 
-                                                                     app->window);
 
   // Done!
   return app;
@@ -146,16 +141,19 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
   freya::physics_body_set_linear_velocity(comp.body, direction * 64.0f);
 
-  // Explode!
+  // Pick
 
-  if(freya::input_key_pressed(freya::KEY_SPACE)) {
-    freya::ExplosionDesc desc = {
-      .position = freya::Vec2(100.0f, 100.0f),
-      .radius   = 20.0f, 
+  freya::Vec2 screen_space_pos = freya::camera_world_to_screen_space(app->camera, freya::input_mouse_position());
+  
+  freya::DynamicArray<freya::ColliderID> colliders;
+  freya::physics_body_get_colliders(comp.body, colliders);
 
-      .impulse_per_length = 100.0f,
-    };
-    freya::physics_world_add_explosion(desc);
+  freya::SpriteComponent& sprite = freya::entity_get_component<freya::SpriteComponent>(app->world, app->player_entt);
+  if(freya::collider_test_point(colliders[0], screen_space_pos)) {
+    sprite.color = freya::COLOR_RED;
+  }
+  else {
+    sprite.color = freya::COLOR_WHITE;
   }
 
   // Entity world update

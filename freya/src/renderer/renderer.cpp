@@ -435,19 +435,24 @@ void renderer_begin(Camera& camera) {
  
   // Update the camera projection
 
-  camera.view  = mat4_translate(Vec3(camera.position.x, camera.position.y, 0.0f)) * 
-                 mat4_rotate(Vec3(0.0f, 0.0f, 1.0f), camera.rotation)             *
-                 mat4_scale(Vec3(camera.zoom));
-  
+  Transform camera_transform = {
+    .position = camera.position, 
+    .scale    = Vec2(camera.zoom), 
+    .rotation = camera.rotation
+  };
+
   IVec2 window_size = window_get_size(s_renderer.ctx_desc.window);
-  Mat4 ortho        = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
+
+  camera.view       = mat4_transform(camera_transform);
+  camera.projection = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
+  camera.view_proj  = camera.projection * camera.view;
 
   // Update the camera buffer
   
   gfx_buffer_upload_data(s_renderer.matrix_buffer, 
                          0, 
                          sizeof(Mat4), 
-                         mat4_raw_data(ortho * camera.view));
+                         mat4_raw_data(camera.view_proj));
 
   // @TODO (Renderer/post-process): Set the renderer's framebuffer
 

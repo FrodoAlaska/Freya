@@ -450,6 +450,22 @@ const bool physics_body_is_active(const PhysicsBodyID& body) {
   return b2Body_IsEnabled(body);
 }
 
+sizei physics_body_get_colliders_count(const PhysicsBodyID& body) {
+  return b2Body_GetShapeCount(body);
+}
+
+void physics_body_get_colliders(const PhysicsBodyID& body, DynamicArray<ColliderID>& out_colliders) {
+  // Inflate the array with the number of shapes first
+
+  sizei shapes_count = physics_body_get_colliders_count(body);
+  if(out_colliders.size() < shapes_count) {
+    out_colliders.resize(shapes_count);
+  }
+ 
+  // Write the amount of shapes
+  b2Body_GetShapes(body, out_colliders.data(), shapes_count);
+}
+
 void* physics_body_get_user_data(const PhysicsBodyID& body) {
   return b2Body_GetUserData(body);
 }
@@ -508,6 +524,10 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
 
   // Done!
   return b2CreateCapsuleShape(body, &shape_def, &shape);
+}
+
+bool collider_test_point(ColliderID& collider, const Vec2& point) {
+  return b2Shape_TestPoint(collider, vec_to_b2vec(point));
 }
 
 void collider_set_density(ColliderID& collider, const f32 density) {

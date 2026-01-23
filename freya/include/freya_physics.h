@@ -12,10 +12,13 @@ namespace freya { // Start of freya
 /// Consts
 
 /// The default conversion between meters to pixels. 
-const f32 PHYSICS_METERS_TO_PIXELS = 50.0f;
+const f32 PHYSICS_METERS_TO_PIXELS     = 50.0f;
 
 /// The default conversion between pixels to meters. 
-const f32 PHYSICS_PIXELS_TO_METERS = 0.02f;
+const f32 PHYSICS_PIXELS_TO_METERS     = 0.02f;
+
+/// The maximum amount of colliders a body could have.
+const sizei PHYSICS_BODY_COLLIDERS_MAX = 12;
 
 /// Consts
 ///---------------------------------------------------------------------------------------------------------------------
@@ -425,6 +428,13 @@ FREYA_API const f32 physics_body_get_angular_velocity(const PhysicsBodyID& body)
 /// Retrieve whether the given `body` is currently active or not.
 FREYA_API const bool physics_body_is_active(const PhysicsBodyID& body);
 
+/// Retrieve the number of attached colliders of `body`.
+FREYA_API sizei physics_body_get_colliders_count(const PhysicsBodyID& body);
+
+/// Retrieve the attached colliders of `body` and write the 
+/// results to `out_colliders`.
+FREYA_API void physics_body_get_colliders(const PhysicsBodyID& body, DynamicArray<ColliderID>& out_colliders);
+
 /// Retrieve internal user data of the given `body`.
 FREYA_API void* physics_body_get_user_data(const PhysicsBodyID& body);
 
@@ -453,6 +463,9 @@ FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& de
 /// the `center1` being the first local center, `center2` the second local center 
 /// of the capsule, and `radius` as the radius of the capsule.
 FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center1, const Vec2& center2, const f32 radius);
+
+/// Test the given `point` against `collider`.
+FREYA_API bool collider_test_point(ColliderID& collider, const Vec2& point);
 
 /// Set the density of the given `collider` to `density`.
 FREYA_API void collider_set_density(ColliderID& collider, const f32 density);
