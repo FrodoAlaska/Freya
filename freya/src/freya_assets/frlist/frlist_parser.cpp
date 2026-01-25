@@ -19,9 +19,18 @@ static Parser s_parser;
 /// Callbacks
 
 static bool iterate_assets(const freya::FilePath& base_dir, const freya::FilePath& current_path, void* user_data) {
+  // Not a single file. We don't care
+  
+  if(freya::filepath_is_dir(current_path)) {
+    return true;
+  }
+
+  // Add the path
+
   ListSection* section = (ListSection*)user_data;
   section->assets.emplace_back(current_path);
 
+  // Done!
   return true;
 }
 
