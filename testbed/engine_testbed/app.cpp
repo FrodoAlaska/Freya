@@ -77,8 +77,6 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   
   freya::PhysicsBodyDesc body_desc = {
     .type = freya::PHYSICS_BODY_DYNAMIC,
-
-    .rotation_fixed = true,
   };
 
   freya::PhysicsComponent& comp = freya::entity_add_physics_body(app->world, app->player_entt, body_desc);

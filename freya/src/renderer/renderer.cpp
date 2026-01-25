@@ -192,19 +192,21 @@ static void batch_generate_quad(RenderBatch& batch,
     f32 sin_rot = freya::sin(rotation);
     f32 cos_rot = freya::cos(rotation);
 
+    Vec2 origin = -center;
+
     // Rotate each corner
 
-    top_left.x = (dest.position.x * cos_rot) - (dest.position.y * sin_rot);
-    top_left.y = (dest.position.y * sin_rot) + (dest.position.y * cos_rot);
+    top_left.x = (dest.position.x + origin.x * cos_rot) - (origin.y * sin_rot);
+    top_left.y = (dest.position.y + origin.x * sin_rot) + (origin.y * cos_rot);
 
-    bottom_left.x = (dest.position.x * cos_rot) - ((dest.position.y + dest.size.y) * sin_rot);
-    bottom_left.y = (dest.position.y * sin_rot) + ((dest.position.y + dest.size.y) * cos_rot);
+    bottom_left.x = (dest.position.x + origin.x * cos_rot) - ((origin.y + dest.size.y) * sin_rot);
+    bottom_left.y = (dest.position.y + origin.x * sin_rot) + ((origin.y + dest.size.y) * cos_rot);
 
-    bottom_right.x = ((dest.position.x + dest.size.x) * cos_rot) - ((dest.position.y + dest.size.y) * sin_rot);
-    bottom_right.y = ((dest.position.y + dest.size.x) * sin_rot) + ((dest.position.y + dest.size.y) * cos_rot);
+    bottom_right.x = (dest.position.x + (origin.x + dest.size.x) * cos_rot) - ((origin.y + dest.size.y) * sin_rot);
+    bottom_right.y = (dest.position.y + (origin.x + dest.size.x) * sin_rot) + ((origin.y + dest.size.y) * cos_rot);
 
-    top_right.x = ((dest.position.x + dest.size.x) * cos_rot) - (dest.position.y * sin_rot);
-    top_right.y = ((dest.position.y + dest.size.x) * sin_rot) + (dest.position.y * cos_rot);
+    top_right.x = (dest.position.x + (origin.x + dest.size.x) * cos_rot) - (origin.y * sin_rot);
+    top_right.y = (dest.position.y + (origin.x + dest.size.x) * sin_rot) + (origin.y * cos_rot);
   }
 
   // Top-left

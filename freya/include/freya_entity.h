@@ -55,6 +55,26 @@ struct SpriteComponent {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// TileSpriteComponent
+struct TileSpriteComponent {
+  /// The texture atlas that will be used 
+  /// to source from while rendering.
+  GfxTexture* texture_atlas = nullptr; 
+
+  /// The source rect that will be used 
+  /// with the texture atlas while rendering. 
+  Rect2D source_rect        = {};
+
+  /// The color/tint that will be used 
+  /// in the render command. 
+  ///
+  /// @NOTE: This is `COLOR_WHITE` by default.
+  Vec4 color                = COLOR_WHITE;
+};
+/// TileSpriteComponent
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// PhysicsComponent
 struct PhysicsComponent {
   /// The internal handle of the physics body, 
@@ -155,6 +175,14 @@ FREYA_API AnimatorComponent& entity_add_animation(EntityWorld& world, EntityID& 
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id` and `color` to give to the render command.
 FREYA_API SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color = Vec4(1.0f));
+
+/// A helper function to add a tile sprite component to `entt`, using the given
+/// `texture_id`, `source`, and `color` to give to the render command.
+FREYA_API TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
+                                                      EntityID& entt, 
+                                                      const AssetID& texture_id,
+                                                      const Rect2D& source, 
+                                                      const Vec4& color = Vec4(1.0f));
 
 /// A helper function to add a particle emitter to `entt`, using the information 
 /// in `desc`.

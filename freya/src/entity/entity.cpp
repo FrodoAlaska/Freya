@@ -96,6 +96,27 @@ void entity_world_render(const EntityWorld& world) {
     }
   }
   
+  // Tile sprites
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(TileSpriteComponent)");
+
+    auto view = world.view<TileSpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform        = view.get<Transform>(entt);
+      const TileSpriteComponent& sprite = view.get<TileSpriteComponent>(entt);
+
+      // Setup the dest rect
+
+      Rect2D dest = {
+        .size     = transform.scale, 
+        .position = transform.position, 
+      };
+
+      // Render a regular quad
+      renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
+    }
+  }
+  
   // Animators
   {
     FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(AnimatorComponent)");
@@ -209,6 +230,15 @@ AnimatorComponent& entity_add_animation(EntityWorld& world, EntityID& entt, cons
 SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
   GfxTexture* texture = (texture_id.get_id() != ASSET_ID_INVALID) ? asset_group_get_texture(texture_id) : nullptr;
   return world.emplace<SpriteComponent>(entt, texture, color);
+}
+
+TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
+                                            EntityID& entt, 
+                                            const AssetID& texture_id,
+                                            const Rect2D& source, 
+                                            const Vec4& color) {
+  GfxTexture* texture = asset_group_get_texture(texture_id);
+  return world.emplace<TileSpriteComponent>(entt, texture, source, color);
 }
 
 ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {
