@@ -95,7 +95,7 @@ static void assign_path(ListSection* section, const ListToken& current_token) {
   // We need all of the inner asset paths, so iterate through them
 
   if(freya::filepath_is_dir(full_path)) {
-    freya::filesystem_directory_iterate(full_path, iterate_assets, section);
+    freya::filesystem_directory_recurse_iterate(full_path, iterate_assets, section);
     return;
   }
 
