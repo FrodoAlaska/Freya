@@ -72,8 +72,8 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Player init
 
-  app->player_entt = freya::entity_create(app->world, freya::Vec2(100.0f), freya::Vec2(32.0f));
-  freya::entity_add_sprite(app->world, app->player_entt, freya::AssetID{}, freya::COLOR_WHITE);
+  app->player_entt = freya::entity_create(app->world, freya::Vec2(100.0f), freya::Vec2(1.0f));
+  freya::entity_add_sprite(app->world, app->player_entt, freya::asset_group_get_id(app->group_id, "frodo"));
   
   freya::PhysicsBodyDesc body_desc = {
     .type = freya::PHYSICS_BODY_DYNAMIC,
@@ -84,8 +84,8 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Ground init
 
-  app->ground_entt = freya::entity_create(app->world, freya::Vec2(100.0f, 500.0f), freya::Vec2(128.0f, 64.0f));
-  freya::entity_add_sprite(app->world, app->ground_entt, freya::AssetID{}, freya::COLOR_GREEN);
+  app->ground_entt = freya::entity_create(app->world, freya::Vec2(100.0f, 500.0f), freya::Vec2(1.0f));
+  freya::entity_add_sprite(app->world, app->ground_entt, freya::asset_group_get_id(app->group_id, "grass"));
   
   body_desc = {
     .type = freya::PHYSICS_BODY_STATIC,
@@ -145,21 +145,6 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
   freya::physics_body_set_linear_velocity(comp.body, direction * 64.0f);
-
-  // Pick
-
-  freya::Vec2 screen_space_pos = freya::camera_world_to_screen_space(app->camera, freya::input_mouse_position());
-  
-  freya::DynamicArray<freya::ColliderID> colliders;
-  freya::physics_body_get_colliders(comp.body, colliders);
-
-  freya::SpriteComponent& sprite = freya::entity_get_component<freya::SpriteComponent>(app->world, app->player_entt);
-  if(freya::collider_test_point(colliders[0], screen_space_pos)) {
-    sprite.color = freya::COLOR_RED;
-  }
-  else {
-    sprite.color = freya::COLOR_WHITE;
-  }
 
   // Entity world update
   freya::entity_world_update(app->world, delta_time);

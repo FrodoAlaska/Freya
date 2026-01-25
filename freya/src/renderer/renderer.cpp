@@ -143,7 +143,7 @@ static sizei batch_find_texture(RenderBatch& batch, GfxTexture* texture) {
   // Save the texture in the map if it never existed before
   
   if(s_renderer.textures.find(texture) == s_renderer.textures.end()) {
-    sizei index = batch.textures.size();
+    index = batch.textures.size();
     batch.textures.push_back(texture);
     
     s_renderer.textures[texture] = index;
@@ -388,7 +388,7 @@ void renderer_init(Window* window) {
     texture_ids[i] = i;
   }
 
-  shader_context_set_uniform_array(s_renderer.quad_batch.shader, "u_textures", texture_ids, TEXTURES_MAX);
+  shader_context_set_uniform_array(s_renderer.quad_batch.shader, "u_textures[0]", texture_ids, TEXTURES_MAX);
   gfx_buffer_bind_point(s_renderer.matrix_buffer, SHADER_MATRIX_BUFFER_INDEX);
 
   //
@@ -464,7 +464,7 @@ void renderer_begin(Camera& camera) {
   gfx_context_clear(s_renderer.ctx, col.r, col.g, col.b, col.a);
 
   // Clean the slate!
-
+  
   s_renderer.textures.clear();
   batch_clear(s_renderer.quad_batch);
 }

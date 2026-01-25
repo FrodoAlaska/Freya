@@ -49,7 +49,8 @@ static void check_and_send_uniform_array(ShaderContext* ctx, const String& name,
     gfx_shader_upload_uniform_array(shader, ctx->uniforms_cache[name], type, data, count);
     return;
   }
-  
+ 
+  FREYA_LOG_TRACE("FAIL = %s", name.c_str());
   // @TODO (ShaderContext): Silent error??
 }
 
