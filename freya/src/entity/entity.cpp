@@ -260,7 +260,7 @@ PhysicsComponent& entity_add_physics_body(EntityWorld& world,
 
   desc.position      = transform.position;
   desc.rotation      = transform.rotation;
-  desc.user_data     = (u64)entt;
+  desc.user_data     = (uintptr)entt;
   PhysicsBodyID body = physics_body_create(desc);
 
   return world.emplace<PhysicsComponent>(entt, body, enter_func, exit_func);
