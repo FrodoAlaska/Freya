@@ -23,6 +23,9 @@ template<typename K, typename V>
 using HashMap      = std::unordered_map<K, V>;
 
 template<typename T> 
+using HashSet      = std::unordered_set<T>;
+
+template<typename T> 
 using Queue        = std::queue<T>;
 
 template<typename T> 

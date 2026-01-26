@@ -148,9 +148,7 @@ struct Vertex2D {
   Vec2 position; 
   Vec2 normal;
   Vec2 texture_coords;
-
   Vec4 color;
-  f32 texture_index;
 };
 /// Vertex3D
 ///---------------------------------------------------------------------------------------------------------------------

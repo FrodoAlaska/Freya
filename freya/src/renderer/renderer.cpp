@@ -17,15 +17,16 @@ const sizei SHADER_MATRIX_BUFFER_INDEX = 0;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// ShaderDebugID
-enum ShaderDebugID {
-  SHADER_DEBUG_QUAD = 0, 
-  SHADER_DEBUG_CIRCLE,
-  SHADER_DEBUG_POLYGON,
+/// ShaderID
+enum ShaderID {
+  SHADER_BATCH = 0, 
+  SHADER_QUAD, 
+  SHADER_CIRCLE,
+  SHADER_POLYGON,
 
-  SHADER_DEBUG_MAX,
+  SHADERS_MAX,
 };
-/// ShaderDebugID
+/// ShaderID
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -33,7 +34,7 @@ enum ShaderDebugID {
 struct RenderBatch {
   ShaderContext* shader;
 
-  DynamicArray<GfxTexture*> textures;
+  GfxTexture* texture;
   DynamicArray<Vertex2D> vertices;
 };
 /// RenderBatch
@@ -42,7 +43,7 @@ struct RenderBatch {
 ///---------------------------------------------------------------------------------------------------------------------
 /// DebugBatch
 struct DebugBatch {
-  ShaderDebugID shader_id;
+  ShaderID shader_id;
 
   // Common uniforms
 
@@ -81,15 +82,15 @@ struct Renderer {
 
   GfxTexture* default_texture;
 
-  ShaderContext* debug_shaders[SHADER_DEBUG_MAX];
+  ShaderContext* shaders[SHADERS_MAX];
 
   //
   // Batching
   //
 
   HashMap<GfxTexture*, sizei> textures;
-  RenderBatch quad_batch;
-  
+
+  DynamicArray<RenderBatch> batches;
   DynamicArray<DebugBatch> debug_batches;
 
   Color clear_color = Color(1.0f);
@@ -103,7 +104,7 @@ static Renderer s_renderer;
 /// Private functions
 
 static void batch_clear(RenderBatch& batch) {
-  batch.textures.clear();
+  // @TODO: Possibly other things??
   batch.vertices.clear();
 }
 
@@ -123,8 +124,8 @@ static void batch_flush(RenderBatch& batch) {
   GfxBindingDesc bind_desc = {
     .shader = batch.shader->shader,
 
-    .textures       = batch.textures.data(), 
-    .textures_count = batch.textures.size(),
+    .textures       = &batch.texture, 
+    .textures_count = 1,
   };
   gfx_context_use_bindings(s_renderer.ctx, bind_desc);
 
@@ -137,14 +138,29 @@ static void batch_flush(RenderBatch& batch) {
   batch_clear(batch);
 }
 
-static sizei batch_find_texture(RenderBatch& batch, GfxTexture* texture) {
+static void batches_flush_all() {
+  for(auto& batch : s_renderer.batches) {
+    batch_flush(batch);
+  }
+
+  s_renderer.textures.clear();
+  s_renderer.batches.clear();
+}
+
+static RenderBatch& batch_find(GfxTexture* texture) {
   sizei index = 0;
 
-  // Save the texture in the map if it never existed before
+  // Make sure we flush the batch if it exceeds any limits
   
-  if(s_renderer.textures.find(texture) == s_renderer.textures.end()) {
-    index = batch.textures.size();
-    batch.textures.push_back(texture);
+  if(s_renderer.textures.size() >= TEXTURES_MAX) {
+    batches_flush_all();
+  }
+
+  // Save the texture in the set if it never existed before
+  
+  if(!s_renderer.textures.contains(texture)) {
+    index = s_renderer.batches.size();
+    s_renderer.batches.emplace_back(s_renderer.shaders[SHADER_BATCH], texture);
     
     s_renderer.textures[texture] = index;
   }
@@ -152,22 +168,15 @@ static sizei batch_find_texture(RenderBatch& batch, GfxTexture* texture) {
     index = s_renderer.textures[texture];
   }
 
-  // Make sure we flush the batch if it exceeds any limits
-  
-  if(batch.textures.size() >= TEXTURES_MAX) {
-    batch_flush(batch);
-  }
-
   // Done!
-  return index;
+  return s_renderer.batches[index];
 }
 
 static void batch_generate_quad(RenderBatch& batch, 
                                 const Rect2D& src, 
                                 const Rect2D& dest, 
                                 const f32 rotation, 
-                                const Color& color, 
-                                const sizei texture_index) {
+                                const Color& color) {
   ///  
   /// @NOTE:
   /// Most of this code came from the wonderful Raylib library. 
@@ -211,7 +220,7 @@ static void batch_generate_quad(RenderBatch& batch,
 
   // Get the size of the texture
   
-  GfxTextureDesc& tex_desc = gfx_texture_get_desc(batch.textures[texture_index]);
+  GfxTextureDesc& tex_desc = gfx_texture_get_desc(batch.texture);
   Vec2 texture_size        = Vec2(tex_desc.width, tex_desc.height);
 
   // Top-left
@@ -220,9 +229,7 @@ static void batch_generate_quad(RenderBatch& batch,
     .position       = top_left,
     .normal         = Vec2(0.0f, 1.0f),
     .texture_coords = src.position / texture_size,
-
-    .color         = color,
-    .texture_index = (f32)texture_index,
+    .color          = color,
   };
   batch.vertices.push_back(v1);
 
@@ -232,9 +239,7 @@ static void batch_generate_quad(RenderBatch& batch,
     .position       = bottom_left,
     .normal         = Vec2(-1.0f, 0.0f),
     .texture_coords = Vec2(src.position.x / texture_size.x, (src.position.y + src.size.y) / texture_size.y),
-
     .color          = color,
-    .texture_index  = (f32)texture_index,
   };
   batch.vertices.push_back(v2);
 
@@ -244,9 +249,7 @@ static void batch_generate_quad(RenderBatch& batch,
     .position       = bottom_right,
     .normal         = Vec2(0.0f, -1.0f),
     .texture_coords = (src.position + src.size) / texture_size,
-
     .color          = color,
-    .texture_index  = (f32)texture_index,
   };
   batch.vertices.push_back(v3);
   batch.vertices.push_back(v3);
@@ -257,9 +260,7 @@ static void batch_generate_quad(RenderBatch& batch,
     .position       = top_right,
     .normal         = Vec2(1.0f, 0.0f),
     .texture_coords = Vec2((src.position.x + src.size.x) / texture_size.x, src.position.y / texture_size.y),
-
     .color          = color,
-    .texture_index  = (f32)texture_index,
   };
   batch.vertices.push_back(v4);
   batch.vertices.push_back(v1);
@@ -315,8 +316,7 @@ void renderer_init(Window* window) {
   s_renderer.pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_FLOAT2; // Normal
   s_renderer.pipe_desc.layouts[0].attributes[2]    = GFX_LAYOUT_FLOAT2; // Texture coords
   s_renderer.pipe_desc.layouts[0].attributes[3]    = GFX_LAYOUT_FLOAT4; // Color
-  s_renderer.pipe_desc.layouts[0].attributes[4]    = GFX_LAYOUT_FLOAT1; // Texture index
-  s_renderer.pipe_desc.layouts[0].attributes_count = 5;
+  s_renderer.pipe_desc.layouts[0].attributes_count = 4;
 
   // Draw mode init 
   s_renderer.pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE;
@@ -381,33 +381,22 @@ void renderer_init(Window* window) {
   // Default shaders init
   //
 
-  // Quad shader
-
-  AssetID shader_context_id    = asset_group_push_shader_context(ASSET_CACHE_ID, generate_batch_quad_shader());
-  s_renderer.quad_batch.shader = asset_group_get_shader_context(shader_context_id); 
-
-  // Set all of the values of the shader's texture array
-
-  i32 texture_ids[TEXTURES_MAX];
-  for(i32 i = 0; i < TEXTURES_MAX; i++) {
-    texture_ids[i] = i;
-  }
-
-  shader_context_set_uniform_array(s_renderer.quad_batch.shader, "u_textures[0]", texture_ids, TEXTURES_MAX);
+  // Set the matrix buffer point
   gfx_buffer_bind_point(s_renderer.matrix_buffer, SHADER_MATRIX_BUFFER_INDEX);
 
   //
   // Debug shaders init
   //  
 
-  AssetID shader_ids[SHADER_DEBUG_MAX] = {
+  AssetID shader_ids[SHADERS_MAX] = {
+    asset_group_push_shader(ASSET_CACHE_ID, generate_batch_quad_shader()),
     asset_group_push_shader(ASSET_CACHE_ID, generate_quad_shader()),
     asset_group_push_shader(ASSET_CACHE_ID, generate_circle_shader()),
     asset_group_push_shader(ASSET_CACHE_ID, generate_polygon_shader()),
   };
 
-  for(sizei i = 0; i < SHADER_DEBUG_MAX; i++) {
-    s_renderer.debug_shaders[i] = asset_group_get_shader_context(asset_group_push_shader_context(ASSET_CACHE_ID, shader_ids[i]));
+  for(sizei i = 0; i < SHADERS_MAX; i++) {
+    s_renderer.shaders[i] = asset_group_get_shader_context(asset_group_push_shader_context(ASSET_CACHE_ID, shader_ids[i]));
   }
 
   //
@@ -423,7 +412,11 @@ void renderer_shutdown() {
   // Destroy the batching stuff
 
   s_renderer.textures.clear();
-  batch_clear(s_renderer.quad_batch);
+
+  for(auto& batch : s_renderer.batches) {
+    batch_clear(batch);
+  }
+  s_renderer.batches.clear();
 
   // Destroy the default pipelines
   
@@ -469,22 +462,23 @@ void renderer_begin(Camera& camera) {
   gfx_context_clear(s_renderer.ctx, col.r, col.g, col.b, col.a);
 
   // Clean the slate!
-  
+ 
   s_renderer.textures.clear();
-  batch_clear(s_renderer.quad_batch);
+  s_renderer.batches.clear();
+  s_renderer.debug_batches.clear();
 }
 
 void renderer_end() {
   FREYA_PROFILE_FUNCTION();
 
-  // Flush the quad batch
-  batch_flush(s_renderer.quad_batch);
+  // Flush the batches
+  batches_flush_all();
 
   // Flush the debug batches
 
   for(auto& batch : s_renderer.debug_batches) {
     // Get the corresponding shader
-    ShaderContext* shader = s_renderer.debug_shaders[batch.shader_id];
+    ShaderContext* shader = s_renderer.shaders[batch.shader_id];
 
     // Set the common uniforms 
   
@@ -494,10 +488,10 @@ void renderer_end() {
     // Set uniform that are specific to the shader
  
     switch(batch.shader_id) {
-      case SHADER_DEBUG_QUAD:
-      case SHADER_DEBUG_CIRCLE:
+      case SHADER_QUAD:
+      case SHADER_CIRCLE:
         break;
-      case SHADER_DEBUG_POLYGON:
+      case SHADER_POLYGON:
         shader_context_set_uniform(shader, "u_radius", batch.radius);
         shader_context_set_uniform(shader, "u_sides", batch.sides);
         break;
@@ -517,8 +511,6 @@ void renderer_end() {
     gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
     gfx_context_draw(s_renderer.ctx, 0);
   }
-
-  s_renderer.debug_batches.clear();
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -534,11 +526,11 @@ GfxContext* renderer_get_context() {
 }
 
 void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const f32 rotation, const Color& tint) {
-  // Get the appropriate texture index
-  sizei texture_index = batch_find_texture(s_renderer.quad_batch, texture);
+  // Get the appropriate batch based on the given texture
+  RenderBatch& batch = batch_find(texture);
 
   // Generate a quad 
-  batch_generate_quad(s_renderer.quad_batch, src, dest, rotation, tint, texture_index); 
+  batch_generate_quad(batch, src, dest, rotation, tint); 
 }
 
 void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint) {
@@ -597,7 +589,7 @@ void renderer_draw_debug_quad(const Vec2& position, const Vec2& size, const f32 
   
   // Add to the batch
 
-  s_renderer.debug_batches.emplace_back(SHADER_DEBUG_QUAD, 
+  s_renderer.debug_batches.emplace_back(SHADER_QUAD, 
                                         mat4_transform(transform), 
                                         color, 
                                         0.0f, 
@@ -614,7 +606,7 @@ void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Co
   
   // Add to the batch
 
-  s_renderer.debug_batches.emplace_back(SHADER_DEBUG_CIRCLE, 
+  s_renderer.debug_batches.emplace_back(SHADER_CIRCLE, 
                                         mat4_transform(transform), 
                                         color, 
                                         radius, 
@@ -631,7 +623,7 @@ void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const i32
   
   // Add to the batch
 
-  s_renderer.debug_batches.emplace_back(SHADER_DEBUG_POLYGON, 
+  s_renderer.debug_batches.emplace_back(SHADER_POLYGON, 
                                         mat4_transform(transform), 
                                         color, 
                                         radius, 

@@ -12,8 +12,7 @@ inline const char* generate_default_vertex_shader() {
     layout (location = 1) in vec2 aNormal;
     layout (location = 2) in vec2 aTextureCoords;
     layout (location = 3) in vec4 aColor;
-    layout (location = 4) in float aTextureIndex;
-  
+     
     // Outputs
     
     out VS_OUT {
@@ -21,8 +20,6 @@ inline const char* generate_default_vertex_shader() {
       vec2 normal;
       vec2 tex_coords;
       vec4 out_color;
-  
-      flat int texture_index;
     } vs_out;
 
     // Buffers
@@ -36,7 +33,6 @@ inline const char* generate_default_vertex_shader() {
       vs_out.normal        = aNormal;
       vs_out.tex_coords    = aTextureCoords;
       vs_out.out_color     = aColor;
-      vs_out.texture_index = int(aTextureIndex);
 
       gl_Position = u_ortho * vec4(aPos, 0.0f, 1.0f);
     }
@@ -52,7 +48,7 @@ inline freya::GfxShaderDesc generate_batch_quad_shader() {
      
       // Outputs
       layout (location = 0) out vec4 frag_color;
-    
+       
       // Inputs
       
       in VS_OUT {
@@ -60,15 +56,13 @@ inline freya::GfxShaderDesc generate_batch_quad_shader() {
         vec2 normal;
         vec2 tex_coords;
         vec4 out_color;
-   
-        flat int texture_index;
       } fs_in;
 
       // Uniforms
-      uniform sampler2D u_textures[32];
+      uniform sampler2D u_texture;
 
       void main() {
-        frag_color = texture(u_textures[fs_in.texture_index], fs_in.tex_coords) * fs_in.out_color;
+        frag_color = texture(u_texture, fs_in.tex_coords) * fs_in.out_color;
       }
     )"
   };

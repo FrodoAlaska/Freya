@@ -156,7 +156,7 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   // Move the camera
   
   freya::Vec2 center_screen = (freya::Vec2)freya::window_get_size(app->window) / 2.0f;
-  freya::camera_follow_lerp(app->camera, freya::physics_body_get_position(comp.body), -center_screen, delta_time);
+  freya::camera_follow(app->camera, freya::physics_body_get_position(comp.body), -center_screen);
 
   // Entity world update
   freya::entity_world_update(app->world, delta_time);
