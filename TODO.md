@@ -10,4 +10,5 @@
     - Memory arenas and custom allocaters
 
 - Bugs 
+    - There are some weird visual glitches with the textures
     - Box2D user data thingy needs to be fixed with the entity system

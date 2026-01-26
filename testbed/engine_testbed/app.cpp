@@ -92,7 +92,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Ground init
 
   app->ground_entt = freya::entity_create(app->world, freya::Vec2(100.0f, 500.0f), freya::Vec2(1.0f));
-  // freya::entity_add_sprite(app->world, app->ground_entt, freya::asset_group_get_id(app->group_id, "grass"));
+  freya::entity_add_sprite(app->world, app->ground_entt, freya::asset_group_get_id(app->group_id, "grass"));
   
   body_desc = {
     .type = freya::PHYSICS_BODY_STATIC,
@@ -152,6 +152,11 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
   freya::physics_body_set_linear_velocity(comp.body, direction * 64.0f);
+
+  // Move the camera
+  
+  freya::Vec2 center_screen = (freya::Vec2)freya::window_get_size(app->window) / 2.0f;
+  freya::camera_follow_lerp(app->camera, freya::physics_body_get_position(comp.body), -center_screen, delta_time);
 
   // Entity world update
   freya::entity_world_update(app->world, delta_time);

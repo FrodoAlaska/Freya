@@ -276,7 +276,7 @@ void renderer_init(Window* window) {
 
   s_renderer.ctx_desc = {
     .window    = window,
-    .states    = GFX_STATE_DEPTH | GFX_STATE_STENCIL | GFX_STATE_BLEND | GFX_STATE_MSAA,
+    .states    = GFX_STATE_DEPTH | GFX_STATE_BLEND | GFX_STATE_MSAA,
     .has_vsync = false,
   };
 
@@ -443,7 +443,7 @@ void renderer_begin(Camera& camera) {
   // Update the camera projection
 
   Transform camera_transform = {
-    .position = camera.position, 
+    .position = -camera.position, 
     .scale    = Vec2(camera.zoom), 
     .rotation = camera.rotation
   };

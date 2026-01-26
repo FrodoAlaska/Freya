@@ -74,27 +74,6 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
 
 void entity_world_render(const EntityWorld& world) {
   FREYA_PROFILE_FUNCTION();
-
-  // Sprites
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(SpriteComponent)");
-
-    auto view = world.view<SpriteComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform    = view.get<Transform>(entt);
-      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
-
-      // Render a texture (if it's a valid)
-
-      if(sprite.texture) {
-        renderer_queue_texture(sprite.texture, transform, sprite.color);
-        continue;
-      }
-
-      // Render a regular quad
-      renderer_queue_quad(transform, sprite.color);
-    }
-  }
   
   // Tile sprites
   {
@@ -114,6 +93,27 @@ void entity_world_render(const EntityWorld& world) {
 
       // Render a regular quad
       renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
+    }
+  }
+
+  // Sprites
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(SpriteComponent)");
+
+    auto view = world.view<SpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform    = view.get<Transform>(entt);
+      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
+
+      // Render a texture (if it's a valid)
+
+      if(sprite.texture) {
+        renderer_queue_texture(sprite.texture, transform, sprite.color);
+        continue;
+      }
+
+      // Render a regular quad
+      renderer_queue_quad(transform, sprite.color);
     }
   }
   

@@ -8,7 +8,7 @@ namespace freya { // Start of freya
 /// Camera functions
 
 void camera_create(Camera& out_camera, const CameraDesc& desc) {
-  out_camera.position = -desc.position;
+  out_camera.position = desc.position;
   out_camera.rotation = desc.rotation;
   out_camera.zoom     = desc.zoom;
 
