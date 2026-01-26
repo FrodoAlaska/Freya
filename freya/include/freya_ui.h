@@ -206,6 +206,12 @@ FREYA_API void gui_edit_particle_emitter(const char* name, ParticleEmitter* emit
 /// Add a physics body section identified by `name` to edit the given `body`.
 FREYA_API void gui_edit_physics_body(const char* name, PhysicsBodyID& body);
 
+/// Add a sprite component section identified by `name` to edit the given `sprite`.
+FREYA_API void gui_edit_sprite_component(const char* name, SpriteComponent* sprite);
+
+/// Add a tile sprite component section identified by `name` to edit the given `sprite`.
+FREYA_API void gui_edit_tile_sprite_component(const char* name, TileSpriteComponent* sprite);
+
 /// Add an entity section identified by `name` to edit the given `entt`.
 FREYA_API void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt);
 

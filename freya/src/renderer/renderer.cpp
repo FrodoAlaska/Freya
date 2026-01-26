@@ -209,12 +209,17 @@ static void batch_generate_quad(RenderBatch& batch,
     top_right.y = (dest.position.y + (origin.x + dest.size.x) * sin_rot) + (origin.y * cos_rot);
   }
 
+  // Get the size of the texture
+  
+  GfxTextureDesc& tex_desc = gfx_texture_get_desc(batch.textures[texture_index]);
+  Vec2 texture_size        = Vec2(tex_desc.width, tex_desc.height);
+
   // Top-left
  
   Vertex2D v1 = {
     .position       = top_left,
     .normal         = Vec2(0.0f, 1.0f),
-    .texture_coords = src.position / dest.size,
+    .texture_coords = src.position / texture_size,
 
     .color         = color,
     .texture_index = (f32)texture_index,
@@ -226,7 +231,7 @@ static void batch_generate_quad(RenderBatch& batch,
   Vertex2D v2 = {
     .position       = bottom_left,
     .normal         = Vec2(-1.0f, 0.0f),
-    .texture_coords = Vec2(src.position.x / dest.size.x, (src.position.y + src.size.y) / dest.size.y),
+    .texture_coords = Vec2(src.position.x / texture_size.x, (src.position.y + src.size.y) / texture_size.y),
 
     .color          = color,
     .texture_index  = (f32)texture_index,
@@ -238,7 +243,7 @@ static void batch_generate_quad(RenderBatch& batch,
   Vertex2D v3 = {
     .position       = bottom_right,
     .normal         = Vec2(0.0f, -1.0f),
-    .texture_coords = (src.position + src.size) / dest.size,
+    .texture_coords = (src.position + src.size) / texture_size,
 
     .color          = color,
     .texture_index  = (f32)texture_index,
@@ -251,7 +256,7 @@ static void batch_generate_quad(RenderBatch& batch,
   Vertex2D v4 = {
     .position       = top_right,
     .normal         = Vec2(1.0f, 0.0f),
-    .texture_coords = Vec2((src.position.x + src.size.x) / dest.size.x, src.position.y / dest.size.y),
+    .texture_coords = Vec2((src.position.x + src.size.x) / texture_size.x, src.position.y / texture_size.y),
 
     .color          = color,
     .texture_index  = (f32)texture_index,
@@ -560,7 +565,7 @@ void renderer_queue_animation(const Animation& anim, const Transform& transform,
   GfxTextureDesc& tex_desc = gfx_texture_get_desc(anim.texture);
   
   Rect2D dest = {
-    .size     = Vec2(tex_desc.width, tex_desc.height) * transform.scale,
+    .size     = anim.frame_size * transform.scale,
     .position = transform.position, 
   };
   renderer_queue_texture(anim.texture, anim.src_rect, dest, transform.rotation, tint);

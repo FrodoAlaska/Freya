@@ -108,8 +108,8 @@ void entity_world_render(const EntityWorld& world) {
       // Setup the dest rect
 
       Rect2D dest = {
-        .size     = transform.scale, 
-        .position = transform.position, 
+        .size     = sprite.source_rect.size * transform.scale,
+        .position = transform.position,
       };
 
       // Render a regular quad

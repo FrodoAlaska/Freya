@@ -11,4 +11,3 @@
 
 - Bugs 
     - Box2D user data thingy needs to be fixed with the entity system
-    - Animations might be a bit fucked 

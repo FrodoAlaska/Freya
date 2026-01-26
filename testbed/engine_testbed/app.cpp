@@ -73,7 +73,14 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Player init
 
   app->player_entt = freya::entity_create(app->world, freya::Vec2(100.0f), freya::Vec2(1.0f));
-  freya::entity_add_sprite(app->world, app->player_entt, freya::asset_group_get_id(app->group_id, "frodo"));
+
+  freya::AnimationDesc anim_desc = {
+    .texture_id = freya::asset_group_get_id(app->group_id, "enemy_skeleton1_death"),
+    .frame_size = freya::Vec2(32.0f),
+
+    .flip_speed = 1.0f,
+  };
+  freya::entity_add_animation(app->world, app->player_entt, anim_desc);
   
   freya::PhysicsBodyDesc body_desc = {
     .type = freya::PHYSICS_BODY_DYNAMIC,
@@ -85,7 +92,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Ground init
 
   app->ground_entt = freya::entity_create(app->world, freya::Vec2(100.0f, 500.0f), freya::Vec2(1.0f));
-  freya::entity_add_sprite(app->world, app->ground_entt, freya::asset_group_get_id(app->group_id, "grass"));
+  // freya::entity_add_sprite(app->world, app->ground_entt, freya::asset_group_get_id(app->group_id, "grass"));
   
   body_desc = {
     .type = freya::PHYSICS_BODY_STATIC,

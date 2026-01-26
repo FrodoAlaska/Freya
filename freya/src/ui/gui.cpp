@@ -658,6 +658,27 @@ void gui_edit_physics_body(const char* name, PhysicsBodyID& body) {
   ImGui::PopID(); 
 }
 
+void gui_edit_sprite_component(const char* name, SpriteComponent* sprite) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+   
+  ImGui::ColorEdit4("Tint", &sprite->color[0]);
+  
+  ImGui::PopID(); 
+}
+
+void gui_edit_tile_sprite_component(const char* name, TileSpriteComponent* sprite) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  ImGui::DragFloat2("Source size", &sprite->source_rect.size[0], s_gui.big_step);
+  ImGui::DragFloat2("Source position", &sprite->source_rect.position[0], s_gui.big_step);
+
+  ImGui::ColorEdit4("Tint", &sprite->color[0]);
+  
+  ImGui::PopID(); 
+}
+
 void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
@@ -710,6 +731,28 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     if(ImGui::TreeNode("Particle emitter")) {
       ParticleEmitter& emitter = entity_get_component<ParticleEmitter>(world, entt);
       gui_edit_particle_emitter("", &emitter);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Sprites
+
+  if(entity_has_component<SpriteComponent>(world, entt)) {
+    if(ImGui::TreeNode("Sprite")) {
+      SpriteComponent& sprite = entity_get_component<SpriteComponent>(world, entt);
+      gui_edit_sprite_component("", &sprite);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Tile sprites
+
+  if(entity_has_component<TileSpriteComponent>(world, entt)) {
+    if(ImGui::TreeNode("Tile sprite")) {
+      TileSpriteComponent& sprite = entity_get_component<TileSpriteComponent>(world, entt);
+      gui_edit_tile_sprite_component("", &sprite);
 
       ImGui::TreePop();
     }
