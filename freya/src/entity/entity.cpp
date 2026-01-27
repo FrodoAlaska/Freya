@@ -244,6 +244,7 @@ TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
 ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {
   Transform& transform = world.get<Transform>(entt);
   desc.position        = transform.position;
+  desc.scale           = transform.scale;
 
   ParticleEmitter emitter; 
   particle_emitter_create(emitter, desc);
