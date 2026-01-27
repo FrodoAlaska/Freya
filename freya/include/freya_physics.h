@@ -428,6 +428,9 @@ FREYA_API const f32 physics_body_get_angular_velocity(const PhysicsBodyID& body)
 /// Retrieve whether the given `body` is currently active or not.
 FREYA_API const bool physics_body_is_active(const PhysicsBodyID& body);
 
+/// Retrieve whether the given `body` is valid or not.
+FREYA_API const bool physics_body_is_valid(const PhysicsBodyID& body);
+
 /// Retrieve the number of attached colliders of `body`.
 FREYA_API sizei physics_body_get_colliders_count(const PhysicsBodyID& body);
 

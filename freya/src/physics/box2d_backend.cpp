@@ -73,7 +73,7 @@ static b2ShapeDef define_shape_def(const ColliderDesc& desc) {
   shape_def.material.restitution = desc.restitution;
 
   shape_def.isSensor            = desc.is_sensor;
-  shape_def.enableSensorEvents  = desc.is_sensor;
+  shape_def.enableSensorEvents  = true;
   shape_def.enableContactEvents = true;
   shape_def.enableHitEvents     = false;
 
@@ -245,8 +245,10 @@ void physics_world_step(const f32 delta_time, const i32 sub_steps) {
 
     // Get the bodies attached to the shapes 
 
-    coll_data.sensor_body  = b2Shape_GetBody(event->sensorShapeId);
-    coll_data.visitor_body = b2Shape_GetBody(event->visitorShapeId);
+    if(b2Shape_IsValid(event->sensorShapeId) && b2Shape_IsValid(event->visitorShapeId)) {
+      coll_data.sensor_body  = b2Shape_GetBody(event->sensorShapeId);
+      coll_data.visitor_body = b2Shape_GetBody(event->visitorShapeId);
+    }
 
     // Dispatch an event 
 
@@ -448,6 +450,10 @@ const f32 physics_body_get_angular_velocity(const PhysicsBodyID& body) {
 
 const bool physics_body_is_active(const PhysicsBodyID& body) {
   return b2Body_IsEnabled(body);
+}
+
+const bool physics_body_is_valid(const PhysicsBodyID& body) {
+  return b2Body_IsValid(body);
 }
 
 sizei physics_body_get_colliders_count(const PhysicsBodyID& body) {
