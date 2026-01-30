@@ -297,6 +297,11 @@ FREYA_API const f32 vec2_distance(const Vec2& vec, const Vec2& target);
 /// Returns the angle in radians between `point1` and `point2`
 FREYA_API const f32 vec2_angle(const Vec2& point1, const Vec2& point2);
 
+/// Returns the resulting rotation of `vec` by `angle`. 
+///
+/// @NOTE: The given `angle` must be in radians.
+FREYA_API const Vec2 vec2_rotate(const Vec2& vec, const f32 angle);
+
 /// Returns the string representation of `vec`
 FREYA_API const String vec2_to_string(const Vec2& vec);
 
@@ -332,6 +337,11 @@ FREYA_API const Vec3 vec3_cross(const Vec3& v1, const Vec3& v2);
 
 /// Returns the distance between `point1` and `point2`
 FREYA_API const f32 vec3_distance(const Vec3& v1, const Vec3& v2);
+
+/// Returns the resulting rotation of `vec` by `angle`. 
+///
+/// @NOTE: The given `angle` must be in radians.
+FREYA_API const Vec3 vec3_rotate(const Vec3& vec, const f32 angle);
 
 /// Returns the string representation of `vec`
 FREYA_API const String vec3_to_string(const Vec3& vec);

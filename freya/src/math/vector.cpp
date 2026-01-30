@@ -44,6 +44,15 @@ const f32 vec2_angle(const Vec2& point1, const Vec2& point2) {
   return freya::atan(diff.y, diff.x);
 }
 
+const Vec2 vec2_rotate(const Vec2& vec, const f32 angle) {
+  Vec2 result;
+
+  result.x = (vec.x * freya::cos(angle)) - (vec.y * freya::sin(angle));
+  result.y = (vec.x * freya::sin(angle)) + (vec.y * freya::cos(angle));
+
+  return result;
+}
+
 const String vec2_to_string(const Vec2& vec) {
   return "X = " + std::to_string(vec.x) + ", Y = " + std::to_string(vec.y);
 }
@@ -88,6 +97,16 @@ const f32 vec3_dot(const Vec3& v1, const Vec3& v2) {
 
 const f32 vec3_distance(const Vec3& v1, const Vec3& v2) {
   return glm::length((v2 - v1));
+}
+
+const Vec3 vec3_rotate(const Vec3& vec, const f32 angle) {
+  Vec3 result;
+
+  result.x = (vec.x * freya::cos(angle)) - (vec.z * freya::sin(angle));
+  result.y = freya::sin(angle);
+  result.z = (vec.x * freya::sin(angle)) + (vec.z * freya::cos(angle));
+
+  return result;
 }
 
 const String vec3_to_string(const Vec3& vec) {
