@@ -12,8 +12,10 @@ struct ClockState {
   i64 frame_count  = 0; 
   f64 current_time = 0.0;
 
-  f64 last_frame_time, delta_time; 
-  f64 fps, previous_time;
+  f64 last_frame_time = 0.0;
+  f64 delta_time      = 0.0;
+  f64 fps             = 0.0; 
+  f64 previous_time   = 0.0;
 };
 
 static ClockState s_state;

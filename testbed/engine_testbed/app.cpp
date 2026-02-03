@@ -151,7 +151,7 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   }
 
   freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
-  freya::physics_body_set_linear_velocity(comp.body, direction * 64.0f);
+  freya::physics_body_set_linear_velocity(comp.body, direction * 640.0f);
 
   // Move the camera
   

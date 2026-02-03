@@ -11,6 +11,14 @@
 namespace freya { // Start of freya
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Consts
+
+const f64 PHYSICS_FIXED_DELTA_TIME = 1 / 60.0;
+
+/// Consts
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// PhysicsWorld
 struct PhysicsWorld {
   b2WorldId id; 
@@ -18,6 +26,8 @@ struct PhysicsWorld {
 
   bool is_paused = false;
   bool is_debug  = false;
+
+  f32 timestep = PHYSICS_FIXED_DELTA_TIME;
 };
 
 static PhysicsWorld s_world{};
@@ -168,13 +178,26 @@ void physics_world_shutdown() {
   FREYA_LOG_INFO("The physics world was successfully shutdown");
 }
 
-void physics_world_step(const f32 delta_time, const i32 sub_steps) {
+void physics_world_step(const i32 sub_steps) {
+  // Paused the world!
+
   if(s_world.is_paused) {
     return;
   }
 
-  // Step the physics world
-  b2World_Step(s_world.id, delta_time, sub_steps);
+  // Step the physics world, using an accurate delta time
+  //
+  // @NOTE: This is taken from the amazing gafferongames: 
+  // https://gafferongames.com/post/fix_your_timestep/
+  //
+  
+  s_world.timestep = (f32)clock_get_delta_time();
+  while(s_world.timestep > 0.0) {
+    f32 dt = freya::min_float(s_world.timestep, PHYSICS_FIXED_DELTA_TIME);
+    b2World_Step(s_world.id, dt, sub_steps);
+
+    s_world.timestep -= dt;
+  }
   
   // Draw the debug mode (if enabled)
 

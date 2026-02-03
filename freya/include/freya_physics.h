@@ -311,14 +311,14 @@ FREYA_API void physics_world_init(const Vec2& gravity);
 /// Shutdown the physics world, reclaiming any allocated memory in the process.
 FREYA_API void physics_world_shutdown();
 
-/// Step through the physics simulation every frame, using the given `delta_time` and `sub_steps`.
+/// Step through the physics simulation every frame, using the given `sub_steps`.
 ///
 /// The `sub_steps` parametar determines the number of iterations to go through a "physics step", 
 /// which consists of collision detection followed by numerical integration.
 /// The higher the value, the more accurate the physics is, but the more performance will suffer.
 ///
 /// @NOTE: The `collision_steps` parametar is set to `4` by default.
-FREYA_API void physics_world_step(const f32 delta_time, const i32 sub_steps = 4);
+FREYA_API void physics_world_step(const i32 sub_steps = 4);
 
 /// Cast a ray using the information provided by `cast_desc` into the world, 
 /// firing the `EVENT_PHYSICS_RAYCAST_HIT` event upon any successful intersections.

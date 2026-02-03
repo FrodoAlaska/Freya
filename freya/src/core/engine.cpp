@@ -109,7 +109,7 @@ void engine_run() {
     window_poll_events(s_engine.window);
 
     // Physics world update
-    physics_world_step(1 / 60.0f);
+    physics_world_step();
 
     // Update 
     CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, s_engine.app, (f32)clock_get_delta_time());
