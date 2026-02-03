@@ -176,7 +176,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
           }                                                           \
         }
 #else 
-  FREYA_DEBUG_ASSERT(expr, msg)
+#define FREYA_DEBUG_ASSERT(expr, msg)
 #endif // FREYA_BUILD_DEBUG
 
 #else 

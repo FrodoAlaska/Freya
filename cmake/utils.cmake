@@ -26,7 +26,7 @@ if(WIN32)
     "/W0"
   )
   set(FREYA_RELEASE_BUILD_FLAGS
-    "/W0 /-O3"
+    "/W0 /Ot"
   )
 
   set(CMAKE_CXX_FLAGS_DEBUG   ${FREYA_DEBUG_BUILD_FLAGS})
