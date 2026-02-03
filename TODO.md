@@ -1,8 +1,9 @@
 # TODO 
 
+- Dude, OpenAL is such a _huge_ dependency. Get rid of it for god's sake. Get something simpler like miniaudio
+
 - Renderer
     - User-friendly post-process effects
-    - Tilemap component
     - 2D lighting and shadows?
 
 - Misc.

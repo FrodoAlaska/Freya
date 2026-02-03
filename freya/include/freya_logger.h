@@ -124,7 +124,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
   #define FREYA_ASSERTS_ENABLED 
 #endif
 
-#ifdef FREYA_ASSERTS_ENABLED
+#ifdef FREYA_ASSERTS_ENABLED // FREYA_ASSERTS_ENABLED
 
 /// Windows debug break
 
@@ -165,7 +165,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
 
 /// Same as the regular asserts, but these only work in debug builds.
 
-#if FREYA_BUILD_DEBUG == 1
+#if FREYA_BUILD_DEBUG == 1 // FREYA_BUILD_DEBUG
 #define FREYA_DEBUG_ASSERT(expr, msg)                                 \
         {                                                             \
           if(expr) {                                                  \
@@ -175,11 +175,13 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
             DEBUG_BREAK();                                            \
           }                                                           \
         }
-#endif
+#else 
+  FREYA_DEBUG_ASSERT(expr, msg)
+#endif // FREYA_BUILD_DEBUG
 
 #else 
   #define FREYA_ASSERT(expr, msg)
-#endif
+#endif // FREYA_ASSERTS_ENABLED
 
 /// Asserts
 /// ---------------------------------------------------------------------
