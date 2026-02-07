@@ -174,35 +174,6 @@ static void gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum seve
   }
 }
 
-static GLbitfield gl_get_barrier(const GfxMemoryBarrierType func) {
-  switch(func) {
-    case GFX_MEMORY_BARRIER_VERTEX_ATTRIBUTE:
-      return GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_INDEX_BUFFER:
-      return GL_ELEMENT_ARRAY_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_UNIFORM_BUFFER:
-      return GL_UNIFORM_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_SHADER_STORAGE_BUFFER:
-      return GL_SHADER_STORAGE_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_FRAMEBUFFER:
-      return GL_FRAMEBUFFER_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_BUFFER_UPDATE:
-      return GL_BUFFER_UPDATE_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_TEXTURE_FETCH:
-      return GL_TEXTURE_FETCH_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_TEXTURE_UPDATE:
-      return GL_TEXTURE_UPDATE_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_SHADER_IMAGE_ACCESS:
-      return GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_ATOMIC_COUNTER:
-      return GL_ATOMIC_COUNTER_BARRIER_BIT;
-    case GFX_MEMORY_BARRIER_ALL:
-      return GL_ALL_BARRIER_BITS;
-    default:
-      return 0;
-  } 
-}
-
 static void set_gfx_states(GfxContext* gfx) {
   gl_set_depth_state(gfx->desc.depth_desc);
   gl_set_stencil_state(gfx->desc.stencil_desc);
@@ -317,7 +288,7 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
 
   // Setting up the viewport for OpenGL
   
-  IVec2 window_size = window_get_size(desc.window);
+  IVec2 window_size = window_get_framebuffer_size(desc.window);
   glViewport(0, 0, window_size.x, window_size.y);
 
   // Setting the flags
@@ -483,7 +454,7 @@ void gfx_context_use_bindings(GfxContext* gfx, const GfxBindingDesc& binding_des
                 "Images count in gfx_context_use_bindings exceeding TEXTURES_MAX");
   
   for(sizei i = 0; i < binding_desc.images_count; i++) {
-    FREYA_DEBUG_ASSERT(binding_desc.images[i], "An invalid texture found in texutres array");
+    FREYA_DEBUG_ASSERT(binding_desc.images[i], "An invalid texture found in images array");
   
     GLenum access = gl_get_texture_access(binding_desc.images[i]->desc.access);
     GLenum in_format, gl_format, gl_pixel_type;
@@ -1658,7 +1629,7 @@ GfxPipeline* gfx_pipeline_create(GfxContext* gfx, const GfxPipelineDesc& desc, c
 
   // Instance buffer init
 
-  if(pipe->desc.instance_buffer) {
+  if(desc.instance_buffer) {
     pipe->instance_buffer = desc.instance_buffer; 
     pipe->instance_count  = desc.instance_count; 
 

@@ -44,6 +44,35 @@ void gl_check_supported_version(const freya::i32 major, const freya::i32 minor) 
 #endif
 }
 
+GLbitfield gl_get_barrier(const freya::GfxMemoryBarrierType func) {
+  switch(func) {
+    case freya::GFX_MEMORY_BARRIER_VERTEX_ATTRIBUTE:
+      return GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_INDEX_BUFFER:
+      return GL_ELEMENT_ARRAY_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_UNIFORM_BUFFER:
+      return GL_UNIFORM_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_SHADER_STORAGE_BUFFER:
+      return GL_SHADER_STORAGE_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_FRAMEBUFFER:
+      return GL_FRAMEBUFFER_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_BUFFER_UPDATE:
+      return GL_BUFFER_UPDATE_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_TEXTURE_FETCH:
+      return GL_TEXTURE_FETCH_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_TEXTURE_UPDATE:
+      return GL_TEXTURE_UPDATE_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_SHADER_IMAGE_ACCESS:
+      return GL_SHADER_IMAGE_ACCESS_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_ATOMIC_COUNTER:
+      return GL_ATOMIC_COUNTER_BARRIER_BIT;
+    case freya::GFX_MEMORY_BARRIER_ALL:
+      return GL_ALL_BARRIER_BITS;
+    default:
+      return 0;
+  } 
+}
+
 GLenum gl_get_compare_func(const freya::GfxCompareFunc func) {
   switch(func) {
     case freya::GFX_COMPARE_ALWAYS:
@@ -325,6 +354,33 @@ freya::sizei gl_get_layout_count(const freya::GfxLayoutType layout) {
       return 4;
     default:
       return 0;
+  }
+}
+
+GLenum gl_get_texture_type(const freya::GfxTextureType type) {
+  switch(type) {
+    case freya::GFX_TEXTURE_1D:
+    case freya::GFX_TEXTURE_IMAGE_1D:
+      return GL_TEXTURE_1D;
+    case freya::GFX_TEXTURE_1D_ARRAY:
+      return GL_TEXTURE_1D_ARRAY;
+    case freya::GFX_TEXTURE_1D_ARRAY_PROXY:
+      return GL_PROXY_TEXTURE_1D_ARRAY;
+    case freya::GFX_TEXTURE_2D:
+    case freya::GFX_TEXTURE_IMAGE_2D:
+      return GL_TEXTURE_2D;
+    case freya::GFX_TEXTURE_2D_PROXY:
+      return GL_PROXY_TEXTURE_2D;
+    case freya::GFX_TEXTURE_2D_ARRAY:
+      return GL_TEXTURE_2D_ARRAY;
+    case freya::GFX_TEXTURE_3D:
+    case freya::GFX_TEXTURE_IMAGE_3D:
+      return GL_TEXTURE_3D;
+    case freya::GFX_TEXTURE_DEPTH_TARGET:
+    case freya::GFX_TEXTURE_STENCIL_TARGET:
+    case freya::GFX_TEXTURE_DEPTH_STENCIL_TARGET:
+      return GL_TEXTURE_2D;
+      break;
   }
 }
 

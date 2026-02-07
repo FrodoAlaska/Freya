@@ -20,6 +20,8 @@ bool gl_on_framebuffer_resize_callback(const freya::Event& event, const void* di
 
 void gl_check_supported_version(const freya::i32 major, const freya::i32 minor);
 
+GLbitfield gl_get_barrier(const freya::GfxMemoryBarrierType func);
+
 GLenum gl_get_compare_func(const freya::GfxCompareFunc func);
 
 GLenum gl_get_operation(const freya::GfxOperation op);
@@ -41,6 +43,8 @@ freya::sizei gl_get_layout_size(const freya::GfxLayoutType layout);
 GLenum gl_get_layout_type(const freya::GfxLayoutType layout);
 
 freya::sizei gl_get_layout_count(const freya::GfxLayoutType layout);
+
+GLenum gl_get_texture_type(const freya::GfxTextureType type);
 
 void gl_get_texture_format(const freya::GfxTextureFormat format, GLenum* in_format, GLenum* gl_format, GLenum* gl_type);
 

@@ -34,7 +34,7 @@ namespace freya { // Start of freya
 /// Freya only supports OpenGL-ES versions greater than these.
 
 #define FREYA_GLES_MINIMUM_MAJOR_VERSION 3
-#define FREYA_GLES_MINIMUM_MINOR_VERSION 0
+#define FREYA_GLES_MINIMUM_MINOR_VERSION 1
 
 /// Specify shader headers for OpenGL
 
