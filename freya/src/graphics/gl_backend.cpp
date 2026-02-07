@@ -3,6 +3,8 @@
 #include "freya_memory.h"
 #include "freya_logger.h"
 
+#if FREYA_GFX_GL == 1 // FREYA_GFX_GL
+
 //////////////////////////////////////////////////////////////////////////
 
 #include <glad/glad.h>
@@ -2512,5 +2514,7 @@ GfxPipelineDesc& gfx_pipeline_get_desc(GfxPipeline* pipeline) {
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya
+
+#endif // FREYA_GFX_GL
 
 //////////////////////////////////////////////////////////////////////////

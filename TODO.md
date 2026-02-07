@@ -1,11 +1,12 @@
 # TODO 
 
-- Dude, OpenAL is such a _huge_ dependency. Get rid of it for god's sake. Get something simpler like miniaudio
-- Web build?
-
 - Renderer
     - User-friendly post-process effects
-    - 2D lighting and shadows?
+    - Dynamic 2D lighting?
+    - Make a GLES3 backend for web builds
+
+- Audio 
+    - Get rid of OpenAL in favor of MiniAudio
 
 - Misc.
     - Memory arenas and custom allocaters

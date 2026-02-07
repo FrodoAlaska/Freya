@@ -1,6 +1,8 @@
 #include "freya_file.h"
 #include "freya_logger.h"
 
+#include <sstream>
+
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya

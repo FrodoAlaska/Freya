@@ -52,28 +52,30 @@ typedef double        f64;
 /// ----------------------------------------------------------------------
 /// DEFS
 
-/// Freya only supports OpenGL versions greater than these.
+/// Exports
 
-#define FREYA_GL_MINIMUM_MAJOR_VERSION 4
-#define FREYA_GL_MINIMUM_MINOR_VERSION 2
-
-// Exports
 #ifdef FREYA_EXPORT 
 
-  // Window exports
+  /// Window exports
+  
   #ifdef _MSC_VER
     #define FREYA_API __declspec(dllexport) 
-  // Linux exports
+  
+  /// Linux exports
+ 
   #else
     #define FREYA_API __attribute__((visibility("default"))) 
   #endif
 
 #endif
 
-// Window imports
+/// Window imports
+
 #ifdef _MSC_VER 
   #define FREYA_API __declspec(dllexport) 
-// Linux exports
+
+/// Linux exports
+
 #else
   #define FREYA_API __attribute__((visibility("default"))) 
 #endif
@@ -116,15 +118,17 @@ typedef double        f64;
 /// Windows
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
-#define FREYA_PLATFORM_WINDOWS 1
-#ifndef _WIN64 
-#error "[FREYA-FATAL]: Only support 64-bit machines\n"
-#endif 
+  #define FREYA_PLATFORM_WINDOWS 1
+
+/// Web
+
+#elif defined(__EMSCRIPTEN__)
+  #define FREYA_PLATFORM_WEB    1 
 
 /// Linux
 
 #elif defined(__linux__) || defined(__gnu_linux__)
-#define FREYA_PLATFORM_LINUX  1 
+  #define FREYA_PLATFORM_LINUX  1 
 #endif
 
 /// Platform detection

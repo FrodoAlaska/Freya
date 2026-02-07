@@ -235,11 +235,21 @@ static void set_window_hints(Window* window) {
   // @TODO (Window): This should probably be configurable
   glfwWindowHint(GLFW_SAMPLES, 4); 
  
-  // Setting the OpenGL context configurations
+  // Setting the graphics context configurations based on the currently used API
+  
+#if (FREYA_PLATFORM_WINDOWS == 1 || FREYA_PLATFORM_LINUX == 1) // OpenGL
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#elif (FREYA_PLATFORM_WEB == 1)                               // OpenGl-ES
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+  glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
+  
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+#endif
 
   // Error callback
   glfwSetErrorCallback(error_callback); 

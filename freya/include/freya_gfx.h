@@ -8,10 +8,49 @@
 namespace freya { // Start of freya
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// DEFS
+
+/// Use OpenGL on Windows and Linux builds
+
+#if (FREYA_PLATFORM_WINDOWS == 1 || FREYA_PLATFORM_LINUX == 1) 
+  #define FREYA_GFX_GL   1
+
+/// Use OpenGL-ES on Web builds
+
+#elif (FREYA_PLATFORM_WEB == 1)
+  #define FREYA_GFX_GLES 1
+
+/// Invalid platform 
+
+#else 
+  #error "[FREYA-FATAL]: Unsupported graphics API detected!"
+#endif
+
+/// Freya only supports OpenGL versions greater than these.
+
+#define FREYA_GL_MINIMUM_MAJOR_VERSION 4
+#define FREYA_GL_MINIMUM_MINOR_VERSION 3
+
+/// Freya only supports OpenGL-ES versions greater than these.
+
+#define FREYA_GLES_MINIMUM_MAJOR_VERSION 3
+#define FREYA_GLES_MINIMUM_MINOR_VERSION 0
+
+/// DEFS
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 // Consts
 
 /// The maximum amount of textures the GPU supports at a time. 
-const sizei TEXTURES_MAX                     = 32;
+///
+/// @NOTE: This depends on the API currently in use.
+
+#if (FREYA_GFX_GL == 1)
+  const sizei TEXTURES_MAX = 32;
+#elif (FREYA_GFX_GLES)
+  const sizei TEXTURES_MAX = 16;
+#endif
 
 /// The maximum amount of color attachments that can be attached to a framebuffer. 
 const sizei FRAMEBUFFER_ATTACHMENTS_MAX      = 4;
