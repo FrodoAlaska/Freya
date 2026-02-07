@@ -36,6 +36,19 @@ namespace freya { // Start of freya
 #define FREYA_GLES_MINIMUM_MAJOR_VERSION 3
 #define FREYA_GLES_MINIMUM_MINOR_VERSION 0
 
+/// Specify shader headers for OpenGL
+
+#if (FREYA_GFX_GL == 1)
+  #define FREYA_VERTEX_SHADER_HEADER "#version 460 core"
+  #define FREYA_PIXEL_SHADER_HEADER  "#version 460 core"
+
+/// Specify shader headers for OpenGL-ES
+
+#elif (FREYA_GFX_GL == 1)
+  #define FREYA_VERTEX_SHADER_HEADER "#version 320 es"
+  #define FREYA_PIXEL_SHADER_HEADER  "#version 320 es\nprecision mediump float"
+#endif
+
 /// DEFS
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -868,48 +881,48 @@ struct GfxContextDesc {
   /// A reference to the window.
   /// 
   /// @NOTE: This _must_ be set to a valid value.
-  Window* window                = nullptr;
+  Window* window              = nullptr;
 
   /// A bitwise ORed value from `GfxStates` determining the 
   /// states to create/enable.
   /// 
   /// @NOTE: By default, no states are set. 
-  u32 states                    = 0;
+  u32 states                  = 0;
 
   /// When set to `true`, the context will enable vsync. 
   /// Otherwise, vsync will be turned off.
   ///
   /// @NOTE: By default, this value is set to `false`.
-  bool has_vsync                = false;
+  bool has_vsync              = false;
 
   /// The subsamples of the MSAA buffer. 
   /// 
   /// @NOTE: By default, this is set to `1`.
-  u32 msaa_samples              = 1;
+  u32 msaa_samples            = 1;
 
   /// The description of the depth state. 
   /// 
   /// @NOTE: Check `GfxDepthDesc` to know the default values
   /// of each member.
-  GfxDepthDesc depth_desc       = {}; 
+  GfxDepthDesc depth_desc     = {}; 
 
   /// The description of the stencil state. 
   /// 
   /// @NOTE: Check `GfxStencilDesc` to know the default values
   /// of each member.
-  GfxStencilDesc stencil_desc   = {};
+  GfxStencilDesc stencil_desc = {};
 
   /// The description of the blend state. 
   /// 
   /// @NOTE: Check `GfxBlendDesc` to know the default values
   /// of each member.
-  GfxBlendDesc blend_desc       = {};
+  GfxBlendDesc blend_desc     = {};
 
   /// The description of the cull state. 
   /// 
   /// @NOTE: Check `GfxCullDesc` to know the default values
   /// of each member.
-  GfxCullDesc cull_desc         = {};
+  GfxCullDesc cull_desc       = {};
 };
 /// GfxContextDesc 
 ///---------------------------------------------------------------------------------------------------------------------

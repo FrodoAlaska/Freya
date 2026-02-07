@@ -3,7 +3,7 @@
 #include "freya_memory.h"
 #include "freya_logger.h"
 
-#if FREYA_GFX_GLES == 1 // FREYA_GFX_GLES
+#if (FREYA_GFX_GLES == 1) // FREYA_GFX_GLES
 
 //////////////////////////////////////////////////////////////////////////
 

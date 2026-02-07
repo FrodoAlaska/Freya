@@ -8,10 +8,10 @@
 /// https://github.com/mikke89/RmlUi/blob/master/Backends/RmlUi_Renderer_GL3.cpp
 ///
 
-inline const char* generate_vertex_main() {
-  return R"(
-      #version 460 core
-      
+inline freya::String generate_vertex_main() {
+  return
+    freya::String(FREYA_VERTEX_SHADER_HEADER) + // @TEMP (Shaders): Ew. Find a better way
+    R"(
       // Layouts 
       
       layout (location = 0) in vec2 aPos;
@@ -42,10 +42,9 @@ inline const char* generate_vertex_main() {
 inline freya::GfxShaderDesc generate_ui_texture_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_vertex_main(),
-
-    .pixel_source = R"(
-      #version 460 core
-      
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       
       layout (location = 0) out vec4 frag_color;
@@ -69,10 +68,9 @@ inline freya::GfxShaderDesc generate_ui_texture_shader() {
 inline freya::GfxShaderDesc generate_ui_color_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_vertex_main(),
-
-    .pixel_source = R"(
-      #version 460 core
-      
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       
       layout (location = 0) out vec4 frag_color;
@@ -92,10 +90,9 @@ inline freya::GfxShaderDesc generate_ui_color_shader() {
 inline freya::GfxShaderDesc generate_ui_gradient_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_vertex_main(),
-
-    .pixel_source = R"(
-      #version 460 core
-     
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Defines
      
       #define MAX_NUM_STOPS    16
@@ -176,10 +173,9 @@ inline freya::GfxShaderDesc generate_ui_gradient_shader() {
 inline freya::GfxShaderDesc generate_ui_creation_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_vertex_main(),
-
-    .pixel_source = R"(
-      #version 460 core
-      
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       
       layout (location = 0) out vec4 frag_color;
@@ -225,10 +221,9 @@ inline freya::GfxShaderDesc generate_ui_creation_shader() {
 inline freya::GfxShaderDesc generate_ui_color_matrix() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_vertex_main(),
-
-    .pixel_source = R"(
-      #version 460 core
-      
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       
       layout (location = 0) out vec4 frag_color;
@@ -267,10 +262,9 @@ inline freya::GfxShaderDesc generate_ui_color_matrix() {
 inline freya::GfxShaderDesc generate_ui_blend_mask() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_vertex_main(),
-
-    .pixel_source = R"(
-      #version 460 core
-      
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       
       layout (location = 0) out vec4 frag_color;

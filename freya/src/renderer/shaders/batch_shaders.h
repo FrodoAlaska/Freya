@@ -2,10 +2,10 @@
 
 #include "freya_gfx.h"
 
-inline const char* generate_default_vertex_shader() {
-  return R"(
-    #version 460 core
-   
+inline freya::String generate_default_vertex_shader() {
+  return 
+    freya::String(FREYA_VERTEX_SHADER_HEADER) + // @TEMP (Shaders): Ew. Find a better way
+    R"(
     // Layouts
     
     layout (location = 0) in vec2 aPos;
@@ -42,10 +42,9 @@ inline const char* generate_default_vertex_shader() {
 inline freya::GfxShaderDesc generate_batch_quad_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_default_vertex_shader(),
- 
-    .pixel_source = R"(
-      #version 460 core
-     
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       layout (location = 0) out vec4 frag_color;
        
@@ -68,10 +67,10 @@ inline freya::GfxShaderDesc generate_batch_quad_shader() {
   };
 }
 
-inline const char* generate_debug_vertex_shader() {
-  return R"(
-    #version 460 core
-   
+inline freya::String generate_debug_vertex_shader() {
+  return 
+    freya::String(FREYA_VERTEX_SHADER_HEADER) + // @TEMP (Shaders): Ew. Find a better way
+    R"(
     // Layouts
     
     layout (location = 0) in vec2 aPos;
@@ -103,10 +102,9 @@ inline const char* generate_debug_vertex_shader() {
 inline freya::GfxShaderDesc generate_quad_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_debug_vertex_shader(),
- 
-    .pixel_source = R"(
-      #version 460 core
-     
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       layout (location = 0) out vec4 frag_color;
       
@@ -129,10 +127,9 @@ inline freya::GfxShaderDesc generate_quad_shader() {
 inline freya::GfxShaderDesc generate_circle_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_debug_vertex_shader(),
- 
-    .pixel_source = R"(
-      #version 460 core
-     
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Outputs
       layout (location = 0) out vec4 frag_color;
       
@@ -162,10 +159,9 @@ inline freya::GfxShaderDesc generate_circle_shader() {
 inline freya::GfxShaderDesc generate_polygon_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_debug_vertex_shader(),
- 
-    .pixel_source = R"(
-      #version 460 core
-      
+    .pixel_source  = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
       // Defines
       
       #define PI     3.14159265359

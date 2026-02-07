@@ -3,47 +3,13 @@
 #include "freya_memory.h"
 #include "freya_logger.h"
 
-#if FREYA_GFX_GL == 1 // FREYA_GFX_GL
+#if (FREYA_GFX_GL == 1) // FREYA_GFX_GL
 
 //////////////////////////////////////////////////////////////////////////
 
-#include <glad/glad.h>
-
-#include <cstring>
+#include "gl_common.h"
 
 namespace freya { // Start of freya
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Macros
-
-#define SET_GFX_STATE(value, state) { \
-  if(value) {                         \
-    glEnable(state);                  \
-  }                                   \
-  else {                              \
-    glDisable(state);                 \
-  }                                   \
-}
-
-#define SET_BUFFER_BIT(value, bits, buffer) { \
-  if(value) {                                 \
-    SET_BIT(bits, buffer);                    \
-  }                                           \
-  else {                                      \
-    UNSET_BIT(bits, buffer);                  \
-  }                                           \
-}
-
-/// Macros
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Consts
-
-const sizei MAX_SHADER_LOG_MSG_LENGTH = 1024;
-
-/// Consts
-///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// GfxContext
@@ -149,23 +115,7 @@ struct GfxPipeline {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Callbacks 
-
-static bool on_framebuffer_resized(const Event& event, const void* dispatcher, const void* listener) {
-  glViewport(0, 0, event.window_framebuffer_width, event.window_framebuffer_height);
-  return true;
-}
-
-/// Callbacks 
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// Private functions 
-
-static void check_supported_gl_version(const i32 major, const i32 minor) {
-  FREYA_ASSERT_LOG((major >= FREYA_GL_MINIMUM_MAJOR_VERSION) && (minor >= FREYA_GL_MINIMUM_MINOR_VERSION), 
-                   "OpenGL versions less than 4.2 are not supported");
-}
 
 static const char* gl_get_error_source(GLenum src) {
   switch(src) {
@@ -224,7 +174,7 @@ static void gl_error_callback(GLenum source, GLenum type, GLuint id, GLenum seve
   }
 }
 
-static GLbitfield get_gl_barrier(const GfxMemoryBarrierType func) {
+static GLbitfield gl_get_barrier(const GfxMemoryBarrierType func) {
   switch(func) {
     case GFX_MEMORY_BARRIER_VERTEX_ATTRIBUTE:
       return GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT;
@@ -253,667 +203,37 @@ static GLbitfield get_gl_barrier(const GfxMemoryBarrierType func) {
   } 
 }
 
-static GLenum get_gl_compare_func(const GfxCompareFunc func) {
-  switch(func) {
-    case GFX_COMPARE_ALWAYS:
-      return GL_ALWAYS;
-    case GFX_COMPARE_NEVER:
-      return GL_NEVER;
-    case GFX_COMPARE_EQUAL:
-      return GL_EQUAL;
-    case GFX_COMPARE_LESS:
-      return GL_LESS;
-    case GFX_COMPARE_LESS_EQUAL:
-      return GL_LEQUAL;
-    case GFX_COMPARE_GREATER:
-      return GL_GREATER;
-    case GFX_COMPARE_GREATER_EQUAL:
-      return GL_GEQUAL;
-    case GFX_COMPARE_NOT_EQUAL:
-      return GL_NOTEQUAL;
-    default:
-      return 0;
-  } 
-}
-
-static GLenum get_gl_operation(const GfxOperation op) {
-  switch(op) {
-    case GFX_OP_KEEP:
-      return GL_KEEP;
-    case GFX_OP_ZERO:
-      return GL_ZERO;
-    case GFX_OP_INVERT:
-      return GL_INVERT;
-    case GFX_OP_REPLACE:
-      return GL_REPLACE;
-    case GFX_OP_INCR:
-      return GL_INCR;
-    case GFX_OP_DECR:
-      return GL_DECR;
-    case GFX_OP_INCR_WRAP:
-      return GL_INCR_WRAP;
-    case GFX_OP_DECR_WRAP:
-      return GL_DECR_WRAP;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_gl_blend_mode(const GfxBlendMode mode) {
-  switch(mode) {
-    case GFX_BLEND_ZERO:
-      return GL_ZERO;
-    case GFX_BLEND_ONE:
-      return GL_ONE;
-    case GFX_BLEND_SRC_COLOR:
-      return GL_SRC_COLOR;
-    case GFX_BLEND_DEST_COLOR:
-      return GL_DST_COLOR;
-    case GFX_BLEND_SRC_ALPHA:
-      return GL_SRC_ALPHA;
-    case GFX_BLEND_DEST_ALPHA:
-      return GL_DST_ALPHA;
-    case GFX_BLEND_INV_SRC_COLOR:
-      return GL_ONE_MINUS_SRC_COLOR;
-    case GFX_BLEND_INV_DEST_COLOR:
-      return GL_ONE_MINUS_DST_COLOR;
-    case GFX_BLEND_INV_SRC_ALPHA:
-      return GL_ONE_MINUS_SRC_ALPHA;
-    case GFX_BLEND_INV_DEST_ALPHA:
-      return GL_ONE_MINUS_DST_ALPHA;
-    case GFX_BLEND_SRC_ALPHA_SATURATE:
-      return GL_SRC_ALPHA_SATURATE;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_gl_cull_order(const GfxCullOrder order) {
-  switch(order) {
-    case GFX_ORDER_CLOCKWISE:
-      return GL_CW;
-    case GFX_ORDER_COUNTER_CLOCKWISE:
-      return GL_CCW;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_gl_cull_mode(const GfxCullMode mode) {
-  switch(mode) {
-    case GFX_CULL_FRONT:
-      return GL_FRONT;
-    case GFX_CULL_BACK:
-      return GL_BACK;
-    case GFX_CULL_FRONT_AND_BACK:
-      return GL_FRONT_AND_BACK;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_buffer_type(const GfxBufferType type) {
-  switch(type) {
-    case GFX_BUFFER_VERTEX:
-      return GL_ARRAY_BUFFER;
-    case GFX_BUFFER_INDEX:
-      return GL_ELEMENT_ARRAY_BUFFER;
-    case GFX_BUFFER_UNIFORM:
-      return GL_UNIFORM_BUFFER;
-    case GFX_BUFFER_SHADER_STORAGE:
-      return GL_SHADER_STORAGE_BUFFER;
-    case GFX_BUFFER_DRAW_INDIRECT:
-      return GL_DRAW_INDIRECT_BUFFER;
-  } 
-}
-
-static GLenum get_buffer_usage(const GfxBufferUsage usage) {
-  switch(usage) {
-    case GFX_BUFFER_USAGE_DYNAMIC_DRAW:
-      return GL_DYNAMIC_DRAW;
-    case GFX_BUFFER_USAGE_DYNAMIC_READ:
-      return GL_DYNAMIC_READ;
-    case GFX_BUFFER_USAGE_STATIC_DRAW:
-      return GL_STATIC_DRAW;
-    case GFX_BUFFER_USAGE_STATIC_READ:
-      return GL_STATIC_READ;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_draw_mode(const GfxDrawMode mode) {
-  switch(mode) {
-    case GFX_DRAW_MODE_POINT:
-      return GL_POINTS;
-    case GFX_DRAW_MODE_TRIANGLE:
-      return GL_TRIANGLES;
-    case GFX_DRAW_MODE_TRIANGLE_STRIP:
-      return GL_TRIANGLE_STRIP;
-    case GFX_DRAW_MODE_LINE:
-      return GL_LINES;
-    case GFX_DRAW_MODE_LINE_STRIP:
-      return GL_LINE_STRIP;
-    default:
-      return 0;
-  }
-}
-
-static sizei get_layout_size(const GfxLayoutType layout) {
-  switch(layout) {
-    case GFX_LAYOUT_FLOAT1:
-      return sizeof(f32);
-    case GFX_LAYOUT_FLOAT2:
-      return sizeof(f32) * 2;
-    case GFX_LAYOUT_FLOAT3:
-      return sizeof(f32) * 3;
-    case GFX_LAYOUT_FLOAT4:
-      return sizeof(f32) * 4;
-
-    case GFX_LAYOUT_BYTE1:
-    case GFX_LAYOUT_UBYTE1:
-      return sizeof(i8);
-    case GFX_LAYOUT_BYTE2:
-    case GFX_LAYOUT_UBYTE2:
-      return sizeof(i8) * 2;
-    case GFX_LAYOUT_BYTE3:
-    case GFX_LAYOUT_UBYTE3:
-      return sizeof(i8) * 3;
-    case GFX_LAYOUT_BYTE4:
-    case GFX_LAYOUT_UBYTE4:
-      return sizeof(i8) * 4;
-
-    case GFX_LAYOUT_SHORT1:
-    case GFX_LAYOUT_USHORT1:
-      return sizeof(i16);
-    case GFX_LAYOUT_SHORT2:
-    case GFX_LAYOUT_USHORT2:
-      return sizeof(i16) * 2;
-    case GFX_LAYOUT_SHORT3:
-    case GFX_LAYOUT_USHORT3:
-      return sizeof(i16) * 3;
-    case GFX_LAYOUT_SHORT4:
-    case GFX_LAYOUT_USHORT4:
-      return sizeof(i16) * 4;
-
-    case GFX_LAYOUT_INT1:
-    case GFX_LAYOUT_UINT1:
-      return sizeof(i32);
-    case GFX_LAYOUT_INT2:
-    case GFX_LAYOUT_UINT2:
-      return sizeof(i32) * 2;
-    case GFX_LAYOUT_INT3:
-    case GFX_LAYOUT_UINT3:
-      return sizeof(i32) * 3;
-    case GFX_LAYOUT_INT4:
-    case GFX_LAYOUT_UINT4:
-      return sizeof(i32) * 4;
-
-    default: 
-      return 0;
-  }
-}
-
-static sizei get_layout_type(const GfxLayoutType layout) {
-  switch(layout) {
-    case GFX_LAYOUT_FLOAT1:
-    case GFX_LAYOUT_FLOAT2:
-    case GFX_LAYOUT_FLOAT3:
-    case GFX_LAYOUT_FLOAT4:
-    case GFX_LAYOUT_MAT3:
-    case GFX_LAYOUT_MAT4:
-      return GL_FLOAT;
-    case GFX_LAYOUT_BYTE1:
-    case GFX_LAYOUT_BYTE2:
-    case GFX_LAYOUT_BYTE3:
-    case GFX_LAYOUT_BYTE4:
-      return GL_BYTE;
-    case GFX_LAYOUT_UBYTE1:
-    case GFX_LAYOUT_UBYTE2:
-    case GFX_LAYOUT_UBYTE3:
-    case GFX_LAYOUT_UBYTE4:
-      return GL_UNSIGNED_BYTE;
-    case GFX_LAYOUT_SHORT1:
-    case GFX_LAYOUT_SHORT2:
-    case GFX_LAYOUT_SHORT3:
-    case GFX_LAYOUT_SHORT4:
-      return GL_SHORT;
-    case GFX_LAYOUT_USHORT1:
-    case GFX_LAYOUT_USHORT2:
-    case GFX_LAYOUT_USHORT3:
-    case GFX_LAYOUT_USHORT4:
-      return GL_UNSIGNED_SHORT;
-    case GFX_LAYOUT_INT1:
-    case GFX_LAYOUT_INT2:
-    case GFX_LAYOUT_INT3:
-    case GFX_LAYOUT_INT4:
-      return GL_INT;
-    case GFX_LAYOUT_UINT1:
-    case GFX_LAYOUT_UINT2:
-    case GFX_LAYOUT_UINT3:
-    case GFX_LAYOUT_UINT4:
-      return GL_UNSIGNED_INT;
-    default:
-      return 0;
-  }
-}
-
-static sizei get_layout_count(const GfxLayoutType layout) {
-  switch(layout) {
-    case GFX_LAYOUT_FLOAT1:
-    case GFX_LAYOUT_BYTE1:
-    case GFX_LAYOUT_UBYTE1:
-    case GFX_LAYOUT_SHORT1:
-    case GFX_LAYOUT_USHORT1:
-    case GFX_LAYOUT_INT1:
-    case GFX_LAYOUT_UINT1:
-      return 1;
-    case GFX_LAYOUT_FLOAT2:
-    case GFX_LAYOUT_BYTE2:
-    case GFX_LAYOUT_UBYTE2:
-    case GFX_LAYOUT_SHORT2:
-    case GFX_LAYOUT_USHORT2:
-    case GFX_LAYOUT_INT2:
-    case GFX_LAYOUT_UINT2:
-      return 2;
-    case GFX_LAYOUT_FLOAT3:
-    case GFX_LAYOUT_BYTE3:
-    case GFX_LAYOUT_UBYTE3:
-    case GFX_LAYOUT_SHORT3:
-    case GFX_LAYOUT_USHORT3:
-    case GFX_LAYOUT_INT3:
-    case GFX_LAYOUT_UINT3:
-      return 3;
-    case GFX_LAYOUT_FLOAT4:
-    case GFX_LAYOUT_BYTE4:
-    case GFX_LAYOUT_UBYTE4:
-    case GFX_LAYOUT_SHORT4:
-    case GFX_LAYOUT_USHORT4:
-    case GFX_LAYOUT_INT4:
-    case GFX_LAYOUT_UINT4:
-      return 4;
-    default:
-      return 0;
-  }
-}
-
-static void get_texture_gl_format(const GfxTextureFormat format, GLenum* in_format, GLenum* gl_format, GLenum* gl_type) {
-  switch(format) {
-    case GFX_TEXTURE_FORMAT_R8:
-      *in_format = GL_R8;
-      *gl_format = GL_RED;
-      *gl_type   = GL_UNSIGNED_BYTE;
-      break;
-    case GFX_TEXTURE_FORMAT_R16:
-      *in_format = GL_R16;
-      *gl_format = GL_RED;
-      *gl_type   = GL_UNSIGNED_SHORT;
-      break;
-    case GFX_TEXTURE_FORMAT_R16F:
-      *in_format = GL_R16F;
-      *gl_format = GL_RED;
-      *gl_type   = GL_FLOAT;
-      break;
-    case GFX_TEXTURE_FORMAT_R32F:
-      *in_format = GL_R32F;
-      *gl_format = GL_RED;
-      *gl_type   = GL_FLOAT;
-      break;
-    case GFX_TEXTURE_FORMAT_RG8:
-      *in_format = GL_RG8;
-      *gl_format = GL_RG;
-      *gl_type   = GL_UNSIGNED_BYTE;
-      break;
-    case GFX_TEXTURE_FORMAT_RG16:
-      *in_format = GL_RG16;
-      *gl_format = GL_RG;
-      *gl_type   = GL_UNSIGNED_SHORT;
-      break;
-    case GFX_TEXTURE_FORMAT_RG16F:
-      *in_format = GL_RG16F;
-      *gl_format = GL_RG;
-      *gl_type   = GL_FLOAT;
-      break;
-    case GFX_TEXTURE_FORMAT_RG32F:
-      *in_format = GL_RG32F;
-      *gl_format = GL_RG;
-      *gl_type   = GL_FLOAT;
-      break;
-    case GFX_TEXTURE_FORMAT_RGBA8:
-      *in_format = GL_RGBA8;
-      *gl_format = GL_RGBA;
-      *gl_type   = GL_UNSIGNED_BYTE;
-      break;
-    case GFX_TEXTURE_FORMAT_RGBA16:
-      *in_format = GL_RGBA16;
-      *gl_format = GL_RGBA;
-      *gl_type   = GL_UNSIGNED_SHORT;
-      break;
-    case GFX_TEXTURE_FORMAT_RGBA16F:
-      *in_format = GL_RGBA16F;
-      *gl_format = GL_RGBA;
-      *gl_type   = GL_FLOAT;
-      break;
-    case GFX_TEXTURE_FORMAT_RGBA32F:
-      *in_format = GL_RGBA32F;
-      *gl_format = GL_RGBA;
-      *gl_type   = GL_FLOAT;
-      break;
-    case GFX_TEXTURE_FORMAT_DEPTH16:
-      *in_format = GL_DEPTH_COMPONENT16;
-      *gl_format = GL_DEPTH_COMPONENT;
-      *gl_type   = GL_UNSIGNED_SHORT;
-    case GFX_TEXTURE_FORMAT_DEPTH24:
-      *in_format = GL_DEPTH_COMPONENT24;
-      *gl_format = GL_DEPTH_COMPONENT;
-      *gl_type   = GL_UNSIGNED_INT;
-    case GFX_TEXTURE_FORMAT_DEPTH32F:
-      *in_format = GL_DEPTH_COMPONENT32F;
-      *gl_format = GL_DEPTH_COMPONENT;
-      *gl_type   = GL_FLOAT;
-    case GFX_TEXTURE_FORMAT_STENCIL8:
-      *in_format = GL_STENCIL_INDEX8;
-      *gl_format = GL_STENCIL_INDEX;
-      *gl_type   = GL_UNSIGNED_BYTE;
-    case GFX_TEXTURE_FORMAT_DEPTH_STENCIL_24_8:
-      *in_format = GL_DEPTH24_STENCIL8;
-      *gl_format = GL_DEPTH_STENCIL;
-      *gl_type   = GL_UNSIGNED_INT_24_8;
-      break;
-    default:
-      break;
-  }
-}
-
-static void get_texture_gl_filter(const GfxTextureFilter filter, GLenum* min, GLenum* mag) {
-  switch(filter) {
-    case GFX_TEXTURE_FILTER_MIN_MAG_LINEAR:
-      *min = GL_LINEAR; 
-      *mag = GL_LINEAR;
-      break;
-    case GFX_TEXTURE_FILTER_MIN_MAG_NEAREST:
-      *min = GL_NEAREST; 
-      *mag = GL_NEAREST;
-      break;
-    case GFX_TEXTURE_FILTER_MIN_LINEAR_MAG_NEAREST:
-      *min = GL_LINEAR; 
-      *mag = GL_NEAREST;
-      break;
-    case GFX_TEXTURE_FILTER_MIN_NEAREST_MAG_LINEAR:
-      *min = GL_NEAREST; 
-      *mag = GL_LINEAR;
-      break;
-    case GFX_TEXTURE_FILTER_MIN_TRILINEAR_MAG_LINEAR:
-      *min = GL_LINEAR_MIPMAP_LINEAR; 
-      *mag = GL_LINEAR;
-      break;
-    case GFX_TEXTURE_FILTER_MIN_TRILINEAR_MAG_NEAREST:
-      *min = GL_LINEAR_MIPMAP_LINEAR; 
-      *mag = GL_NEAREST;
-      break;
-    default:
-      break;
-  }
-}
-
-static GLenum get_texture_gl_wrap(const GfxTextureWrap wrap) {
-  switch(wrap) {
-    case GFX_TEXTURE_WRAP_REPEAT: 
-      return GL_REPEAT;
-    case GFX_TEXTURE_WRAP_MIRROR: 
-      return GL_MIRRORED_REPEAT;
-    case GFX_TEXTURE_WRAP_CLAMP: 
-      return GL_CLAMP_TO_EDGE;
-    case GFX_TEXTURE_WRAP_BORDER_COLOR:
-      return GL_CLAMP_TO_BORDER;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_texture_gl_access(const GfxTextureAccess access) {
-  switch(access) {
-    case GFX_TEXTURE_ACCESS_READ: 
-      return GL_READ_ONLY;
-    case GFX_TEXTURE_ACCESS_WRITE: 
-      return GL_WRITE_ONLY;
-    case GFX_TEXTURE_ACCESS_READ_WRITE: 
-      return GL_READ_WRITE;
-    default:
-      return 0;
-  }
-}
-
-static GLenum get_attachment_type(const GfxTextureFormat format) {
-  switch(format) {
-    case GFX_TEXTURE_FORMAT_DEPTH16:
-    case GFX_TEXTURE_FORMAT_DEPTH24:
-    case GFX_TEXTURE_FORMAT_DEPTH32F:
-    case GFX_TEXTURE_FORMAT_DEPTH_STENCIL_24_8:
-      return GL_DEPTH_ATTACHMENT;
-    case GFX_TEXTURE_FORMAT_STENCIL8:
-      return GL_STENCIL_ATTACHMENT;
-    default:
-      return GL_TEXTURE_2D;
-  }
-}
-
-static GfxUniformType get_shader_type(const GLenum gl_type) {
-  switch(gl_type) {
-    case GL_FLOAT: 
-      return GFX_UNIFORM_FLOAT1;
-    case GL_FLOAT_VEC2: 
-      return GFX_UNIFORM_FLOAT2;
-    case GL_FLOAT_VEC3: 
-      return GFX_UNIFORM_FLOAT3;
-    case GL_FLOAT_VEC4: 
-      return GFX_UNIFORM_FLOAT4;
-    
-    case GL_INT: 
-      return GFX_UNIFORM_INT1;
-    case GL_INT_VEC2: 
-      return GFX_UNIFORM_INT2;
-    case GL_INT_VEC3: 
-      return GFX_UNIFORM_INT3;
-    case GL_INT_VEC4: 
-      return GFX_UNIFORM_INT4;
-    
-    case GL_UNSIGNED_INT: 
-      return GFX_UNIFORM_UINT1;
-    case GL_UNSIGNED_INT_VEC2: 
-      return GFX_UNIFORM_UINT2;
-    case GL_UNSIGNED_INT_VEC3: 
-      return GFX_UNIFORM_UINT3;
-    case GL_UNSIGNED_INT_VEC4: 
-      return GFX_UNIFORM_UINT4;
-    
-    case GL_BOOL: 
-      return GFX_UNIFORM_BOOL1;
-    case GL_BOOL_VEC2: 
-      return GFX_UNIFORM_BOOL2;
-    case GL_BOOL_VEC3: 
-      return GFX_UNIFORM_BOOL3;
-    case GL_BOOL_VEC4: 
-      return GFX_UNIFORM_BOOL4;
-    
-    case GL_FLOAT_MAT2: 
-      return GFX_UNIFORM_MAT2;
-    case GL_FLOAT_MAT3: 
-      return GFX_UNIFORM_MAT3;
-    case GL_FLOAT_MAT4: 
-      return GFX_UNIFORM_MAT4;
-    case GL_FLOAT_MAT2x3: 
-      return GFX_UNIFORM_MAT2X3;
-    case GL_FLOAT_MAT2x4: 
-      return GFX_UNIFORM_MAT2X4;
-    case GL_FLOAT_MAT3x2: 
-      return GFX_UNIFORM_MAT3X2;
-    case GL_FLOAT_MAT3x4: 
-      return GFX_UNIFORM_MAT3X4;
-    case GL_FLOAT_MAT4x2: 
-      return GFX_UNIFORM_MAT4X2;
-    case GL_FLOAT_MAT4x3: 
-      return GFX_UNIFORM_MAT4X3;
-    
-    case GL_SAMPLER_1D: 
-      return GFX_UNIFORM_SAMPLER_1D;
-    case GL_SAMPLER_2D: 
-      return GFX_UNIFORM_SAMPLER_2D;
-    case GL_SAMPLER_3D: 
-      return GFX_UNIFORM_SAMPLER_3D;
-    case GL_SAMPLER_CUBE: 
-      return GFX_UNIFORM_SAMPLER_CUBE;
-    
-    case GL_SAMPLER_1D_SHADOW: 
-      return GFX_UNIFORM_SAMPLER_1D_SHADOW;
-    case GL_SAMPLER_2D_SHADOW: 
-      return GFX_UNIFORM_SAMPLER_2D_SHADOW;
-    case GL_SAMPLER_CUBE_SHADOW: 
-      return GFX_UNIFORM_SAMPLER_CUBE_SHADOW;
-    
-    case GL_SAMPLER_1D_ARRAY: 
-      return GFX_UNIFORM_SAMPLER_1D_ARRAY;
-    case GL_SAMPLER_2D_ARRAY: 
-      return GFX_UNIFORM_SAMPLER_2D_ARRAY;
-    case GL_SAMPLER_1D_ARRAY_SHADOW: 
-      return GFX_UNIFORM_SAMPLER_1D_ARRAY_SHADOW;
-    case GL_SAMPLER_2D_ARRAY_SHADOW: 
-      return GFX_UNIFORM_SAMPLER_2D_ARRAY_SHADOW;
-    
-    case GL_IMAGE_1D: 
-      return GFX_UNIFORM_IMAGE_1D;
-    case GL_IMAGE_2D: 
-      return GFX_UNIFORM_IMAGE_2D;
-    case GL_IMAGE_3D: 
-      return GFX_UNIFORM_IMAGE_3D;
-    case GL_IMAGE_CUBE: 
-      return GFX_UNIFORM_IMAGE_CUBE;
-    
-    case GL_IMAGE_1D_ARRAY: 
-      return GFX_UNIFORM_IMAGE_1D_ARRAY;
-    case GL_IMAGE_2D_ARRAY: 
-      return GFX_UNIFORM_IMAGE_2D_ARRAY;
-
-    default: 
-      return (GfxUniformType)-1;
-  }
-}
-
-static void set_state(GfxContext* gfx, const GfxStates state, const bool value) {
-  switch(state) {
-    case GFX_STATE_DEPTH:
-      SET_GFX_STATE(value, GL_DEPTH_TEST);
-      break;
-    case GFX_STATE_STENCIL:
-      SET_GFX_STATE(value, GL_STENCIL_TEST);
-      break;
-    case GFX_STATE_BLEND:
-      SET_GFX_STATE(value, GL_BLEND);
-      break;
-    case GFX_STATE_MSAA:
-      SET_GFX_STATE(value, GL_MULTISAMPLE);
-      break;
-    case GFX_STATE_CULL:
-      SET_GFX_STATE(value, GL_CULL_FACE);
-    case GFX_STATE_SCISSOR:
-      SET_GFX_STATE(value, GL_SCISSOR_TEST);
-      break;
-  }
-}
-
-static void set_depth_state(GfxContext* gfx) {
-  GLenum func = get_gl_compare_func(gfx->desc.depth_desc.compare_func);
-
-  glDepthFunc(func);
-  glDepthMask(gfx->desc.depth_desc.depth_write_enabled);
-}
-
-static void set_stencil_state(GfxContext* gfx) {
-  GLenum func  = get_gl_compare_func(gfx->desc.stencil_desc.compare_func);
-  GLenum face  = get_gl_cull_mode(gfx->desc.stencil_desc.polygon_face); 
-  GLenum sfail = get_gl_operation(gfx->desc.stencil_desc.stencil_fail_op); 
-  GLenum dfail = get_gl_operation(gfx->desc.stencil_desc.depth_fail_op); 
-  GLenum dpass = get_gl_operation(gfx->desc.stencil_desc.depth_pass_op); 
-
-  glStencilFuncSeparate(face, func, gfx->desc.stencil_desc.ref, gfx->desc.stencil_desc.mask);
-  glStencilOpSeparate(face, sfail, dfail, dpass);
-  glStencilMaskSeparate(face, gfx->desc.stencil_desc.mask);
-}
-
-static void set_blend_state(GfxContext* gfx) {
-  GLenum src_color = get_gl_blend_mode(gfx->desc.blend_desc.src_color_blend);
-  GLenum dst_color = get_gl_blend_mode(gfx->desc.blend_desc.dest_color_blend);
-
-  GLenum src_alpha = get_gl_blend_mode(gfx->desc.blend_desc.src_alpha_blend);
-  GLenum dst_alpha = get_gl_blend_mode(gfx->desc.blend_desc.dest_alpha_blend);
-
-  f32* factor = gfx->desc.blend_desc.blend_factor;
-  
-  glBlendFuncSeparate(src_color, dst_color, src_alpha, dst_alpha);
-  glBlendColor(factor[0], factor[1], factor[2], factor[3]);
-}
-
-static void set_cull_state(GfxContext* gfx) {
-  GLenum front_face = get_gl_cull_order(gfx->desc.cull_desc.front_face);
-  GLenum face       = get_gl_cull_mode(gfx->desc.cull_desc.cull_mode);
-  
-  glCullFace(face);
-  glFrontFace(front_face);
-}
-
 static void set_gfx_states(GfxContext* gfx) {
-  set_depth_state(gfx);
-  set_stencil_state(gfx);
-  set_cull_state(gfx);
-  set_blend_state(gfx);
+  gl_set_depth_state(gfx->desc.depth_desc);
+  gl_set_stencil_state(gfx->desc.stencil_desc);
+  gl_set_blend_state(gfx->desc.blend_desc);
+  gl_set_cull_state(gfx->desc.cull_desc);
 
   if(IS_BIT_SET(gfx->states, GFX_STATE_DEPTH)) {
-    set_state(gfx, GFX_STATE_DEPTH, true);   
+    gl_set_state(GFX_STATE_DEPTH, true);   
     gfx->default_clear_flags |= GL_DEPTH_BUFFER_BIT;
   }
   
   if(IS_BIT_SET(gfx->states, GFX_STATE_STENCIL)) {
-    set_state(gfx, GFX_STATE_STENCIL, true);   
+    gl_set_state(GFX_STATE_STENCIL, true);   
     gfx->default_clear_flags |= GL_STENCIL_BUFFER_BIT;
   }
   
   if(IS_BIT_SET(gfx->states, GFX_STATE_BLEND)) {
-    set_state(gfx, GFX_STATE_BLEND, true);   
+    gl_set_state(GFX_STATE_BLEND, true);   
   }
   
   if(IS_BIT_SET(gfx->states, GFX_STATE_MSAA)) {
-    set_state(gfx, GFX_STATE_MSAA, true);   
+    gl_set_state(GFX_STATE_MSAA, true);   
   }
 
   if(IS_BIT_SET(gfx->states, GFX_STATE_CULL)) {
-    set_state(gfx, GFX_STATE_CULL, true);   
+    gl_set_state(GFX_STATE_CULL, true);   
   }
   
   if(IS_BIT_SET(gfx->states, GFX_STATE_SCISSOR)) {
-    set_state(gfx, GFX_STATE_SCISSOR, true);   
+    gl_set_state(GFX_STATE_SCISSOR, true);   
   }
-}
-
-static u32 get_gl_clear_flags(const u32 flags) {
-  u32 gl_flags = 0;
-  
-  if(IS_BIT_SET(flags, GFX_CLEAR_FLAGS_NONE)) {
-    return 0;
-  }
-
-  if(IS_BIT_SET(flags, GFX_CLEAR_FLAGS_COLOR_BUFFER)) {
-    gl_flags |= GL_COLOR_BUFFER_BIT;    
-  }
-  
-  if(IS_BIT_SET(flags, GFX_CLEAR_FLAGS_DEPTH_BUFFER)) {
-    gl_flags |= GL_DEPTH_BUFFER_BIT;    
-  }
-  
-  if(IS_BIT_SET(flags, GFX_CLEAR_FLAGS_STENCIL_BUFFER)) {
-    gl_flags |= GL_STENCIL_BUFFER_BIT;    
-  }
-
-  return gl_flags;
 }
 
 static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
@@ -931,16 +251,16 @@ static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
     for(sizei j = 0; j < pipe->desc.layouts[i].attributes_count; j++) {
       GfxLayoutType attribute = pipe->desc.layouts[i].attributes[j];
       
-      GLenum gl_comp_type = get_layout_type(attribute);
-      sizei comp_count    = get_layout_count(attribute);
-      sizei size          = get_layout_size(attribute);
+      GLenum gl_comp_type = gl_get_layout_type(attribute);
+      sizei comp_count    = gl_get_layout_count(attribute);
+      sizei size          = gl_get_layout_size(attribute);
 
       /// @NOTE:
       /// 
       /// This is just a temporary resolution until I can fix this much later. 
       /// If I stop being lazy, that is, which is unlikely to happen for a while. 
       ///
-      /// Essentially, we are assuming that are floating-point attributes will _NOT_ 
+      /// Essentially, we are assuming that all floating-point attributes will _NOT_ 
       /// be normalized. That's because we usually don't want them to be. However, 
       /// with other non floating-point numbers, we assume that we need them to be normalized.
       /// With bytes, for example, we might need to normalize that since we might be using them 
@@ -961,131 +281,6 @@ static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
 
     strides[i] = stride;
     glVertexArrayBindingDivisor(pipe->vertex_array, i, pipe->desc.layouts[i].instance_rate);
-  }
-}
-
-static void check_shader_compile_error(const sizei shader) {
-  i32 success;
-  i8 log_info[MAX_SHADER_LOG_MSG_LENGTH];
-
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &success); 
-
-  if(!success) {
-    glGetShaderInfoLog(shader, MAX_SHADER_LOG_MSG_LENGTH, nullptr, log_info);
-    FREYA_LOG_WARN("SHADER-ERROR: %s", log_info);
-  }
-}
-
-static void check_shader_linker_error(const GfxShader* shader) {
-  i32 success;
-  i8 log_info[MAX_SHADER_LOG_MSG_LENGTH];
-
-  glGetProgramiv(shader->id, GL_LINK_STATUS, &success); 
-
-  if(!success) {
-    glGetProgramInfoLog(shader->id, MAX_SHADER_LOG_MSG_LENGTH, nullptr, log_info);
-    FREYA_LOG_WARN("SHADER-ERROR: %s", log_info);
-  }
-}
-
-static void set_texture_pixel_align(const GfxTextureFormat format) {
-  switch(format) {
-    case GFX_TEXTURE_FORMAT_R8:
-    case GFX_TEXTURE_FORMAT_R16:
-    case GFX_TEXTURE_FORMAT_R16F:
-    case GFX_TEXTURE_FORMAT_R32F:
-      glPixelStorei(GL_PACK_ALIGNMENT, 1);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      break;
-    case GFX_TEXTURE_FORMAT_RG8:
-    case GFX_TEXTURE_FORMAT_RG16:
-    case GFX_TEXTURE_FORMAT_RG16F:
-    case GFX_TEXTURE_FORMAT_RG32F:
-      glPixelStorei(GL_PACK_ALIGNMENT, 2);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 2);
-      break;
-    case GFX_TEXTURE_FORMAT_RGBA8:
-    case GFX_TEXTURE_FORMAT_RGBA16:
-    case GFX_TEXTURE_FORMAT_RGBA16F:
-    case GFX_TEXTURE_FORMAT_RGBA32F:
-      glPixelStorei(GL_PACK_ALIGNMENT, 4);
-      glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-      break;
-    default:
-      break;
-  }
-}
-
-static void update_gl_texture_pixels(GfxTexture* texture, GLenum gl_format, GLenum gl_pixel_type) {
-  switch(texture->desc.type) {
-    case GFX_TEXTURE_1D: 
-    case GFX_TEXTURE_IMAGE_1D:
-      glTextureSubImage1D(texture->id, 
-                          texture->desc.mips, 
-                          0, 
-                          texture->desc.width, 
-                          gl_format, 
-                          gl_pixel_type, 
-                          texture->desc.data);
-      break;
-    case GFX_TEXTURE_2D:
-    case GFX_TEXTURE_2D_PROXY:
-    case GFX_TEXTURE_IMAGE_2D:
-    case GFX_TEXTURE_1D_ARRAY:
-    case GFX_TEXTURE_1D_ARRAY_PROXY:
-      glTextureSubImage2D(texture->id, 
-                          0, 
-                          0, 0,
-                          texture->desc.width, texture->desc.height,
-                          gl_format, 
-                          gl_pixel_type, 
-                          texture->desc.data);
-      break;
-    case GFX_TEXTURE_3D:
-    case GFX_TEXTURE_IMAGE_3D:
-    case GFX_TEXTURE_2D_ARRAY:
-      glTextureSubImage3D(texture->id, 
-                          0, 
-                          0, 0, 0,
-                          texture->desc.width, texture->desc.height, texture->desc.depth,
-                          gl_format, 
-                          gl_pixel_type, 
-                          texture->desc.data);
-      break;
-      break;
-    case GFX_TEXTURE_DEPTH_TARGET:
-    case GFX_TEXTURE_STENCIL_TARGET:
-    case GFX_TEXTURE_DEPTH_STENCIL_TARGET:
-      break;
-    default:
-      break;
-  }
-}
-
-static void update_gl_texture_storage(GfxTexture* texture, GLenum in_format) {
-  switch(texture->desc.type) {
-    case GFX_TEXTURE_1D: 
-    case GFX_TEXTURE_IMAGE_1D:
-      glTextureStorage1D(texture->id, texture->desc.mips, in_format, texture->desc.width);
-      break;
-    case GFX_TEXTURE_2D:
-    case GFX_TEXTURE_2D_PROXY:
-    case GFX_TEXTURE_IMAGE_2D:
-    case GFX_TEXTURE_1D_ARRAY_PROXY:
-      glTextureStorage2D(texture->id, texture->desc.mips, in_format, texture->desc.width, texture->desc.height);
-      break;
-    case GFX_TEXTURE_3D:
-    case GFX_TEXTURE_IMAGE_3D:
-    case GFX_TEXTURE_2D_ARRAY:
-      glTextureStorage3D(texture->id, texture->desc.mips, in_format, texture->desc.width, texture->desc.height, texture->desc.depth);
-      break;
-    case GFX_TEXTURE_DEPTH_TARGET:
-    case GFX_TEXTURE_STENCIL_TARGET:
-    case GFX_TEXTURE_DEPTH_STENCIL_TARGET:
-      glNamedRenderbufferStorage(texture->id, in_format, texture->desc.width, texture->desc.height);
-      break;
-    default:
-      break;
   }
 }
 
@@ -1135,7 +330,7 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
   i32 major_ver, minor_ver;
   glGetIntegerv(GL_MAJOR_VERSION, &major_ver);
   glGetIntegerv(GL_MINOR_VERSION, &minor_ver);
-  check_supported_gl_version(major_ver, minor_ver);
+  gl_check_supported_version(major_ver, minor_ver);
 
   // Getting some OpenGL information
   
@@ -1157,7 +352,7 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
   }
 
   // Listen to some events
-  event_register(EVENT_WINDOW_FRAMEBUFFER_RESIZED, on_framebuffer_resized, gfx);
+  event_register(EVENT_WINDOW_FRAMEBUFFER_RESIZED, gl_on_framebuffer_resize_callback, gfx);
 
   // Some useful info dump
 
@@ -1183,7 +378,6 @@ void gfx_context_shutdown(GfxContext* gfx) {
 
 GfxContextDesc& gfx_context_get_desc(GfxContext* gfx) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
-  
   return gfx->desc;
 }
 
@@ -1201,35 +395,35 @@ bool gfx_context_has_extension(GfxContext* gfx, const char* ext) {
 
 void gfx_context_set_state(GfxContext* gfx, const GfxStates state, const bool value) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
-  set_state(gfx, state, value);
+  gl_set_state(state, value);
 }
 
 void gfx_context_set_depth_state(GfxContext* gfx, const GfxDepthDesc& depth_desc) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
   
   gfx->desc.depth_desc = depth_desc; 
-  set_depth_state(gfx);
+  gl_set_depth_state(depth_desc);
 }
 
 void gfx_context_set_stencil_state(GfxContext* gfx, const GfxStencilDesc& stencil_desc) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
   
   gfx->desc.stencil_desc = stencil_desc; 
-  set_stencil_state(gfx);
+  gl_set_stencil_state(stencil_desc);
 }
 
 void gfx_context_set_cull_state(GfxContext* gfx, const GfxCullDesc& cull_desc) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
   
   gfx->desc.cull_desc = cull_desc; 
-  set_cull_state(gfx);
+  gl_set_cull_state(cull_desc);
 }
 
 void gfx_context_set_blend_state(GfxContext* gfx, const GfxBlendDesc& blend_desc) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
   
   gfx->desc.blend_desc = blend_desc; 
-  set_blend_state(gfx);
+  gl_set_blend_state(blend_desc);
 } 
 
 void gfx_context_set_scissor_rect(GfxContext* gfx, const i32 x, const i32 y, const i32 width, const i32 height) {
@@ -1291,9 +485,9 @@ void gfx_context_use_bindings(GfxContext* gfx, const GfxBindingDesc& binding_des
   for(sizei i = 0; i < binding_desc.images_count; i++) {
     FREYA_DEBUG_ASSERT(binding_desc.images[i], "An invalid texture found in texutres array");
   
-    GLenum access = get_texture_gl_access(binding_desc.images[i]->desc.access);
+    GLenum access = gl_get_texture_access(binding_desc.images[i]->desc.access);
     GLenum in_format, gl_format, gl_pixel_type;
-    get_texture_gl_format(binding_desc.images[i]->desc.format, &in_format, &gl_format, &gl_pixel_type);
+    gl_get_texture_format(binding_desc.images[i]->desc.format, &in_format, &gl_format, &gl_pixel_type);
 
     glBindImageTexture(i,                          // Image unit
                        binding_desc.images[i]->id, // Image ID 
@@ -1347,13 +541,13 @@ void gfx_context_draw(GfxContext* gfx, const u32 start_element) {
   FREYA_DEBUG_ASSERT(gfx->bound_pipeline, "Cannot draw using an invalid bound pipeline");
 
   GfxPipeline* pipe = gfx->bound_pipeline;
-  GLenum draw_mode  = get_draw_mode(pipe->desc.draw_mode);
+  GLenum draw_mode  = gl_get_draw_mode(pipe->desc.draw_mode);
 
   // Draw the index buffer (if it is valid).
   // Otherwise, draw using the vertex buffer.
   
   if(pipe->index_buffer) {
-    GLenum index_type = get_layout_type(pipe->desc.indices_type);
+    GLenum index_type = gl_get_layout_type(pipe->desc.indices_type);
     glDrawElements(draw_mode, pipe->index_count, index_type, 0);
   }
   else {
@@ -1370,13 +564,13 @@ void gfx_context_draw_instanced(GfxContext* gfx, const u32 start_element) {
   FREYA_DEBUG_ASSERT(gfx->bound_pipeline->instance_buffer, "Cannot instance draw using an invalid instance buffer");
 
   GfxPipeline* pipe = gfx->bound_pipeline;
-  GLenum draw_mode  = get_draw_mode(pipe->desc.draw_mode);
+  GLenum draw_mode  = gl_get_draw_mode(pipe->desc.draw_mode);
   
   // Draw the index buffer (if it is valid).
   // Otherwise, draw using the vertex buffer.
   
   if(pipe->index_buffer) {
-    GLenum index_type = get_layout_type(pipe->desc.indices_type);
+    GLenum index_type = gl_get_layout_type(pipe->desc.indices_type);
     glDrawElementsInstanced(draw_mode, pipe->index_count, index_type, 0, pipe->instance_count);
   }
   else {
@@ -1391,13 +585,13 @@ void gfx_context_draw_multi_indirect(GfxContext* gfx, const u32 offset, const si
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
   
   GfxPipeline* pipe = gfx->bound_pipeline;
-  GLenum draw_mode  = get_draw_mode(pipe->desc.draw_mode);
+  GLenum draw_mode  = gl_get_draw_mode(pipe->desc.draw_mode);
   
   // Draw the index buffer (if it is valid).
   // Otherwise, draw using the vertex buffer.
   
   if(pipe->index_buffer) {
-    GLenum index_type = get_layout_type(pipe->desc.indices_type);
+    GLenum index_type = gl_get_layout_type(pipe->desc.indices_type);
     glMultiDrawElementsIndirect(draw_mode, index_type, nullptr, count, stride);
   }
   else {
@@ -1437,7 +631,7 @@ void gfx_context_memory_barrier(GfxContext* gfx, const i32 barrier_bits) {
     i32 type = (GFX_MEMORY_BARRIER_VERTEX_ATTRIBUTE << i);
 
     if(IS_BIT_SET(barriers, type)) {
-      barriers |= get_gl_barrier((GfxMemoryBarrierType)type);
+      barriers |= gl_get_barrier((GfxMemoryBarrierType)type);
     }
   }
 
@@ -1464,7 +658,7 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
   GfxFramebuffer* buff = (GfxFramebuffer*)alloc_fn(sizeof(GfxFramebuffer));
 
   buff->desc        = desc; 
-  buff->clear_flags = get_gl_clear_flags(desc.clear_flags);
+  buff->clear_flags = gl_get_clear_flags(desc.clear_flags);
 
   glCreateFramebuffers(1, &buff->id);
 
@@ -1485,7 +679,7 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
     // tha can be sampled from or a render buffer object for 
     // write-only purposes.
      
-    GLenum depth_type = get_attachment_type(desc.depth_attachment->desc.format); 
+    GLenum depth_type = gl_get_attachment_type(desc.depth_attachment->desc.format); 
 
     if(glIsRenderbuffer(desc.depth_attachment->id)) {
       glNamedFramebufferRenderbuffer(buff->id, 
@@ -1565,7 +759,7 @@ void gfx_framebuffer_copy(const GfxFramebuffer* src_frame,
 
   u32 src_id   = src_frame ? src_frame->id : 0;
   u32 dest_id  = dest_frame ? dest_frame->id : 0;
-  u32 gl_masks = get_gl_clear_flags(buffer_mask);
+  u32 gl_masks = gl_get_clear_flags(buffer_mask);
 
   glBlitNamedFramebuffer(src_id, dest_id, 
                          src_x, src_y, 
@@ -1589,7 +783,7 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
   FREYA_DEBUG_ASSERT(is_count_valid, "Attachments count in GfxFramebuffer cannot exceed FRAMEBUFFER_ATTACHMENTS_MAX");
   
   framebuffer->desc        = desc; 
-  framebuffer->clear_flags = get_gl_clear_flags(desc.clear_flags);
+  framebuffer->clear_flags = gl_get_clear_flags(desc.clear_flags);
 
   // Attach color attachments
 
@@ -1608,7 +802,7 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
     // tha can be sampled from or a render buffer object for 
     // write-only purposes.
      
-    GLenum depth_type = get_attachment_type(desc.depth_attachment->desc.format); 
+    GLenum depth_type = gl_get_attachment_type(desc.depth_attachment->desc.format); 
 
     if(glIsRenderbuffer(desc.depth_attachment->id)) {
       glNamedFramebufferRenderbuffer(framebuffer->id, 
@@ -1688,8 +882,8 @@ const bool gfx_buffer_load(GfxBuffer* buffer, const GfxBufferDesc& desc) {
   FREYA_DEBUG_ASSERT(buffer, "Trying to load data into an invalid resource");
   
   buffer->desc          = desc;
-  buffer->gl_buff_type  = get_buffer_type(desc.type);
-  buffer->gl_buff_usage = get_buffer_usage(desc.usage);
+  buffer->gl_buff_type  = gl_get_buffer_type(desc.type);
+  buffer->gl_buff_usage = gl_get_buffer_usage(desc.usage);
   
   glNamedBufferData(buffer->id, desc.size, desc.data, buffer->gl_buff_usage);
   return true;
@@ -1716,7 +910,7 @@ void gfx_buffer_bind_point(GfxBuffer* buffer, const u32 bind_point) {
   bool is_valid_buffer = (buffer->desc.type == GFX_BUFFER_UNIFORM) || (buffer->desc.type == GFX_BUFFER_SHADER_STORAGE);
   FREYA_DEBUG_ASSERT(is_valid_buffer, "Cannot bind a non-uniform or non-shader storage buffer to a bind point");
 
-  glBindBufferBase(get_buffer_type(buffer->desc.type), bind_point, buffer->id);
+  glBindBufferBase(gl_get_buffer_type(buffer->desc.type), bind_point, buffer->id);
 }
 
 void gfx_buffer_update(GfxBuffer* buff, const GfxBufferDesc& desc) {
@@ -1769,13 +963,14 @@ const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc) {
 
     glShaderSource(shader->compute_id, 1, &compute_str, &compute_src_len); 
     glCompileShader(shader->compute_id);
-    check_shader_compile_error(shader->compute_id);
+    
+    gl_check_shader_compile_error(shader->compute_id);
     glAttachShader(shader->id, shader->compute_id);
 
     // Linking
 
     glLinkProgram(shader->id);
-    check_shader_linker_error(shader);
+    gl_check_shader_linker_error(shader->id);
 
     return true;
   }
@@ -1794,7 +989,8 @@ const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc) {
   
   glShaderSource(shader->vert_id, 1, &vertex_str, &vert_src_len); 
   glCompileShader(shader->vert_id);
-  check_shader_compile_error(shader->vert_id);
+  
+  gl_check_shader_compile_error(shader->vert_id);
   glAttachShader(shader->id, shader->vert_id);
    
   // Fragment shader
@@ -1806,13 +1002,14 @@ const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc) {
   
   glShaderSource(shader->frag_id, 1, &frag_str, &frag_src_len); 
   glCompileShader(shader->frag_id);
-  check_shader_compile_error(shader->frag_id);
+
+  gl_check_shader_compile_error(shader->frag_id);
   glAttachShader(shader->id, shader->frag_id);
 
   // Linking
   
   glLinkProgram(shader->id);
-  check_shader_linker_error(shader);
+  gl_check_shader_linker_error(shader->id);
   
   return true;
 }
@@ -1848,13 +1045,14 @@ void gfx_shader_update(GfxShader* shader, const GfxShaderDesc& desc) {
 
     glShaderSource(shader->compute_id, 1, &compute_str, &compute_src_len); 
     glCompileShader(shader->compute_id);
-    check_shader_compile_error(shader->compute_id);
+    
+    gl_check_shader_compile_error(shader->compute_id);
     glAttachShader(shader->id, shader->compute_id);
 
     // Linking
 
     glLinkProgram(shader->id);
-    check_shader_linker_error(shader);
+    gl_check_shader_linker_error(shader->id);
 
     return;
   }
@@ -1871,7 +1069,8 @@ void gfx_shader_update(GfxShader* shader, const GfxShaderDesc& desc) {
   
   glShaderSource(shader->vert_id, 1, &vertex_str, &vert_src_len); 
   glCompileShader(shader->vert_id);
-  check_shader_compile_error(shader->vert_id);
+  
+  gl_check_shader_compile_error(shader->vert_id);
   glAttachShader(shader->id, shader->vert_id);
    
   // Fragment shader
@@ -1881,13 +1080,14 @@ void gfx_shader_update(GfxShader* shader, const GfxShaderDesc& desc) {
   
   glShaderSource(shader->frag_id, 1, &frag_str, &frag_src_len); 
   glCompileShader(shader->frag_id);
-  check_shader_compile_error(shader->frag_id);
+  
+  gl_check_shader_compile_error(shader->frag_id);
   glAttachShader(shader->id, shader->frag_id);
 
   // Linking
   
   glLinkProgram(shader->id);
-  check_shader_linker_error(shader);
+  gl_check_shader_linker_error(shader->id);
 }
 
 void gfx_shader_query(GfxShader* shader, GfxShaderQueryDesc* out_desc) {
@@ -1927,7 +1127,7 @@ void gfx_shader_query(GfxShader* shader, GfxShaderQueryDesc* out_desc) {
                       &gl_type,     // Attribute type
                       attr_name);   // Attribute name
   
-    out_desc->active_attributes[i] = get_shader_type(gl_type);
+    out_desc->active_attributes[i] = gl_get_uniform_type(gl_type);
   } 
   
   // Retrieve the uniform blocks information
@@ -1969,7 +1169,7 @@ void gfx_shader_query(GfxShader* shader, GfxShaderQueryDesc* out_desc) {
                       &gl_type,           // Uniform type
                       uniform_desc.name); // Uniform name
 
-    uniform_desc.type            = get_shader_type(gl_type);
+    uniform_desc.type            = gl_get_uniform_type(gl_type);
     uniform_desc.location        = gfx_shader_uniform_lookup(shader, uniform_desc.name);
     uniform_desc.component_count = comp_count;
     out_desc->active_uniforms[i] = uniform_desc;
@@ -2130,12 +1330,12 @@ const bool gfx_texture_load(GfxTexture* texture, const GfxTextureDesc& desc) {
   // Convert the GFX types into valid GL ones.
 
   GLenum in_format, gl_format, gl_pixel_type;
-  get_texture_gl_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
+  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
 
-  GLenum gl_wrap_format = get_texture_gl_wrap(desc.wrap_mode);
+  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
   
   GLenum min_filter, mag_filter;
-  get_texture_gl_filter(desc.filter, &min_filter, &mag_filter); 
+  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
 
   // Setting texture parameters (for just images and textures, and not render targets)
  
@@ -2148,15 +1348,15 @@ const bool gfx_texture_load(GfxTexture* texture, const GfxTextureDesc& desc) {
     GLint compare_func = (gl_format == GL_DEPTH_COMPONENT) ? GL_COMPARE_REF_TO_TEXTURE : GL_NONE;
 
     glTextureParameteri(texture->id, GL_TEXTURE_COMPARE_MODE, compare_func);
-    glTextureParameteri(texture->id, GL_TEXTURE_COMPARE_FUNC, get_gl_compare_func(desc.compare_func));
+    glTextureParameteri(texture->id, GL_TEXTURE_COMPARE_FUNC, gl_get_compare_func(desc.compare_func));
     glTextureParameterfv(texture->id, GL_TEXTURE_BORDER_COLOR, desc.border_color);
   }
 
   // Filling the texture with the data based on its type
  
-  set_texture_pixel_align(desc.format);
-  update_gl_texture_storage(texture, in_format);
-  update_gl_texture_pixels(texture, gl_format, gl_pixel_type);
+  gl_set_texture_pixel_align(desc.format);
+  gl_update_texture_storage(texture->id, desc, in_format);
+  gl_update_texture_pixels(texture->id, desc, gl_format, gl_pixel_type);
 
   // Generating some mipmaps
   glGenerateTextureMipmap(texture->id);
@@ -2274,7 +1474,7 @@ void gfx_texture_upload_data(GfxTexture* texture,
   // Updating the formats
   
   GLenum in_format, gl_format, gl_pixel_type;
-  get_texture_gl_format(texture->desc.format, &in_format, &gl_format, &gl_pixel_type);
+  gl_get_texture_format(texture->desc.format, &in_format, &gl_format, &gl_pixel_type);
   
   // Update the data
   
@@ -2284,7 +1484,7 @@ void gfx_texture_upload_data(GfxTexture* texture,
   texture->desc.data   = (void*)data; 
 
   // Updating the internal texture pixels
-  update_gl_texture_pixels(texture, gl_format, gl_pixel_type);
+  gl_update_texture_pixels(texture->id, texture->desc, gl_format, gl_pixel_type);
 
   // Re-generate some mipmaps
   glGenerateTextureMipmap(texture->id);
@@ -2316,12 +1516,12 @@ const bool gfx_cubemap_load(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
   // Convert the GFX types into valid GL ones.
 
   GLenum in_format, gl_format, gl_pixel_type;
-  get_texture_gl_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
+  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
 
-  GLenum gl_wrap_format = get_texture_gl_wrap(desc.wrap_mode);
+  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
   
   GLenum min_filter, mag_filter;
-  get_texture_gl_filter(desc.filter, &min_filter, &mag_filter); 
+  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
   
   // Setting some parameters
   
@@ -2370,17 +1570,20 @@ void gfx_cubemap_update(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
   cubemap->desc = desc;
   
   // Updating the format
+  
   GLenum in_format, gl_format, gl_pixel_type;
-  get_texture_gl_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
+  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
 
   // Updating the addressing mode
-  GLenum gl_wrap_format = get_texture_gl_wrap(desc.wrap_mode);
+  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
   
   // Updating the filters
+  
   GLenum min_filter, mag_filter;
-  get_texture_gl_filter(desc.filter, &min_filter, &mag_filter); 
+  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
   
   // Re-setting the parameters
+  
   glTextureParameteri(cubemap->id, GL_TEXTURE_MIN_FILTER, min_filter);
   glTextureParameteri(cubemap->id, GL_TEXTURE_MAG_FILTER, mag_filter);
   glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_S, gl_wrap_format);
@@ -2398,7 +1601,7 @@ void gfx_cubemap_upload_data(GfxCubemap* cubemap,
   
   // Updating the format
   GLenum in_format, gl_format, gl_pixel_type;
-  get_texture_gl_format(cubemap->desc.format, &in_format, &gl_format, &gl_pixel_type);
+  gl_get_texture_format(cubemap->desc.format, &in_format, &gl_format, &gl_pixel_type);
 
   // Updating the information
   cubemap->desc.faces_count = count;

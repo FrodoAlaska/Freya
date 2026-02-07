@@ -21,7 +21,9 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/math/transform.cpp
 
   # Graphics
-  ${FREYA_SRC_DIR}/graphics/gl_backend.cpp
+  ${FREYA_SRC_DIR}/graphics/gl/gl_common.cpp
+  ${FREYA_SRC_DIR}/graphics/gl/gl_backend.cpp
+  ${FREYA_SRC_DIR}/graphics/gl/gles_backend.cpp
 
   # Threads
   ${FREYA_SRC_DIR}/threads/thread_pool.cpp
