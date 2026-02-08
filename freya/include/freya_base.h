@@ -50,69 +50,6 @@ typedef double        f64;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// DEFS
-
-/// Exports
-
-#ifdef FREYA_EXPORT 
-
-  /// Window exports
-  
-  #ifdef _MSC_VER
-    #define FREYA_API __declspec(dllexport) 
-  
-  /// Linux exports
- 
-  #else
-    #define FREYA_API __attribute__((visibility("default"))) 
-  #endif
-
-#endif
-
-/// Window imports
-
-#ifdef _MSC_VER 
-  #define FREYA_API __declspec(dllexport) 
-
-/// Linux exports
-
-#else
-  #define FREYA_API __attribute__((visibility("default"))) 
-#endif
-
-/// DEFS
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
-/// Macros
-
-/// Returns `true` if `other` is set in `bit`
-#define IS_BIT_SET(bit, other) ((bit & other) == other)
-
-/// Sets/adds `other` into `bit`
-#define SET_BIT(bit, other)    (bit |= other)
-
-/// Unsets/removes `other` from `bit`
-#define UNSET_BIT(bit, other)  (bit &= ~(other))
-
-/// Macros
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
-/// Build Types
-
-#if defined(DEBUG) || defined(_DEBUG)
-  #define FREYA_BUILD_DEBUG   1 
-  #define FREYA_BUILD_RELEASE 0
-#else
-  #define FREYA_BUILD_DEBUG   0 
-  #define FREYA_BUILD_RELEASE 1
-#endif
-
-/// Build Types
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// Platform detection
 
 /// Windows
@@ -132,6 +69,79 @@ typedef double        f64;
 #endif
 
 /// Platform detection
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Build Types
+
+#if defined(DEBUG) || defined(_DEBUG)
+  #define FREYA_BUILD_DEBUG   1 
+  #define FREYA_BUILD_RELEASE 0
+#else
+  #define FREYA_BUILD_DEBUG   0 
+  #define FREYA_BUILD_RELEASE 1
+#endif
+
+/// Build Types
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// DEFS
+
+/// Exports
+
+#ifdef FREYA_EXPORT 
+
+  /// Window exports
+  
+  #if FREYA_PLATFORM_WINDOWS == 1
+    #define FREYA_API __declspec(dllexport) 
+  
+  /// Linux exports
+ 
+  #elif FREYA_PLATFORM_LINUX == 1
+    #define FREYA_API __attribute__((visibility("default"))) 
+
+  /// No platform-specific exports
+  
+  #else 
+    #define FREYA_API
+  #endif
+
+#endif
+
+/// Window imports
+
+#if FREYA_PLATFORM_WINDOWS == 1
+  #define FREYA_API __declspec(dllexport) 
+
+/// Linux imports
+
+#elif FREYA_PLATFORM_LINUX == 1
+  #define FREYA_API __attribute__((visibility("default"))) 
+
+/// No platform-specific imports
+
+#else 
+  #define FREYA_API
+#endif
+
+/// DEFS
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Macros
+
+/// Returns `true` if `other` is set in `bit`
+#define IS_BIT_SET(bit, other) ((bit & other) == other)
+
+/// Sets/adds `other` into `bit`
+#define SET_BIT(bit, other)    (bit |= other)
+
+/// Unsets/removes `other` from `bit`
+#define UNSET_BIT(bit, other)  (bit &= ~(other))
+
+/// Macros
 /// ----------------------------------------------------------------------
 
 } // End of freya
