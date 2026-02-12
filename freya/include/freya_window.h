@@ -69,7 +69,7 @@ enum WindowFlags {
 ///   - `WINDOW_FLAGS_MAXIMIZE`            = Maximize the window on creation. 
 ///   - `WINDOW_FLAGS_DISABLE_DECORATIONS` = Disable window decoration such as borders, widgets, etc. Decorations will be enabled by default.
 ///   - `WINDOW_FLAGS_CENTER_MOUSE`        = Center the mouse position relative to the screen on startup.
-///   - `WINDOW_FLAGS_HIDE_CURSOR`         = Hide the cursor at creation. The cursos will be shown by default.
+///   - `WINDOW_FLAGS_HIDE_CURSOR`         = Hide the cursor at creation. The cursor will be shown by default.
 ///   - `WINDOW_FLAGS_FULLSCREEN`          = Set the window to be fullscreen on creation. 
 /// 
 FREYA_API Window* window_open(const char* title, const i32 width, const i32 height, i32 flags);

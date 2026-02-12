@@ -12,7 +12,7 @@ struct freya::App {
   freya::AssetGroupID group_id;
 
   freya::EntityWorld world;
-  freya::EntityID player_entt, ground_entt;
+  freya::Entity player_entt, ground_entt;
 };
 /// App
 /// ----------------------------------------------------------------------
@@ -23,8 +23,8 @@ struct freya::App {
 static bool on_body_hit(const freya::Event& event, const void* dispatcher, const void* listener) {
   freya::App* app = (freya::App*)listener; 
 
-  freya::EntityID entt1 = (freya::EntityID)freya::physics_body_get_user_data(event.collision_data.body1);
-  freya::EntityID entt2 = (freya::EntityID)freya::physics_body_get_user_data(event.collision_data.body2);
+  freya::Entity entt1 = (freya::EntityID)freya::physics_body_get_user_data(event.collision_data.body1);
+  freya::Entity entt2 = (freya::EntityID)freya::physics_body_get_user_data(event.collision_data.body2);
  
   freya::SpriteComponent& sprite = freya::entity_get_component<freya::SpriteComponent>(app->world, entt1);
   sprite.color = freya::COLOR_RED;
@@ -86,7 +86,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     .type = freya::PHYSICS_BODY_DYNAMIC,
   };
 
-  freya::PhysicsComponent& comp = freya::entity_add_physics_body(app->world, app->player_entt, body_desc);
+  freya::DynamicBodyComponent& comp = freya::entity_add_dynamic_body(app->world, app->player_entt, body_desc);
   freya::collider_create(comp.body, freya::ColliderDesc{}, freya::Vec2(0.0f), 32.0f);
 
   // Ground init
@@ -95,10 +95,8 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   freya::entity_add_sprite(app->world, app->ground_entt, freya::asset_group_get_id(app->group_id, "grass"));
   
   body_desc = {
-    .type = freya::PHYSICS_BODY_STATIC,
   };
-
-  freya::PhysicsComponent& ground_comp = freya::entity_add_physics_body(app->world, app->ground_entt, body_desc);
+  freya::StaticBodyComponent& ground_comp = freya::entity_add_static_body(app->world, app->ground_entt, body_desc);
   freya::collider_create(ground_comp.body, freya::ColliderDesc{}, freya::Vec2(128.0f, 64.0f));
 
   // Events listen
@@ -150,7 +148,7 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
     direction.x = -1.0f;
   }
 
-  freya::PhysicsComponent& comp = freya::entity_get_component<freya::PhysicsComponent>(app->world, app->player_entt);
+  freya::DynamicBodyComponent& comp = freya::entity_get_component<freya::DynamicBodyComponent>(app->world, app->player_entt);
   freya::physics_body_set_linear_velocity(comp.body, direction * 640.0f);
 
   // Move the camera

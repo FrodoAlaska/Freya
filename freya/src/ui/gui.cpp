@@ -679,7 +679,7 @@ void gui_edit_tile_sprite_component(const char* name, TileSpriteComponent* sprit
   ImGui::PopID(); 
 }
 
-void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
+void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
  
@@ -692,11 +692,22 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     ImGui::TreePop();
   }
 
-  // Physics body
+  // Dynamic body
 
-  if(entity_has_component<PhysicsComponent>(world, entt)) {
-    if(ImGui::TreeNode("Physics body")) {
-      PhysicsComponent& comp = entity_get_component<PhysicsComponent>(world, entt);
+  if(entity_has_component<DynamicBodyComponent>(world, entt)) {
+    if(ImGui::TreeNode("Dynamic body")) {
+      DynamicBodyComponent& comp = entity_get_component<DynamicBodyComponent>(world, entt);
+      gui_edit_physics_body("", comp.body);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Static body
+
+  if(entity_has_component<StaticBodyComponent>(world, entt)) {
+    if(ImGui::TreeNode("Static body")) {
+      StaticBodyComponent& comp = entity_get_component<StaticBodyComponent>(world, entt);
       gui_edit_physics_body("", comp.body);
 
       ImGui::TreePop();

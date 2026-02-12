@@ -184,9 +184,9 @@ struct Event {
   /// by `EVENT_PHYSICS_RAYCAST_HIT`.
   RayCastResult cast_result;
 
-  /// The entity ID given to this event by 
+  /// The entity given to this event by 
   /// either `EVENT_ENTITY_ADDED` or `EVENT_ENTITY_DESTROYED`.
-  EntityID entt_id;
+  Entity entt;
 };
 /// Event
 ///---------------------------------------------------------------------------------------------------------------------

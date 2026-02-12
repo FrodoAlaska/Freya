@@ -13,7 +13,8 @@ void entity_world_clear(EntityWorld& world) {
   // Destroy each entity
 
   auto view = world.view<EntityID>();
-  for(auto entt : view) {
+  for(auto entt_id : view) {
+    Entity entt = Entity(entt_id);
     entity_destroy(world, entt);
   }
 
@@ -24,14 +25,14 @@ void entity_world_clear(EntityWorld& world) {
 void entity_world_update(EntityWorld& world, const f32 delta_time) {
   FREYA_PROFILE_FUNCTION();
   
-  // PhysicsBody
+  // DynamicBody
   {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(PhysicsBodyID)");
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(DynamicBodyComponent)");
 
-    auto view = world.view<PhysicsComponent, Transform>();
+    auto view = world.view<DynamicBodyComponent, Transform>();
     for(auto entt : view) {
-      PhysicsComponent& body = view.get<PhysicsComponent>(entt);
-      Transform& transform   = view.get<Transform>(entt); 
+      DynamicBodyComponent& body = view.get<DynamicBodyComponent>(entt);
+      Transform& transform       = view.get<Transform>(entt); 
 
       transform.position = physics_body_get_position(body.body);
       transform.rotation = physics_body_get_rotation(body.body);
@@ -148,12 +149,12 @@ void entity_world_render(const EntityWorld& world) {
 /// ----------------------------------------------------------------------
 /// EntityID functions
 
-EntityID entity_create(EntityWorld& world,
-                       const Vec2& position, 
-                       const Vec2& scale,
-                       const f32 rotation) {
-  // Create a new entity
-  EntityID entt = world.create();
+Entity entity_create(EntityWorld& world,
+                     const Vec2& position, 
+                     const Vec2& scale,
+                     const f32 rotation) {
+  // Generate an entity ID
+  EntityID entt_id = world.create();
 
   // Add a transform component  
 
@@ -162,13 +163,16 @@ EntityID entity_create(EntityWorld& world,
   transform.rotation = rotation; 
   transform.scale    = scale;
 
-  world.emplace<Transform>(entt, transform);
+  world.emplace<Transform>(entt_id, transform);
+ 
+  // Create the new entity
+  Entity entt = Entity(entt_id);
 
   // Dispatch an event
 
   Event event = {
-    .type    = EVENT_ENTITY_ADDED, 
-    .entt_id = entt,
+    .type = EVENT_ENTITY_ADDED, 
+    .entt = entt,
   };
   event_dispatch(event);
 
@@ -176,96 +180,126 @@ EntityID entity_create(EntityWorld& world,
   return entt;
 }
 
-void entity_destroy(EntityWorld& world, EntityID& entt) {
+void entity_destroy(EntityWorld& world, Entity& entt) {
   // Dispatch an event
 
   Event event = {
-    .type    = EVENT_ENTITY_DESTROYED, 
-    .entt_id = entt,
+    .type = EVENT_ENTITY_DESTROYED, 
+    .entt = entt,
   };
   event_dispatch(event);
 
   // Destroy any components that require it 
 
-  if(entity_has_component<PhysicsComponent>(world, entt)) {
-    PhysicsComponent& body = world.get<PhysicsComponent>(entt);
+  if(entity_has_component<DynamicBodyComponent>(world, entt)) {
+    DynamicBodyComponent& body = world.get<DynamicBodyComponent>(entt.get_id());
+    physics_body_destroy(body.body);
+  }
+
+  if(entity_has_component<StaticBodyComponent>(world, entt)) {
+    StaticBodyComponent& body = world.get<StaticBodyComponent>(entt.get_id());
     physics_body_destroy(body.body);
   }
 
   // Destroy the entity in the world
-  world.destroy(entt); 
+  
+  world.destroy(entt.get_id()); 
+  entt.invalidate();
 }
 
 AudioSourceID& entity_add_audio_source(EntityWorld& world, 
-                                       EntityID& entt, 
+                                       Entity& entt, 
                                        AudioSourceDesc& desc, 
                                        const AssetID& audio_buffer_id) {
-  Transform& transform = world.get<Transform>(entt);
+  Transform& transform = world.get<Transform>(entt.get_id());
 
   desc.position      = transform.position; 
   desc.buffers[0]    = asset_group_get_audio_buffer(audio_buffer_id);
   desc.buffers_count = 1;
 
-  return world.emplace<AudioSourceID>(entt, audio_source_create(desc));
+  return world.emplace<AudioSourceID>(entt.get_id(), audio_source_create(desc));
 }
 
 Timer& entity_add_timer(EntityWorld& world, 
-                        EntityID& entt, 
+                        Entity& entt, 
                         const f32 max_time, 
                         const bool one_shot, 
                         const bool active) {
   Timer timer; 
   timer_create(timer, max_time, one_shot, active);
 
-  return world.emplace<Timer>(entt, timer);
+  return world.emplace<Timer>(entt.get_id(), timer);
 }
 
-AnimatorComponent& entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
+AnimatorComponent& entity_add_animation(EntityWorld& world, Entity& entt, const AnimationDesc& desc, const Vec4& tint) {
   Animation anim; 
   animation_create(anim, desc);
 
-  return world.emplace<AnimatorComponent>(entt, anim, tint);
+  return world.emplace<AnimatorComponent>(entt.get_id(), anim, tint);
 }
 
-SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
+SpriteComponent& entity_add_sprite(EntityWorld& world, Entity& entt, const AssetID& texture_id, const Vec4& color) {
   GfxTexture* texture = (texture_id.get_id() != ASSET_ID_INVALID) ? asset_group_get_texture(texture_id) : nullptr;
-  return world.emplace<SpriteComponent>(entt, texture, color);
+  return world.emplace<SpriteComponent>(entt.get_id(), texture, color);
 }
 
 TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
-                                            EntityID& entt, 
+                                            Entity& entt, 
                                             const AssetID& texture_id,
                                             const Rect2D& source, 
                                             const Vec4& color) {
   GfxTexture* texture = asset_group_get_texture(texture_id);
-  return world.emplace<TileSpriteComponent>(entt, texture, source, color);
+  return world.emplace<TileSpriteComponent>(entt.get_id(), texture, source, color);
 }
 
-ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, ParticleEmitterDesc& desc) {
-  Transform& transform = world.get<Transform>(entt);
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, ParticleEmitterDesc& desc) {
+  Transform& transform = world.get<Transform>(entt.get_id());
   desc.position        = transform.position;
   desc.scale           = transform.scale;
 
   ParticleEmitter emitter; 
   particle_emitter_create(emitter, desc);
 
-  return world.emplace<ParticleEmitter>(entt, emitter);
+  return world.emplace<ParticleEmitter>(entt.get_id(), emitter);
 }
 
-PhysicsComponent& entity_add_physics_body(EntityWorld& world, 
-                                          EntityID& entt, 
-                                          PhysicsBodyDesc& desc, 
-                                          const OnCollisionFn& enter_func, 
-                                          const OnCollisionFn& exit_func) {
-  Transform& transform = world.get<Transform>(entt);
+StaticBodyComponent& entity_add_static_body(EntityWorld& world, 
+                                            Entity& entt, 
+                                            PhysicsBodyDesc& desc, 
+                                            const OnCollisionFn& enter_func, 
+                                            const OnCollisionFn& exit_func) {
+  Transform& transform = world.get<Transform>(entt.get_id());
+
+  desc.type          = PHYSICS_BODY_STATIC;
+  desc.position      = transform.position;
+  desc.rotation      = transform.rotation;
+  desc.user_data     = (uintptr)entt.get_id();
+  PhysicsBodyID body = physics_body_create(desc);
+
+  entt.enter_func = enter_func;
+  entt.exit_func  = exit_func;
+
+  return world.emplace<StaticBodyComponent>(entt.get_id(), body);
+}
+
+DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world, 
+                                              Entity& entt, 
+                                              PhysicsBodyDesc& desc, 
+                                              const OnCollisionFn& enter_func, 
+                                              const OnCollisionFn& exit_func) {
+  Transform& transform = world.get<Transform>(entt.get_id());
 
   desc.position      = transform.position;
   desc.rotation      = transform.rotation;
-  desc.user_data     = (uintptr)entt;
+  desc.user_data     = (uintptr)entt.get_id();
   PhysicsBodyID body = physics_body_create(desc);
 
-  return world.emplace<PhysicsComponent>(entt, body, enter_func, exit_func);
+  entt.enter_func = enter_func;
+  entt.exit_func  = exit_func;
+
+  return world.emplace<DynamicBodyComponent>(entt.get_id(), body);
 }
+
 
 /// EntityID functions
 /// ----------------------------------------------------------------------

@@ -213,7 +213,7 @@ FREYA_API void gui_edit_sprite_component(const char* name, SpriteComponent* spri
 FREYA_API void gui_edit_tile_sprite_component(const char* name, TileSpriteComponent* sprite);
 
 /// Add an entity section identified by `name` to edit the given `entt`.
-FREYA_API void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt);
+FREYA_API void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt);
 
 /// GUI functions
 ///---------------------------------------------------------------------------------------------------------------------
