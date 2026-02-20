@@ -17,7 +17,8 @@ set(TESTBED_INCLUDES
 )
 
 set(TESTBED_TYPE 
-  "engine_testbed"
+  # "engine_testbed"
+  "pathfinding_testbed"
 )
 ############################################################
 

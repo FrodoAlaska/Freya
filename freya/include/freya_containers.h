@@ -34,6 +34,9 @@ using Stack        = std::stack<T>;
 template<typename T> 
 using Deque        = std::deque<T>;
 
+template<typename T> 
+using List        = std::list<T>;
+
 /// *** Typedefs ***
 /// ----------------------------------------------------------------------
 

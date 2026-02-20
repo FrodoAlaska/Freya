@@ -1,18 +1,22 @@
 #pragma once
 
+#include <filesystem> 
+#include <fstream>
+
+#include <thread>
+#include <mutex>
+
 #include <array>
 #include <vector>
 #include <string>
-#include <filesystem> 
-#include <fstream>
 #include <unordered_map>
 #include <unordered_set>
-#include <random>
-#include <thread>
-#include <mutex>
 #include <queue>
 #include <stack>
+#include <list>
 #include <deque>
+
+#include <random>
 #include <functional>
 #include <memory>
 #include <chrono>
