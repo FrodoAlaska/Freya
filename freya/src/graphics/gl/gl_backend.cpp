@@ -1378,8 +1378,8 @@ const u64 gfx_texture_get_bindless_id(GfxTexture* texture) {
 }
 
 const bool gfx_texture_reload(GfxTexture* texture, const GfxTextureDesc& desc) {
-  FREYA_DEBUG_ASSERT(texture->gfx, "Invalid GfxContext struct passed to gfx_texture_upload_data");
-  FREYA_DEBUG_ASSERT(texture, "Invalid GfxTexture struct passed to gfx_texture_upload_data");
+  FREYA_DEBUG_ASSERT(texture->gfx, "Invalid GfxContext struct passed to gfx_texture_reload");
+  FREYA_DEBUG_ASSERT(texture, "Invalid GfxTexture struct passed to gfx_texture_reload");
 
   // Get rid of the texture in the GPU 
 
@@ -1437,7 +1437,6 @@ const bool gfx_texture_reload(GfxTexture* texture, const GfxTextureDesc& desc) {
 }
 
 void gfx_texture_upload_data(GfxTexture* texture, 
-                             const i32 width, const i32 height, const i32 depth, 
                              const void* data) {
   FREYA_DEBUG_ASSERT(texture->gfx, "Invalid GfxContext struct passed to gfx_texture_upload_data");
   FREYA_DEBUG_ASSERT(texture, "Invalid GfxTexture struct passed to gfx_texture_upload_data");
@@ -1449,10 +1448,8 @@ void gfx_texture_upload_data(GfxTexture* texture,
   
   // Update the data
   
-  texture->desc.width  = width; 
-  texture->desc.height = height; 
-  texture->desc.depth  = depth; 
-  texture->desc.data   = (void*)data; 
+  texture->desc.depth = depth; 
+  texture->desc.data  = (void*)data; 
 
   // Updating the internal texture pixels
   gl_update_texture_pixels(texture->id, texture->desc, gl_format, gl_pixel_type);

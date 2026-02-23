@@ -204,6 +204,8 @@ void pathmap_calculate(PathMap& map) {
 
 PathNode* pathmap_get_node(PathMap& map, const freya::IVec2& coords) {
   freya::IVec2 index = coords / (freya::i32)PATH_NODE_SIZE;
+  index              = freya::vec2_clamp(index, freya::Vec2(0.0f), freya::Vec2(PATH_NODES_MAX - 1.0f));
+
   return &map.nodes[index.x][index.y];
 }
 
