@@ -1436,8 +1436,7 @@ const bool gfx_texture_reload(GfxTexture* texture, const GfxTextureDesc& desc) {
   return gfx_texture_load(texture, desc);
 }
 
-void gfx_texture_upload_data(GfxTexture* texture, 
-                             const void* data) {
+void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, const void* data) {
   FREYA_DEBUG_ASSERT(texture->gfx, "Invalid GfxContext struct passed to gfx_texture_upload_data");
   FREYA_DEBUG_ASSERT(texture, "Invalid GfxTexture struct passed to gfx_texture_upload_data");
  
