@@ -68,29 +68,33 @@ set(FREYA_SOURCES
   
   # Physics
   ${FREYA_SRC_DIR}/physics/box2d_backend.cpp
+  
+  # Noise
+  ${FREYA_SRC_DIR}/noise/noise_generator.cpp
 )
 
 set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya.h
+  ${FREYA_INCLUDE_DIR}/freya_app.h
+  ${FREYA_INCLUDE_DIR}/freya_assets.h
+  ${FREYA_INCLUDE_DIR}/freya_audio.h
   ${FREYA_INCLUDE_DIR}/freya_base.h
   ${FREYA_INCLUDE_DIR}/freya_containers.h
-  ${FREYA_INCLUDE_DIR}/freya_event.h
-  ${FREYA_INCLUDE_DIR}/freya_logger.h
-  ${FREYA_INCLUDE_DIR}/freya_memory.h
-  ${FREYA_INCLUDE_DIR}/freya_window.h
-  ${FREYA_INCLUDE_DIR}/freya_input.h
-  ${FREYA_INCLUDE_DIR}/freya_math.h
-  ${FREYA_INCLUDE_DIR}/freya_gfx.h
-  ${FREYA_INCLUDE_DIR}/freya_threads.h
-  ${FREYA_INCLUDE_DIR}/freya_audio.h
-  ${FREYA_INCLUDE_DIR}/freya_ui.h
-  ${FREYA_INCLUDE_DIR}/freya_timer.h
-  ${FREYA_INCLUDE_DIR}/freya_file.h
-  ${FREYA_INCLUDE_DIR}/freya_assets.h
-  ${FREYA_INCLUDE_DIR}/freya_render.h
-  ${FREYA_INCLUDE_DIR}/freya_app.h
   ${FREYA_INCLUDE_DIR}/freya_entity.h
+  ${FREYA_INCLUDE_DIR}/freya_event.h
+  ${FREYA_INCLUDE_DIR}/freya_file.h
+  ${FREYA_INCLUDE_DIR}/freya_gfx.h
+  ${FREYA_INCLUDE_DIR}/freya_input.h
+  ${FREYA_INCLUDE_DIR}/freya_logger.h
+  ${FREYA_INCLUDE_DIR}/freya_math.h
+  ${FREYA_INCLUDE_DIR}/freya_memory.h
+  ${FREYA_INCLUDE_DIR}/freya_noise.h
   ${FREYA_INCLUDE_DIR}/freya_physics.h
+  ${FREYA_INCLUDE_DIR}/freya_render.h
+  ${FREYA_INCLUDE_DIR}/freya_threads.h
+  ${FREYA_INCLUDE_DIR}/freya_timer.h
+  ${FREYA_INCLUDE_DIR}/freya_ui.h
+  ${FREYA_INCLUDE_DIR}/freya_window.h
 )
 
 set(FREYA_PCH

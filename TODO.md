@@ -3,7 +3,13 @@
 - Web build testing
     - Figure out which flags to include in the web build process 
     - Main loop function for both the web and desktop
-- Add the `FastNoiseLite` to the engine, since it'll be very useful
+
+- Algorithms
+    - Noise 
+        - GUI editor
+        - Documentation
+    - Pathfinder using A* 
+    - A possion disk implementation
 
 ## Update 0.6
 

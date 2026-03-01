@@ -26,6 +26,7 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - [dr_libs](https://github.com/mackron/dr_libs)
 - [Tracy](https://github.com/wolfpld/tracy)
 - [moodycamel](https://github.com/cameron314/concurrentqueue)
+- [FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
 
 ## Build Instructions
 

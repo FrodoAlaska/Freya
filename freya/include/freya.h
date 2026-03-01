@@ -19,3 +19,4 @@
 #include <freya_app.h>
 #include <freya_entity.h>
 #include <freya_physics.h>
+#include <freya_noise.h>
