@@ -7,7 +7,6 @@
 - Algorithms
     - Noise 
         - GUI editor
-        - Documentation
     - Pathfinder using A* 
     - A possion disk implementation
 
