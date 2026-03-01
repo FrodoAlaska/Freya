@@ -851,6 +851,17 @@ void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
     }
   }
   
+  // Noise generator 
+
+  if(entity_has_component<NoiseGenerator*>(world, entt)) {
+    if(ImGui::TreeNode("Noise generator")) {
+      NoiseGenerator* gen = entity_get_component<NoiseGenerator*>(world, entt);
+      gui_edit_noise_generator("", gen);
+
+      ImGui::TreePop();
+    }
+  }
+  
   // Sprites
 
   if(entity_has_component<SpriteComponent>(world, entt)) {

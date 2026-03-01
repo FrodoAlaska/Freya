@@ -200,6 +200,11 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
     StaticBodyComponent& body = world.get<StaticBodyComponent>(entt.get_id());
     physics_body_destroy(body.body);
   }
+  
+  if(entity_has_component<NoiseGenerator*>(world, entt)) {
+    NoiseGenerator* gen = world.get<NoiseGenerator*>(entt.get_id());
+    noise_generator_destroy(gen);
+  }
 
   // Destroy the entity in the world
   
@@ -298,6 +303,11 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
   entt.exit_func  = exit_func;
 
   return world.emplace<DynamicBodyComponent>(entt.get_id(), body);
+}
+
+NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc) {
+  NoiseGenerator* gen = noise_generator_create(desc);
+  return world.emplace<NoiseGenerator*>(entt.get_id(), gen);
 }
 
 

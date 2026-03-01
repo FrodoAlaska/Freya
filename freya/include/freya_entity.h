@@ -277,6 +277,10 @@ FREYA_API DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
                                                         const OnCollisionFn& enter_func = nullptr, 
                                                         const OnCollisionFn& exit_func  = nullptr);
 
+/// A helper function to add a noise generator to `entt`, using the information 
+/// in `desc`, mirroring the `noise_generator_create` function.
+FREYA_API NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc);
+
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///
 /// @NOTE: It is often advised to first use `entity_has_component` to first check 
