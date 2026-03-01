@@ -22,6 +22,8 @@ enum NoiseType {
   NOISE_PERLIN,
   NOISE_VALUE_CUBIC,
   NOISE_VALUE,
+
+  NOISE_TYPES_COUNT,
 };
 /// NoiseType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -32,6 +34,8 @@ enum RotationType {
   ROTATION_NONE, 
   ROTATION_XY_PLANES,
   ROTATION_XZ_PLANES,
+
+  ROTATION_TYPES_COUNT,
 };
 /// RotationType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -45,6 +49,8 @@ enum FractalType {
   FRACTAL_PING_PONG,
   FRACTAL_DOMAIN_WARP_PROGRESSIVE,
   FRACTAL_DOMAIN_WARP_INDEPENDENT,
+
+  FRACTAL_TYPES_COUNT,
 };
 /// FractalType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -56,6 +62,8 @@ enum CellularDistanceType {
   CELLULAR_DISTANCE_EUCLIDEAN_SQ,
   CELLULAR_DISTANCE_MANHATTAN,
   CELLULAR_DISTANCE_HYBRID,
+
+  CELLULAR_DISTANCE_TYPES_COUNT,
 };
 /// CellularDistanceType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -70,6 +78,8 @@ enum CellularReturnType {
   CELLULAR_RETURN_DISTANCE2_SUB, 
   CELLULAR_RETURN_DISTANCE2_MUL, 
   CELLULAR_RETURN_DISTANCE2_DIV, 
+  
+  CELLULAR_RETURN_TYPES_COUNT,
 };
 /// CellularReturnType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -80,6 +90,8 @@ enum DomainWarpType {
   DOMAIN_WARP_OPEN_SIMPLEX2,
   DOMAIN_WARP_OPEN_SIMPLEX2_REDUCED,
   DOMAIN_WARP_OPEN_BASIC_GRID,
+  
+  DOMAIN_WARP_TYPES_COUNT,
 };
 /// DomainWarpType
 ///---------------------------------------------------------------------------------------------------------------------

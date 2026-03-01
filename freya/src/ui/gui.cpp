@@ -658,6 +658,110 @@ void gui_edit_physics_body(const char* name, PhysicsBodyID& body) {
   ImGui::PopID(); 
 }
 
+FREYA_API void gui_edit_noise_generator(const char* name, NoiseGenerator* gen) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+
+  NoiseGeneratorDesc& desc = noise_generator_get_desc(gen);
+
+  // 
+  // Enums
+  //
+ 
+  // Noise type
+
+  i32 noise_type              = (i32)desc.noise_type;
+  const char* noise_options[] = {"Open simplex 2", "Open simples 2S", "Cellular", "Perlin", "Value cubic", "Value"}; 
+
+  if(ImGui::Combo("Noise type", &noise_type, noise_options, (i32)NOISE_TYPES_COUNT)) {
+    desc.noise_type = (NoiseType)noise_type; 
+  }
+
+  // Rotation type
+  
+  i32 rotation_type              = (i32)desc.rotation_type;
+  const char* rotation_options[] = {"None", "X-Y planes", "X-Z planes"}; 
+
+  if(ImGui::Combo("Rotation type", &rotation_type, rotation_options, (i32)ROTATION_TYPES_COUNT)) {
+    desc.rotation_type = (RotationType)rotation_type; 
+  }
+
+  // Fractal type
+  
+  i32 fractal_type              = (i32)desc.fractal_type;
+  const char* fractal_options[] = {"None", "FBm", "Ridged", "Ping pong", "Domain warp (progressive)", "Domain warp (independent)"};
+
+  if(ImGui::Combo("Fractal type", &fractal_type, fractal_options, (i32)FRACTAL_TYPES_COUNT)) {
+    desc.fractal_type = (FractalType)fractal_type; 
+  }
+
+  // Cellular distance type
+  
+  i32 distance_type              = (i32)desc.distance_func;
+  const char* distance_options[] = {"Euclidean", "Euclidean SQ", "Manhattan", "Hybrid"};
+
+  if(ImGui::Combo("Cellular distance function", &distance_type, distance_options, (i32)CELLULAR_DISTANCE_TYPES_COUNT)) {
+    desc.distance_func = (CellularDistanceType)distance_type; 
+  }
+
+  // Cellular return type
+  
+  i32 return_type              = (i32)desc.return_type;
+  const char* return_options[] = {"Cell value", 
+                                  "Distance", 
+                                  "Distance 2", 
+                                  "Distance add", 
+                                  "Distance sub", 
+                                  "Distance mul", 
+                                  "Distance div"};
+
+  if(ImGui::Combo("Cellular return type", &return_type, return_options, (i32)CELLULAR_RETURN_TYPES_COUNT)) {
+    desc.return_type = (CellularReturnType)return_type; 
+  }
+
+  // Domain warp type
+  
+  i32 warp_type              = (i32)desc.warp_type;
+  const char* warp_options[] = {"Open simplex 2", "Open simples 2 reduced", "Basic grid"};
+
+  if(ImGui::Combo("Domain warp type", &warp_type, warp_options, (i32)DOMAIN_WARP_TYPES_COUNT)) {
+    desc.warp_type = (DomainWarpType)warp_type; 
+  }
+
+  ImGui::NewLine();
+  ImGui::NewLine();
+
+  //
+  // Fractals
+  //
+
+  ImGui::DragInt("Seed", &desc.seed);
+  ImGui::DragInt("Octaves", &desc.octaves, s_gui.big_step, 0);
+
+  ImGui::DragFloat("Frequency", &desc.frequency, 0.01f, 0.0f);
+  ImGui::DragFloat("Lacunarity", &desc.lacunarity, s_gui.small_step, 0.0f);
+  ImGui::DragFloat("Gain", &desc.gain, s_gui.small_step, 0.0f);
+
+  ImGui::DragFloat("Weighted strength", &desc.strength, s_gui.small_step, 0.0f);
+  ImGui::DragFloat("Ping pong strength", &desc.ping_pong_strength, s_gui.small_step, 0.0f);
+
+  ImGui::DragFloat("Cellular jitter", &desc.cellular_jitter, s_gui.small_step, 0.0f, 1.0f);
+  ImGui::DragFloat("Domain warp amp", &desc.domain_amp, s_gui.small_step, 0.0f);
+
+  // 
+  // Buttons  
+  //
+
+  if(ImGui::Button("Randomize seed")) {
+    desc.seed = random_i32();
+  }
+
+  // Set the new values
+  noise_generator_set_desc(gen, desc);
+
+  ImGui::PopID(); 
+}
+
 void gui_edit_sprite_component(const char* name, SpriteComponent* sprite) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 

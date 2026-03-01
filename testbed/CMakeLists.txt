@@ -18,7 +18,8 @@ set(TESTBED_INCLUDES
 
 set(TESTBED_TYPE 
   # "engine_testbed"
-  "pathfinding_testbed"
+  # "pathfinding_testbed"
+  "noise_testbed"
 )
 ############################################################
 

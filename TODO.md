@@ -6,7 +6,8 @@
 
 - Algorithms
     - Noise 
-        - GUI editor
+        - Add it to the ECS module 
+        - Easy to render noise texture?
     - Pathfinder using A* 
     - A possion disk implementation
 
