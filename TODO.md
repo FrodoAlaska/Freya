@@ -1,7 +1,9 @@
 ## Update 0.5 
 
 - Web build testing
-- Get rid of OpenAL in favor of MiniAudio
+    - Figure out which flags to include in the web build process 
+    - Main loop function for both the web and desktop
+- Add the `FastNoiseLite` to the engine, since it'll be very useful
 
 ## Update 0.6
 
