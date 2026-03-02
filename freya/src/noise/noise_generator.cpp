@@ -89,7 +89,7 @@ void noise_generator_domain_warp(NoiseGenerator* gen, Vec3& out_coords) {
   FREYA_DEBUG_ASSERT(gen, "");
   gen->noise.DomainWarp(out_coords.x, out_coords.y, out_coords.z);
 }
-
+ 
 /// NoiseGenerator functions
 ///---------------------------------------------------------------------------------------------------------------------
 

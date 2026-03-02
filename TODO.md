@@ -5,8 +5,8 @@
     - Main loop function for both the web and desktop
 
 - Algorithms
-    - Pathfinder using A* 
     - A possion disk implementation
+    - Pathfinder using A* 
 
 ## Update 0.6
 
