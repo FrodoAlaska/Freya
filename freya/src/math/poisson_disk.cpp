@@ -7,7 +7,8 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Consts
 
-const f32 SQRT_2 = 1.41421356237; // Result of sqrt(2.0f)
+const f32 SQRT_2           = 1.41421356237; // Result of sqrt(2.0f)
+const sizei MAX_ITERATIONS = 1000;
 
 /// Consts
 ///---------------------------------------------------------------------------------------------------------------------
@@ -139,8 +140,11 @@ void poisson_disk_calculate(const PoissonDiskDesc& desc, DynamicArray<Vec2>& out
       break;
     }
 
-    // @TEMP
-    if(out_points.size() >= 500) {
+    // @TEMP: 
+    // Stop after a few iterations, since the loop keeps going apparently. 
+    // I'll figure it out later...
+    
+    if(out_points.size() >= MAX_ITERATIONS) {
       break;
     }
 

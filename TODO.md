@@ -4,8 +4,6 @@
     - Figure out which flags to include in the web build process 
     - Main loop function for both the web and desktop
 
-- Fix the damn screen to world and world to screen calculations
-
 ## Update 0.6
 
 - Renderer

@@ -29,9 +29,17 @@ Vec2 camera_world_to_screen_space(const Camera& cam, const Vec2& position) {
   return Vec2(new_pos.x, new_pos.y);
 }
 
-Vec2 camera_screen_to_world_space(const Camera& cam, const Vec2& position) {
-  Vec4 new_pos = Vec4(position.x, position.y, 0.0f, 1.0f) * mat4_inverse(cam.view);
-  return Vec2(new_pos.x, new_pos.y);
+Vec2 camera_screen_to_world_space(const Camera& cam, const Window* window, const Vec2& position) {
+  IVec2 window_size = window_get_size(window); 
+
+  // Converting to the NDC coordinates 
+  // (converting the given pixel position to a range of [-1, 1]).
+  
+  Vec2 ndc_pos   = (position / (Vec2)window_size) * 2.0f - 1.0f;
+  Vec4 world_pos = mat4_inverse(cam.view_proj) * Vec4(ndc_pos.x, ndc_pos.y, 0.0f, 1.0f);
+
+  // Done!
+  return Vec2(world_pos.x, world_pos.y);
 }
 
 /// Camera functions
