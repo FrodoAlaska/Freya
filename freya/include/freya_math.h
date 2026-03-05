@@ -163,6 +163,18 @@ struct Rect2D {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// PoissonDiskDesc
+struct PoissonDiskDesc {
+  f32 radius         = 1.0f; 
+  i32 num_iterations = 30;
+
+  Vec2 start_point = Vec2(0.0f);
+  Vec2 region_size = Vec2(32.0f);
+};
+/// PoissonDiskDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Math common functions
 
 /// Clamp the float `value` between `min` and `max`
@@ -542,6 +554,14 @@ FREYA_API bool point_in_rect(const Vec2& point, const Rect2D& rect);
 FREYA_API bool point_in_circle(const Vec2& point, const Vec2& position, const f32 radius);
 
 /// Point functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// PoissonDisk functions
+
+FREYA_API void poisson_disk_calculate(const PoissonDiskDesc& desc, DynamicArray<Vec2>& out_points);
+
+/// PoissonDisk functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya

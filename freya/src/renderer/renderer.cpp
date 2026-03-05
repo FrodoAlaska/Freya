@@ -10,7 +10,7 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Consts
 
-const sizei VERTEX_BUFFER_SIZE         = MiB(1);
+const sizei VERTEX_BUFFER_SIZE         = MiB(4);
 const sizei SHADER_MATRIX_BUFFER_INDEX = 0;
 
 /// Consts

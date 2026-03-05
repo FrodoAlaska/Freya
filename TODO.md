@@ -5,8 +5,11 @@
     - Main loop function for both the web and desktop
 
 - Algorithms
-    - A possion disk implementation
-    - Pathfinder using A* 
+    - Generalize the Possion disk implementation
+        - GUI 
+        - Documentation
+
+- Fix the damn screen to world and world to screen calculations
 
 ## Update 0.6
 

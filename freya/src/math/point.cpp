@@ -11,8 +11,8 @@ bool point_in_rect(const Vec2& point, const Vec2& position, const Vec2& size) {
   Vec2 min = position; 
   Vec2 max = position + size; 
 
-  return (point.x > min.x && point.x < max.x) && 
-         (point.y > min.y && point.y < max.y);
+  return (point.x >= min.x && point.x < max.x) && 
+         (point.y >= min.y && point.y < max.y);
 }
 
 bool point_in_rect(const Vec2& point, const Rect2D& rect) {

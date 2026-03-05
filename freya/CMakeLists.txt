@@ -19,6 +19,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/math/vector.cpp
   ${FREYA_SRC_DIR}/math/quaternion.cpp
   ${FREYA_SRC_DIR}/math/transform.cpp
+  ${FREYA_SRC_DIR}/math/poisson_disk.cpp
 
   # Graphics
   ${FREYA_SRC_DIR}/graphics/gl/gl_common.cpp
