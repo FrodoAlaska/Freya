@@ -10,6 +10,7 @@ struct freya::App {
   freya::Camera camera;
   freya::AssetGroupID group_id;
 
+  freya::PoissonDiskDesc poisson_desc;
   freya::DynamicArray<freya::Vec2> poisson_points;
 };
 /// App
@@ -62,12 +63,8 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   // Calculate the poisson disk
 
-  if(freya::input_button_pressed(freya::MOUSE_BUTTON_LEFT)) {
-    freya::PoissonDiskDesc disk_desc = {
-      .radius      = 1.0f, 
-      .start_point = freya::Vec2(10.0f),
-    };
-    freya::poisson_disk_calculate(disk_desc, app->poisson_points);
+  if(!freya::gui_is_active() && freya::input_button_pressed(freya::MOUSE_BUTTON_LEFT)) {
+    freya::poisson_disk_calculate(app->poisson_desc, app->poisson_points);
   }
 }
 
@@ -103,7 +100,10 @@ void app_render_gui(freya::App* app) {
   // Editor
 
   freya::gui_begin_panel("Editor");
+ 
   freya::gui_edit_camera("Camera", &app->camera);
+  freya::gui_edit_poisson_disk("Poisson", &app->poisson_desc);
+  
   freya::gui_end_panel();
 
   freya::gui_end();

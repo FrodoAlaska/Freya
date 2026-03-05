@@ -4,11 +4,6 @@
     - Figure out which flags to include in the web build process 
     - Main loop function for both the web and desktop
 
-- Algorithms
-    - Generalize the Possion disk implementation
-        - GUI 
-        - Documentation
-
 - Fix the damn screen to world and world to screen calculations
 
 ## Update 0.6

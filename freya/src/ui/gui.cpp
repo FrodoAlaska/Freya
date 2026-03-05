@@ -783,6 +783,19 @@ void gui_edit_tile_sprite_component(const char* name, TileSpriteComponent* sprit
   ImGui::PopID(); 
 }
 
+void gui_edit_poisson_disk(const char* name, PoissonDiskDesc* disk) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  ImGui::DragFloat("Radius", &disk->radius, 0.01f, 0.0f);
+  ImGui::DragInt("Iterations before rejection", &disk->num_iterations, 1.0f, 0);
+
+  ImGui::DragFloat2("Start point", &disk->start_point[0], s_gui.big_step);
+  ImGui::DragFloat2("Region size", &disk->region_size[0], s_gui.big_step);
+
+  ImGui::PopID(); 
+}
+
 void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 

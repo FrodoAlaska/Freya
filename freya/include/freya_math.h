@@ -165,10 +165,27 @@ struct Rect2D {
 ///---------------------------------------------------------------------------------------------------------------------
 /// PoissonDiskDesc
 struct PoissonDiskDesc {
+  /// The radius of each point in the grid. 
+  ///
+  /// @NOTE: The default value is `1.0f`.
   f32 radius         = 1.0f; 
+
+  /// The number of iterations a cell goes 
+  /// through before getting rejected 
+  /// entirely (if it failed to find a new candidate).
+  ///
+  /// @NOTE: The default value is `30`.
   i32 num_iterations = 30;
 
+  /// The starting point of the algorithm.
+  ///
+  /// @NOTE: The default value is `Vec2(0.0f, 0.0f)`.
   Vec2 start_point = Vec2(0.0f);
+
+  /// The size of the whole region the algorithm 
+  /// will be operating inside. 
+  ///
+  /// @NOTE: The default value is `Vec2(32.0f, 32.0f)`.
   Vec2 region_size = Vec2(32.0f);
 };
 /// PoissonDiskDesc
@@ -559,6 +576,10 @@ FREYA_API bool point_in_circle(const Vec2& point, const Vec2& position, const f3
 ///---------------------------------------------------------------------------------------------------------------------
 /// PoissonDisk functions
 
+/// Using the poisson disk algorithm with the information given in `desc`, calculate 
+/// a set of points evenly distributed and store it in `out_points`.
+///
+/// @NOTE: The function will both clear and resize the given `out_points` array everytime.
 FREYA_API void poisson_disk_calculate(const PoissonDiskDesc& desc, DynamicArray<Vec2>& out_points);
 
 /// PoissonDisk functions
