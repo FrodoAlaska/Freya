@@ -58,6 +58,9 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
     freya::event_dispatch(freya::Event{.type = freya::EVENT_APP_QUIT});
     return;
   }
+
+  // Move the camera
+  freya::camera_move_top_down(app->camera, freya::Vec2(150.0f), delta_time);
 }
 
 void app_render(freya::App* app) {
@@ -81,9 +84,6 @@ void app_render_gui(freya::App* app) {
 
   // Editor
    
-  freya::Vec2 screen_pos = freya::camera_world_to_screen_space(app->camera, freya::Vec2(-2000.0f, 160.0f));
-  ImGui::Text("Screen = %.3f, %.3f", screen_pos.x, screen_pos.y);
-
   freya::Vec2 world_pos = freya::camera_screen_to_world_space(app->camera, app->window, freya::input_mouse_position());
   ImGui::Text("World = %.3f, %.3f", world_pos.x, world_pos.y);
 

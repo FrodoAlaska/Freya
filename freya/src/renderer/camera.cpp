@@ -1,4 +1,5 @@
 #include "freya_render.h"
+#include "freya_input.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -14,6 +15,39 @@ void camera_create(Camera& out_camera, const CameraDesc& desc) {
 
   out_camera.sensitivity = 0.1f;
   out_camera.exposure    = 1.0f;
+}
+
+void camera_move_top_down(Camera& cam, const Vec2& speed, const f32 delta_time) {
+  Vec2 direction = Vec2(0.0f);
+
+  if(input_key_down(KEY_W)) {
+    direction.y = -1.0f;
+  }
+  else if(input_key_down(KEY_S)) {
+    direction.y = 1.0f;
+  }
+
+  if(input_key_down(KEY_A)) {
+    direction.x = -1.0f;
+  }
+  else if(input_key_down(KEY_D)) {
+    direction.x = 1.0f;
+  }
+
+  cam.position += direction * speed * delta_time;
+}
+
+void camera_move_side_scroller(Camera& cam, const f32 speed, const f32 delta_time) {
+  f32 direction = 0.0f;
+
+  if(input_key_down(KEY_A)) {
+    direction = -1.0f;
+  }
+  else if(input_key_down(KEY_D)) {
+    direction = 1.0f;
+  }
+
+  cam.position.x += direction * speed * delta_time;
 }
 
 void camera_follow(Camera& cam, const Vec2& target, const Vec2& offset) {
@@ -34,9 +68,11 @@ Vec2 camera_screen_to_world_space(const Camera& cam, const Window* window, const
 
   // Converting to the NDC coordinates 
   // (converting the given pixel position to a range of [-1, 1]).
-  
-  Vec2 ndc_pos   = (position / (Vec2)window_size) * 2.0f - 1.0f;
-  Vec4 world_pos = mat4_inverse(cam.view_proj) * Vec4(ndc_pos.x, ndc_pos.y, 0.0f, 1.0f);
+
+  f32 ndc_x = (position.x / window_size.x) * 2.0f - 1.0f;
+  f32 ndc_y = 1.0f - (position.y / window_size.y) * 2.0f; // Flipping the Y-axis, because OpenGL...
+
+  Vec4 world_pos = mat4_inverse(cam.view_proj) * Vec4(ndc_x, ndc_y, 0.0f, 1.0f);
 
   // Done!
   return Vec2(world_pos.x, world_pos.y);

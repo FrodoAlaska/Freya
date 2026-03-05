@@ -290,6 +290,17 @@ FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount
 /// Fill the information in `out_camera` using the given `desc`.
 FREYA_API void camera_create(Camera& out_camera, const CameraDesc& desc);
 
+/// Move the given `camera` by `speed` on the X and Y axis, using 
+/// the WASD keys.
+/// 
+/// @NOTE: This is just a helper function to get camera movement.
+FREYA_API void camera_move_top_down(Camera& cam, const Vec2& speed, const f32 delta_time);
+
+/// Move the given `camera` by `speed` on the X, using the A and D keys.
+/// 
+/// @NOTE: This is just a helper function to get camera movement.
+FREYA_API void camera_move_side_scroller(Camera& cam, const f32 speed, const f32 delta_time);
+
 /// Have the given `cam` follow the `target`, taking into account the given `offset`.
 FREYA_API void camera_follow(Camera& cam, const Vec2& target, const Vec2& offset);
 
