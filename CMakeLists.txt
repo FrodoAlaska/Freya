@@ -60,7 +60,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
   tracy 
-  URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.12.2.zip
+  URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.13.1.zip
 )
 
 # Box2D

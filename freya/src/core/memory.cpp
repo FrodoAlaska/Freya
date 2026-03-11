@@ -1,5 +1,6 @@
 #include "freya_memory.h"
 #include "freya_logger.h"
+#include "freya_timer.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -36,6 +37,9 @@ void* memory_allocate(const sizei size) {
   s_state.alloc_count++;
   s_state.alloc_total_bytes += size;
 
+  // Done!
+  
+  TracyAlloc(ptr, size);
   return ptr;
 }
 
@@ -50,7 +54,10 @@ void* memory_reallocate(void* ptr, const sizei new_size) {
   
   s_state.alloc_count++;
   s_state.alloc_total_bytes += new_size;
+
+  // Done!
   
+  TracyAlloc(ptr, new_size);
   return ptr;
 }
 
@@ -75,6 +82,9 @@ void* memory_blocks_allocate(const sizei count, const sizei block_size) {
   s_state.alloc_count++;
   s_state.alloc_total_bytes += (count * block_size);
 
+  // Done!
+  
+  TracyAlloc(ptr, (count * block_size));
   return ptr;
 }
 
@@ -93,6 +103,8 @@ void memory_free(void* ptr) {
 
   s_state.alloc_count--;
   s_state.free_count++;
+
+  TracyFree(ptr);
 }
 
 const sizei memory_get_allocations_count() {
@@ -111,5 +123,27 @@ const sizei memory_get_allocation_bytes() {
 /// ---------------------------------------------------------------------
 
 } // End of freya
+
+/// ---------------------------------------------------------------------
+/// Operator overrides
+
+void* operator new(freya::sizei size) {
+  return freya::memory_allocate(size);
+}
+
+void* operator new[](freya::sizei size) {
+  return freya::memory_allocate(size);
+}
+
+void operator delete(void* ptr) {
+  return freya::memory_free(ptr);
+}
+
+void operator delete[](void* ptr) {
+  return freya::memory_free(ptr);
+}
+
+/// Operator overrides
+/// ---------------------------------------------------------------------
 
 //////////////////////////////////////////////////////////////////////////
