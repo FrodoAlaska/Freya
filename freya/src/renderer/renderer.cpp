@@ -2,6 +2,7 @@
 #include "freya_logger.h"
 
 #include "shaders/batch_shaders.h"
+#include "shaders/post_processing_shaders.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -23,6 +24,7 @@ enum ShaderID {
   SHADER_QUAD, 
   SHADER_CIRCLE,
   SHADER_POLYGON,
+  SHADER_SCREEN_SPACE,
 
   SHADERS_MAX,
 };
@@ -82,7 +84,7 @@ struct Renderer {
 
   GfxTexture* default_texture;
 
-  ShaderContext* shaders[SHADERS_MAX];
+  Array<ShaderContext*, SHADERS_MAX> shaders;
 
   //
   // Batching
@@ -94,6 +96,13 @@ struct Renderer {
   DynamicArray<DebugBatch> debug_batches;
 
   Color clear_color = Color(1.0f);
+
+  //
+  // Passes 
+  //
+
+  PostProcessPass* default_pass = nullptr;
+  DynamicArray<PostProcessPass*> passes;
 };
 
 static Renderer s_renderer;
@@ -393,6 +402,7 @@ void renderer_init(Window* window) {
     asset_group_push_shader(ASSET_CACHE_ID, generate_quad_shader()),
     asset_group_push_shader(ASSET_CACHE_ID, generate_circle_shader()),
     asset_group_push_shader(ASSET_CACHE_ID, generate_polygon_shader()),
+    asset_group_push_shader(ASSET_CACHE_ID, generate_default_screen_space_shader()),
   };
 
   for(sizei i = 0; i < SHADERS_MAX; i++) {
@@ -400,9 +410,20 @@ void renderer_init(Window* window) {
   }
 
   //
-  // Default framebuffer init
+  // Default pass init
   //
-  // @TODO (Renderer)
+
+  PostProcessPassDesc pass_desc;
+  pass_desc.frame_size  = window_get_size(s_renderer.ctx_desc.window);
+  pass_desc.clear_color = s_renderer.clear_color;
+  pass_desc.asset_group = ASSET_CACHE_ID;
+  pass_desc.clear_flags = (GFX_CLEAR_FLAGS_COLOR_BUFFER | GFX_CLEAR_FLAGS_DEPTH_BUFFER);
+  pass_desc.debug_name  = "Default";
+
+  pass_desc.attachments.emplace_back(GFX_TEXTURE_FORMAT_RGBA8);
+  pass_desc.attachments.emplace_back(GFX_TEXTURE_FORMAT_DEPTH16);
+
+  s_renderer.default_pass = post_process_create(pass_desc);
 
   // Done!
   FREYA_LOG_INFO("Successfully initialized the renderer context");
@@ -417,6 +438,14 @@ void renderer_shutdown() {
     batch_clear(batch);
   }
   s_renderer.batches.clear();
+
+  // Destroy the framebuffers
+
+  post_process_destroy(s_renderer.default_pass);
+  for(PostProcessPass* pass : s_renderer.passes) {
+    post_process_destroy(pass);
+  }
+  s_renderer.passes.clear();
 
   // Destroy the default pipelines
   
@@ -454,12 +483,8 @@ void renderer_begin(Camera& camera) {
                          sizeof(Mat4), 
                          mat4_raw_data(camera.view_proj));
 
-  // @TODO (Renderer/post-process): Set the renderer's framebuffer
-
-  gfx_context_set_target(s_renderer.ctx, nullptr);
-
-  Color& col = s_renderer.clear_color;
-  gfx_context_clear(s_renderer.ctx, col.r, col.g, col.b, col.a);
+  // Prepare the default pass
+  post_process_prepare(s_renderer.default_pass);
 
   // Clean the slate!
  
@@ -474,7 +499,9 @@ void renderer_end() {
   // Flush the batches
   batches_flush_all();
 
+  //
   // Flush the debug batches
+  //
 
   for(auto& batch : s_renderer.debug_batches) {
     // Get the corresponding shader
@@ -511,10 +538,58 @@ void renderer_end() {
     gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
     gfx_context_draw(s_renderer.ctx, 0);
   }
+
+  //
+  // Initiate the post-process chain
+  //
+
+  PostProcessPass* current_pass = s_renderer.default_pass;
+  for(PostProcessPass* pass : s_renderer.passes) {
+    // Prepare the pass
+    post_process_prepare(pass);
+
+    // Render the screen-space post-process effect
+
+    gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+    gfx_context_draw(s_renderer.ctx, 0);
+
+    // Set the current pass to render at the end
+    current_pass = pass; 
+  }
+
+  //
+  // Render the final image to the default framebuffer
+  // 
+
+  // Prepare the frame
+
+  IVec2 window_size = window_get_size(s_renderer.ctx_desc.window);
+  
+  gfx_context_set_target(s_renderer.ctx, nullptr);
+  gfx_context_set_viewport(s_renderer.ctx, 0, 0, window_size.x, window_size.y);
+
+  Color& col = s_renderer.clear_color;
+  gfx_context_clear(s_renderer.ctx, col.r, col.g, col.g, col.a);
+
+  // Use the default resources
+
+  GfxBindingDesc bind_desc = {
+    .shader = s_renderer.shaders[SHADER_SCREEN_SPACE]->shader,
+
+    .textures       = &current_pass->frame_desc.color_attachments[0],
+    .textures_count = 1,
+  };
+  gfx_context_use_bindings(s_renderer.ctx, bind_desc);
+
+  // Render the final image
+
+  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+  gfx_context_draw(s_renderer.ctx, 0);
 }
 
 void renderer_set_clear_color(const Color& color) {
-  s_renderer.clear_color = color;
+  s_renderer.clear_color               = color;
+  s_renderer.default_pass->clear_color = color;
 }
 
 const Color& renderer_get_clear_color() {
@@ -523,6 +598,34 @@ const Color& renderer_get_clear_color() {
 
 GfxContext* renderer_get_context() {
   return s_renderer.ctx;
+}
+
+void renderer_push_post_process(PostProcessPass* pass) {
+  FREYA_DEBUG_ASSERT(pass, "");
+
+  // Push the pass to the back and set its previous
+
+  if(s_renderer.passes.empty()) {
+    pass->previous = s_renderer.default_pass;
+  }
+  else {
+    pass->previous = s_renderer.passes.back();
+  }
+
+  s_renderer.passes.push_back(pass);
+
+  // Some useful info
+  FREYA_LOG_TRACE("Pushed post-process \'%s\' to the chain", pass->debug_name.c_str());
+}
+
+PostProcessPass* renderer_pop_post_process() {
+  PostProcessPass* pass = s_renderer.passes.back();
+  s_renderer.passes.pop_back();
+
+  // Done!
+
+  FREYA_LOG_TRACE("Popped post-process \'%s\' from the chain", pass->debug_name.c_str());
+  return pass;
 }
 
 void renderer_queue_texture(GfxTexture* texture, const Rect2D& src, const Rect2D& dest, const f32 rotation, const Color& tint) {

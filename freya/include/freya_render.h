@@ -52,6 +52,59 @@ const Color COLOR_PURPLE = Color(1.0f, 0.0f, 1.0f, 1.0f);
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Function signatures
+
+struct PostProcessPass;
+
+using OnPassPrepareFn = std::function<void(PostProcessPass* pass)>;
+using OnPassResizeFn  = std::function<void(PostProcessPass* pass, const IVec2& new_size)>;
+
+/// Function signatures
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// PostProcessPass
+struct PostProcessPass {
+  GfxContext* gfx; 
+
+  OnPassPrepareFn prepare_func = nullptr;
+  OnPassResizeFn resize_func   = nullptr;
+
+  IVec2 frame_size;
+  Color clear_color;
+
+  GfxFramebufferDesc frame_desc;
+  GfxFramebuffer* frame;
+
+  ShaderContext* shader_context;
+  Array<GfxTexture*, RENDER_TARGETS_MAX> outputs;
+
+  PostProcessPass* previous = nullptr;
+  String debug_name;
+};
+/// PostProcessPass
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// PostProcessPassDesc
+struct PostProcessPassDesc {
+  OnPassPrepareFn prepare_func = nullptr;
+  OnPassResizeFn resize_func   = nullptr;
+
+  IVec2 frame_size          = IVec2(0);
+  Color clear_color         = COLOR_WHITE;
+  AssetID shader_context_id = {};
+  AssetGroupID asset_group  = {};
+
+  u32 clear_flags;
+  DynamicArray<GfxTextureFormat> attachments;
+
+  String debug_name = "DEBUG";
+};
+/// PostProcessPassDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// CameraDesc
 struct CameraDesc {
   Vec2 position; 
@@ -285,6 +338,18 @@ FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// PostProcess functions
+
+FREYA_API PostProcessPass* post_process_create(const PostProcessPassDesc& desc);
+
+FREYA_API void post_process_prepare(PostProcessPass* pass);
+
+FREYA_API void post_process_destroy(PostProcessPass* pass);
+
+/// PostProcess functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Camera functions
 
 /// Fill the information in `out_camera` using the given `desc`.
@@ -409,6 +474,15 @@ FREYA_API const Color& renderer_get_clear_color();
 
 /// Retrieve the internal `GfxContext` of the global renderer.
 FREYA_API GfxContext* renderer_get_context();
+
+/// Push the given `pass` to the back of the current post-process chain.
+FREYA_API void renderer_push_post_process(PostProcessPass* pass);
+
+/// Pop the back of the post-process chain, removing it from the chain, and returning it.
+///
+/// @NOTE: The popped pass will still be valid, but it just won't be processed 
+/// at the end of the frame anymore.
+FREYA_API PostProcessPass* renderer_pop_post_process();
 
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.
