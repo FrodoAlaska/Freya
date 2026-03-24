@@ -342,10 +342,16 @@ FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount
 ///---------------------------------------------------------------------------------------------------------------------
 /// PostProcess functions
 
+/// Allocate and initialize a `PostProcessPass`, using the information given from `desc`.
 FREYA_API PostProcessPass* post_process_create(const PostProcessPassDesc& desc);
 
+/// Prepare the given `pass` for rendering.
+///
+/// @NOTE: This function does not need to be called by any client code. 
+/// It will only be used internally by the renderer.
 FREYA_API void post_process_prepare(PostProcessPass* pass);
 
+/// Destroy the given `pass`, reclaiming any allocated memory.
 FREYA_API void post_process_destroy(PostProcessPass* pass);
 
 /// PostProcess functions

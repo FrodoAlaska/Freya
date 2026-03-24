@@ -8,8 +8,6 @@
 
 - Renderer
     - Dynamic 2D lighting
-    - User-friendly post-process effects
-        - Documentation
 
 - Tile 
     - Tilemap component with useful functionality 
