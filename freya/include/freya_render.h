@@ -345,6 +345,15 @@ FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount
 /// Allocate and initialize a `PostProcessPass`, using the information given from `desc`.
 FREYA_API PostProcessPass* post_process_create(const PostProcessPassDesc& desc);
 
+/// Create a pre-defined HDR pass, using the given `window` and `camera`.
+FREYA_API PostProcessPass* post_process_define_hdr(Window* window, Camera* camera);
+
+/// Create a pre-defined blur pass, using the given `window`.
+FREYA_API PostProcessPass* post_process_define_blur(Window* window);
+
+/// Create a pre-defined greyscale pass, using the given `window`.
+FREYA_API PostProcessPass* post_process_define_greyscale(Window* window);
+
 /// Prepare the given `pass` for rendering.
 ///
 /// @NOTE: This function does not need to be called by any client code. 

@@ -1,6 +1,8 @@
 #include "freya_render.h"
 #include "freya_logger.h"
 
+#include "post_process_effects/post_process_passes.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
@@ -24,6 +26,7 @@ PostProcessPass* post_process_create(const PostProcessPassDesc& desc) {
 
   pass->frame_size  = desc.frame_size;
   pass->clear_color = desc.clear_color;
+  pass->debug_name  = desc.debug_name;
 
   if(desc.shader_context_id != ASSET_ID_INVALID) {
     pass->shader_context = asset_group_get_shader_context(desc.shader_context_id);
@@ -80,6 +83,18 @@ PostProcessPass* post_process_create(const PostProcessPassDesc& desc) {
 
   // Done!
   return pass;
+}
+
+PostProcessPass* post_process_define_hdr(Window* window, Camera* camera) {
+  return hdr_pass_create(window, camera); 
+}
+
+PostProcessPass* post_process_define_blur(Window* window) {
+  return blur_pass_create(window);
+}
+
+PostProcessPass* post_process_define_greyscale(Window* window) {
+  return greyscale_pass_create(window);
 }
 
 void post_process_prepare(PostProcessPass* pass) {

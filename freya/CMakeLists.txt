@@ -65,6 +65,11 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
   ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
   
+  # Renderer/Post-process effects
+  ${FREYA_SRC_DIR}/renderer/post_process_effects/hdr_pass.cpp
+  ${FREYA_SRC_DIR}/renderer/post_process_effects/blur_pass.cpp
+  ${FREYA_SRC_DIR}/renderer/post_process_effects/greyscale_pass.cpp
+  
   # Entity
   ${FREYA_SRC_DIR}/entity/entity.cpp
   
