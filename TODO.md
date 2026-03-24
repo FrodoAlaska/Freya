@@ -7,9 +7,9 @@
 ## Update 0.6
 
 - Tile 
-    - Make sure that any selection is within the borders of the tilemap 
     - Test box selection 
     - Test placing tiles
+    - Tilemap and tilesheet?
     - Documentation
 
 - Renderer

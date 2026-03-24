@@ -51,7 +51,9 @@ Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell) {
 }
 
 Entity& tilemap_get_at(TileMap& map, const Vec2& position) {
-  IVec2 index = (IVec2)(position / map.tile_size);
+  Vec2 clamped_pos = vec2_clamp(position, Vec2(0.0f), map.tile_size * (Vec2)(map.tiles_count - 1)); 
+  IVec2 index      = (IVec2)(clamped_pos / map.tile_size);
+
   return tilemap_get_at(map, index.x, index.y);
 }
 
