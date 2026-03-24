@@ -7,8 +7,6 @@
 ## Update 0.6
 
 - Tile 
-    - Test box selection 
-    - Test placing tiles
     - Tilemap and tilesheet?
     - Documentation
 

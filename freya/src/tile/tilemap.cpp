@@ -58,10 +58,10 @@ Entity& tilemap_get_at(TileMap& map, const Vec2& position) {
 }
 
 Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset) {
-  const Vec2& tile_pos = entity_get_component_const<Transform>(*map.ecs, base_tile).position;
-  IVec2 tile_index     = (IVec2)(tile_pos / map.tile_size) - offset;
+  Vec2 offset_pos      = map.tile_size * (Vec2)offset;
+  const Vec2& tile_pos = entity_get_component_const<Transform>(*map.ecs, base_tile).position - offset_pos;
 
-  return tilemap_get_at(map, tile_index.x, tile_index.y);
+  return tilemap_get_at(map, tile_pos);
 }
 
 void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles) {
