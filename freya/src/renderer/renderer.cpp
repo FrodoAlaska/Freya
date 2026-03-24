@@ -1,5 +1,6 @@
 #include "freya_render.h"
 #include "freya_logger.h"
+#include "freya_event.h"
 
 #include "shaders/batch_shaders.h"
 #include "shaders/post_processing_shaders.h"
@@ -107,6 +108,52 @@ struct Renderer {
 
 static Renderer s_renderer;
 /// Renderer
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Callbacks
+
+static bool window_resized_callback(const Event& event, const void* dispatcher, const void* listener) {
+  // Resize each render pass
+  
+  IVec2 new_size = IVec2(event.window_framebuffer_width, event.window_framebuffer_height);
+
+  for(PostProcessPass* pass : s_renderer.passes) {
+    if(!pass->resize_func) {
+      continue;
+    }
+    
+    pass->resize_func(pass, new_size);
+  }
+
+  // Done!
+  return true;
+}
+
+static void default_resize_pass_func(PostProcessPass* pass, const IVec2& new_size) {
+  pass->frame_size = new_size;
+  
+  // Updating the color attachment
+
+  GfxTextureDesc& color_desc = gfx_texture_get_desc(pass->frame_desc.color_attachments[0]);
+
+  color_desc.width  = (u32)new_size.x;
+  color_desc.height = (u32)new_size.y;
+  gfx_texture_reload(pass->frame_desc.color_attachments[0], color_desc);
+
+  // Updating the depth attachment
+
+  GfxTextureDesc& depth_desc = gfx_texture_get_desc(pass->frame_desc.depth_attachment);
+
+  depth_desc.width  = (u32)new_size.x;
+  depth_desc.height = (u32)new_size.y;
+  gfx_texture_reload(pass->frame_desc.depth_attachment, depth_desc);
+
+  // Update the framebuffer
+  gfx_framebuffer_update(pass->frame, pass->frame_desc);
+}
+
+/// Callbacks
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -414,6 +461,7 @@ void renderer_init(Window* window) {
   //
 
   PostProcessPassDesc pass_desc;
+  pass_desc.resize_func = default_resize_pass_func;
   pass_desc.frame_size  = window_get_size(s_renderer.ctx_desc.window);
   pass_desc.clear_color = s_renderer.clear_color;
   pass_desc.asset_group = ASSET_CACHE_ID;
@@ -424,6 +472,15 @@ void renderer_init(Window* window) {
   pass_desc.attachments.emplace_back(GFX_TEXTURE_FORMAT_DEPTH16);
 
   s_renderer.default_pass = post_process_create(pass_desc);
+
+  s_renderer.default_pass->outputs[0]    = s_renderer.default_pass->frame_desc.color_attachments[0];
+  s_renderer.default_pass->outputs_count = 1,
+
+  // Listen to events
+  
+  event_register(EVENT_WINDOW_MAXIMIZED, window_resized_callback);
+  event_register(EVENT_WINDOW_FRAMEBUFFER_RESIZED, window_resized_callback);
+  event_register(EVENT_WINDOW_FULLSCREEN, window_resized_callback);
 
   // Done!
   FREYA_LOG_INFO("Successfully initialized the renderer context");
@@ -576,8 +633,8 @@ void renderer_end() {
   GfxBindingDesc bind_desc = {
     .shader = s_renderer.shaders[SHADER_SCREEN_SPACE]->shader,
 
-    .textures       = &current_pass->frame_desc.color_attachments[0],
-    .textures_count = 1,
+    .textures       = &current_pass->outputs[0],
+    .textures_count = current_pass->outputs_count,
   };
   gfx_context_use_bindings(s_renderer.ctx, bind_desc);
 

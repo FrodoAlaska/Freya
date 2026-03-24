@@ -77,7 +77,9 @@ struct PostProcessPass {
   GfxFramebuffer* frame;
 
   ShaderContext* shader_context;
+
   Array<GfxTexture*, RENDER_TARGETS_MAX> outputs;
+  sizei outputs_count = 0;
 
   PostProcessPass* previous = nullptr;
   String debug_name;

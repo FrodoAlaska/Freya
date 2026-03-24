@@ -9,7 +9,6 @@
 - Renderer
     - Dynamic 2D lighting
     - User-friendly post-process effects
-        - Resize
         - Documentation
 
 - Tile 
