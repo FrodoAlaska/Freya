@@ -78,6 +78,9 @@ set(FREYA_SOURCES
   
   # Noise
   ${FREYA_SRC_DIR}/noise/noise_generator.cpp
+  
+  # Tile
+  ${FREYA_SRC_DIR}/tile/tilemap.cpp
 )
 
 set(FREYA_HEADERS

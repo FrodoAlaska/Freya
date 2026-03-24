@@ -6,12 +6,14 @@
 
 ## Update 0.6
 
+- Tile 
+    - Make sure that any selection is within the borders of the tilemap 
+    - Test box selection 
+    - Test placing tiles
+    - Documentation
+
 - Renderer
     - Dynamic 2D lighting
-
-- Tile 
-    - Tilemap component with useful functionality 
-    - Plugins using LDtk that generate a certain tilemap
 
 - Procedural generation
     - Play around with proc-gen algorithms. Why not? They're fun.

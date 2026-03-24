@@ -20,3 +20,4 @@
 #include <freya_entity.h>
 #include <freya_physics.h>
 #include <freya_noise.h>
+#include <freya_tilemap.h>

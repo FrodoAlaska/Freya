@@ -301,8 +301,14 @@ FREYA_API const Comp& entity_get_component_const(const EntityWorld& world, const
 
 /// Return true if the given `Comp` component type currently exists in 
 /// the given `entt` that lives in `world`.
+
 template<typename Comp>
 FREYA_API bool entity_has_component(EntityWorld& world, Entity& entt) {
+  return world.any_of<Comp>(entt.get_id());
+}
+
+template<typename Comp>
+FREYA_API bool entity_has_component(const EntityWorld& world, const Entity& entt) {
   return world.any_of<Comp>(entt.get_id());
 }
 
