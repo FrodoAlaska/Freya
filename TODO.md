@@ -6,10 +6,6 @@
 
 ## Update 0.6
 
-- Tile
-    - Tilemap and tilesheet?
-    - Documentation
-
 - Renderer
     - Dynamic 2D lighting
 
