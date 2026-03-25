@@ -294,6 +294,7 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
                                               const OnCollisionFn& exit_func) {
   Transform& transform = world.get<Transform>(entt.get_id());
 
+  desc.type          = PHYSICS_BODY_DYNAMIC;
   desc.position      = transform.position;
   desc.rotation      = transform.rotation;
   desc.user_data     = (uintptr)entt.get_id();
