@@ -13,6 +13,7 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - A flexible Entity Component System (ECS) module, using the EnTT library.
 - Integrated ImGui support, featuring an abstracted `editor` layer for editing engine-specific types through a GUI.  
 - A durable, but simple noise generation module for both 2D and 3D.
+- A simple tile map system for easily editing and adding tile maps.
 
 ### Dependencies:
 
