@@ -7,6 +7,15 @@
 namespace freya { // Start of freya
 
 /// ----------------------------------------------------------------------
+/// TileLayer
+struct TileLayer {
+  String name;
+  DynamicArray<Entity> tiles;
+};
+/// TileLayer
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// TileMap
 struct TileMap {
   EntityWorld* ecs; // @TODO (TileMap): This is super fucking dumb. Don't do this...
@@ -14,7 +23,7 @@ struct TileMap {
   Vec2 tile_size    = Vec2(0.0f);
   IVec2 tiles_count = IVec2(0);
 
-  DynamicArray<Entity> tiles;
+  DynamicArray<TileLayer> layers;
 };
 /// TileMap
 /// ----------------------------------------------------------------------
@@ -26,19 +35,29 @@ FREYA_API void tilemap_create(TileMap& out_map, EntityWorld* ecs, const Vec2& st
 
 FREYA_API void tilemap_destroy(TileMap& map);
 
-FREYA_API Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell);
+FREYA_API Vec2 tilemap_index_to_coords(TileMap& map, const sizei x_cell, const sizei y_cell);
 
-FREYA_API Entity& tilemap_get_at(TileMap& map, const Vec2& position);
+FREYA_API IVec2 tilemap_coords_to_index(TileMap& map, const Vec2& coords);
 
-FREYA_API Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset);
+FREYA_API void tilemap_push_layer(TileMap& map, const String& name = "layer_");
 
-FREYA_API void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles);
+FREYA_API void tilemap_pop_layer(TileMap& map);
 
-FREYA_API void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Entity>& out_tiles);
+FREYA_API TileLayer& tilemap_get_layer(TileMap& map, const sizei index);
 
-FREYA_API void tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, Entity& tile_entt);
+FREYA_API Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer = 0);
 
-FREYA_API void tilemap_place_at(TileMap& map, const Vec2& position, Entity& tile_entt);
+FREYA_API Entity& tilemap_get_at(TileMap& map, const Vec2& position, const sizei layer = 0);
+
+FREYA_API Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset, const sizei layer = 0);
+
+FREYA_API void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles, const sizei layer = 0);
+
+FREYA_API void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Entity>& out_tiles, const sizei layer = 0);
+
+FREYA_API Entity& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer = 0);
+
+FREYA_API Entity& tilemap_place_at(TileMap& map, const Vec2& position, const sizei layer = 0);
 
 /// TileMap functions
 /// ----------------------------------------------------------------------

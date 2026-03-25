@@ -1,16 +1,9 @@
 #include "freya_tilemap.h"
+#include "freya_logger.h"
 
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
-
-/// ----------------------------------------------------------------------
-/// Consts
-
-const sizei TILE_NEIGHBORS_MAX = 9;
-
-/// Consts
-/// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// TileMap functions
@@ -19,26 +12,61 @@ void tilemap_create(TileMap& out_map, EntityWorld* ecs, const Vec2& start_positi
   out_map.tile_size   = tile_size;
   out_map.tiles_count = tiles_count;
   out_map.ecs         = ecs;
-
-  out_map.tiles.resize(out_map.tiles_count.x * out_map.tiles_count.y);
-  for(freya::i32 i = 0; i < out_map.tiles_count.x; i++) {
-    for(freya::i32 j = 0; j < out_map.tiles_count.y; j++) {
-      Vec2 position = start_position + (out_map.tile_size * Vec2(i, j));
-
-      Entity& tile = tilemap_get_at(out_map, position);
-      tile         = entity_create(*out_map.ecs, position);
-    }
-  }
 }
 
 void tilemap_destroy(TileMap& map) {
-  for(auto& tile : map.tiles) {
-    entity_destroy(*map.ecs, tile);
+  for(auto& layer : map.layers) {
+    for(auto& tile : layer.tiles) {
+      if(tile == ENTITY_NULL) {
+        continue;
+      }
+
+      entity_destroy(*map.ecs, tile);
+    }
+    layer.tiles.clear();
   }
-  map.tiles.clear();
+  map.layers.clear();
 }
 
-Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell) {
+Vec2 tilemap_index_to_coords(TileMap& map, const sizei x_cell, const sizei y_cell) {
+  Vec2 clamped_index = vec2_clamp(Vec2(x_cell, y_cell), Vec2(0.0f), (Vec2)(map.tiles_count - 1));
+  return clamped_index * map.tile_size; 
+}
+
+IVec2 tilemap_coords_to_index(TileMap& map, const Vec2& coords) {
+  Vec2 clamped_pos = vec2_clamp(coords, Vec2(0.0f), map.tile_size * (Vec2)(map.tiles_count - 1)); 
+  return (IVec2)(clamped_pos / map.tile_size);
+}
+
+void tilemap_push_layer(TileMap& map, const String& name) {
+  TileLayer& layer = map.layers.emplace_back(name);
+  layer.tiles.resize(map.tiles_count.x * map.tiles_count.y);
+}
+
+void tilemap_pop_layer(TileMap& map) {
+  // Destroy the tiles within the layer
+
+  TileLayer& layer = map.layers.back();
+  for(auto& tile : layer.tiles) {
+    if(tile == ENTITY_NULL) {
+      continue;
+    }
+
+    entity_destroy(*map.ecs, tile);
+  }
+ 
+  // Pop the layer completely
+
+  layer.tiles.clear();
+  map.layers.pop_back();
+}
+
+TileLayer& tilemap_get_layer(TileMap& map, const sizei index) {
+  FREYA_DEBUG_ASSERT((index >= 0 && index < map.layers.size()), "Invalid tile layer index");
+  return map.layers[index];
+}
+
+Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
   /// @NOTE:
   ///
   /// Even if the index is out of bounds, we simply return the tile at that edge. 
@@ -47,62 +75,52 @@ Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell) {
   ///
 
   sizei index = y_cell * map.tiles_count.x + x_cell;
-  return map.tiles[clamp_int(index, 0, map.tiles.size() - 1)];
+  return map.layers[layer].tiles[clamp_int(index, 0, map.layers[layer].tiles.size() - 1)];
 }
 
-Entity& tilemap_get_at(TileMap& map, const Vec2& position) {
-  Vec2 clamped_pos = vec2_clamp(position, Vec2(0.0f), map.tile_size * (Vec2)(map.tiles_count - 1)); 
-  IVec2 index      = (IVec2)(clamped_pos / map.tile_size);
-
-  return tilemap_get_at(map, index.x, index.y);
+Entity& tilemap_get_at(TileMap& map, const Vec2& position, const sizei layer) {
+  IVec2 index = tilemap_coords_to_index(map, position);
+  return tilemap_get_at(map, index.x, index.y, layer);
 }
 
-Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset) {
+Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset, const sizei layer) {
   Vec2 offset_pos      = map.tile_size * (Vec2)offset;
   const Vec2& tile_pos = entity_get_component_const<Transform>(*map.ecs, base_tile).position - offset_pos;
 
-  return tilemap_get_at(map, tile_pos);
+  return tilemap_get_at(map, tile_pos, layer);
 }
 
-void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles) {
+void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles, const sizei layer) {
   out_tiles.clear();
   for(i32 i = -1; i <= 1; i++) {
     for(i32 j = -1; j <= 1; j++) {
-      out_tiles.push_back(tilemap_get_neighbor(map, base_tile, IVec2(i, j)));
+      out_tiles.push_back(tilemap_get_neighbor(map, base_tile, IVec2(i, j), layer));
     }
   }
 }
 
-void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Entity>& out_tiles) {
+void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Entity>& out_tiles, const sizei layer) {
   out_tiles.clear();
   IVec2 count = (IVec2)(select_box.size / map.tile_size);
 
   for(i32 i = 0; i < count.x; i++) {
     for(i32 j = 0; j < count.y; j++) {
       Vec2 position = select_box.position + (map.tile_size * Vec2(i, j));
-      out_tiles.push_back(tilemap_get_at(map, position));
+      out_tiles.push_back(tilemap_get_at(map, position, layer));
     }
   }
 }
 
-void tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, Entity& tile_entt) {
-  /// @NOTE:
-  ///
-  /// This looks a little weird, but I can explain.
-  ///
-  /// Basically, the `tilemap_get_at` function returns a reference 
-  /// to the entity at that index. Which means that we can 
-  /// directly change that reference to another entity, propagating 
-  /// the changes in the array itself. 
-  /// Essentially, we're just changing one entity reference to another. 
-  ///
-  /// I saw it once somewhere and I thought it was cool. Whatever. Might change later.
-  ///
-  tilemap_get_at(map, x_cell, y_cell) = tile_entt;
+Entity& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
+  Entity& entt = tilemap_get_at(map, x_cell, y_cell, layer);
+  entt         = entity_create(*map.ecs, tilemap_index_to_coords(map, x_cell, y_cell));
+
+  return entt;
 }
 
-void tilemap_place_at(TileMap& map, const Vec2& position, Entity& tile_entt) {
-  tilemap_get_at(map, position) = tile_entt;
+Entity& tilemap_place_at(TileMap& map, const Vec2& position, const sizei layer) {
+  IVec2 index = tilemap_coords_to_index(map, position);
+  return tilemap_place_at(map, index.x, index.y, layer);
 }
 
 /// TileMap functions

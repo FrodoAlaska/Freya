@@ -46,10 +46,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // TileMap init
   
   freya::tilemap_create(app->tilemap, &app->ecs, freya::Vec2(0.0f), freya::Vec2(32.0f), freya::IVec2(32));  
-  for(auto& tile : app->tilemap.tiles) {
-    freya::Transform& transform = freya::entity_get_component<freya::Transform>(app->ecs, tile);
-    transform.scale             = app->tilemap.tile_size;
-  }
+  freya::tilemap_push_layer(app->tilemap, "main");
 
   // Done!
   return app;
@@ -83,11 +80,15 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   
   if(freya::input_button_pressed(freya::MOUSE_BUTTON_RIGHT)) {
     freya::Vec2 world_pos = freya::camera_screen_to_world_space(app->camera, app->window, freya::input_mouse_position());
-    freya::Entity tile    = freya::tilemap_get_at(app->tilemap, world_pos + (app->tilemap.tile_size / 2.0f));
+    freya::Vec2 tile_pos  = world_pos + (app->tilemap.tile_size / 2.0f);
 
-    if(!freya::entity_has_component<freya::SpriteComponent>(app->ecs, tile)) {
+    freya::Entity& tile = freya::tilemap_get_at(app->tilemap, tile_pos);
+
+    if(tile == freya::ENTITY_NULL) {
+      tile = freya::tilemap_place_at(app->tilemap, tile_pos);
+      
+      freya::entity_get_component<freya::Transform>(app->ecs, tile).scale = app->tilemap.tile_size;
       freya::entity_add_sprite(app->ecs, tile, freya::AssetID{}, freya::COLOR_GREEN);
-      freya::tilemap_place_at(app->tilemap, world_pos, tile);
     }
   }
 
@@ -106,7 +107,9 @@ void app_render(freya::App* app) {
   freya::entity_world_render(app->ecs);
 
   if(app->current_tile != freya::ENTITY_NULL) {
-    freya::Transform transform = freya::entity_get_component<freya::Transform>(app->ecs, app->current_tile);
+    freya::Transform& transform = freya::entity_get_component<freya::Transform>(app->ecs, app->current_tile);
+    transform.scale             = app->tilemap.tile_size;
+
     freya::renderer_queue_quad(transform, freya::Color(1.0f, 1.0f, 1.0f, 0.3f));
   }
 

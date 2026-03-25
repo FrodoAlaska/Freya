@@ -6,7 +6,7 @@
 
 ## Update 0.6
 
-- Tile 
+- Tile
     - Tilemap and tilesheet?
     - Documentation
 
