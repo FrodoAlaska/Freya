@@ -96,10 +96,10 @@ static b2ShapeDef define_shape_def(const ColliderDesc& desc) {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Callbacks
 
-static f32 on_ray_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fraction, void* context) {
+static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fraction, void* context) {
   // Build the result
 
-  RayCastResult result = {
+  CastResult result = {
     .body = b2Shape_GetBody(shape),
 
     .point    = b2vec_to_vec(point),
@@ -110,7 +110,7 @@ static f32 on_ray_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fra
   // Dispatch en event
 
   Event event = {
-    .type        = EVENT_PHYSICS_RAYCAST_HIT,
+    .type        = EVENT_PHYSICS_CAST_HIT,
     .cast_result = result,
   };
   event_dispatch(event);
@@ -318,8 +318,50 @@ void physics_world_cast_ray(const RayCastDesc& cast_desc) {
                   vec_to_b2vec(cast_desc.origin), 
                   vec_to_b2vec(cast_desc.direction) * cast_desc.distance,
                   filter, 
-                  on_ray_cast_hit, 
+                  on_cast_hit, 
                   nullptr);
+}
+
+void physics_world_cast_collider(const ColliderCastDesc& cast_desc) {
+  // Build the filter
+
+  b2QueryFilter filter = b2DefaultQueryFilter();
+  filter.categoryBits  = (u64)cast_desc.layer;
+  filter.maskBits      = (u64)cast_desc.mask_layers;
+ 
+  // Build the proxy
+  
+  b2ShapeProxy proxy;
+  proxy.radius = cast_desc.radius;
+
+  switch(cast_desc.type) {
+    case COLLIDER_BOX: {
+      b2Vec2 min = vec_to_b2vec(cast_desc.origin);
+      b2Vec2 max = vec_to_b2vec(cast_desc.origin + cast_desc.size);
+
+      proxy.points[0] = min; 
+      proxy.points[1] = b2Vec2(max.x, min.y); 
+      proxy.points[2] = max; 
+      proxy.points[3] = b2Vec2(min.x, max.y); 
+      proxy.count     = 4; 
+    } break;
+    case COLLIDER_CIRCLE: {
+      proxy.points[0] = vec_to_b2vec(cast_desc.origin); 
+      proxy.count     = 1; 
+    } break;
+    case COLLIDER_CAPSULE: {
+      // @TODO (Physics/capsule shape cast)
+    } break;
+  }
+
+  // Cast a collider into the world
+
+  b2World_CastShape(s_world.id, 
+                    &proxy,
+                    vec_to_b2vec(cast_desc.translation),
+                    filter, 
+                    on_cast_hit, 
+                    nullptr);
 }
 
 void physics_world_add_explosion(const ExplosionDesc& desc) {

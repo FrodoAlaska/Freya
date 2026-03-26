@@ -131,16 +131,16 @@ struct SensorCollisionData {
 /// RayCastDesc
 struct RayCastDesc {
   /// The starting point of the ray.
-  Vec2 origin    = Vec2(0.0f); 
+  Vec2 origin; 
 
   /// The direction which the ray will be pointing towards.
-  Vec2 direction = Vec2(0.0f);
+  Vec2 direction;
 
   /// The distance of the ray towards `direction`.
   ///
   /// @NOTE: If you wanted to simulate an "infinite" ray, 
   /// simply make this number large, i.e `100000000.0f`.
-  f32 distance   = 1.0f;
+  f32 distance;
 
   /// The layer that the ray will be generated in.
   ///
@@ -156,8 +156,43 @@ struct RayCastDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// RayCastResult
-struct RayCastResult {
+/// ColliderCastDesc
+struct ColliderCastDesc {
+  /// The collider type to cast.
+  ColliderType type;
+
+  /// The starting point of the collider.
+  Vec2 origin; 
+
+  /// The size of the collider. 
+  ///
+  /// @NOTE: This will only be used with `COLLIDER_BOX` colliders. 
+  Vec2 size        = Vec2(0.0f);
+
+  /// The radius of the collider cast.
+  ///
+  /// @NOTE: This will only be used with `COLLIDER_CIRCLE` and `COLLIDER_CAPSULE` colliders. 
+  f32 radius       = 0.0f;
+
+  /// The extra translation from the origin (i.e, `origin + translation`).
+  Vec2 translation = Vec2(0.0f); 
+
+  /// The layer that the ray will be generated in.
+  ///
+  /// @NOTE: By default, this value is set to `PHYSICS_OBJECT_LAYER_0`.
+  PhysicsObjectLayer layer       = PHYSICS_OBJECT_LAYER_0;
+
+  /// The ray will only collide with bodies in those layers.
+  ///
+  /// @NOTE: By default, this value is set to `PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1`.
+  PhysicsObjectLayer mask_layers = (PhysicsObjectLayer)(PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1);
+};
+/// ColliderCastDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// CastResult
+struct CastResult {
   /// The body that was hit by the ray.
   PhysicsBodyID body;
 
@@ -170,7 +205,7 @@ struct RayCastResult {
   /// The fraction along ray at the point of intersection.
   f32 fraction = 0.0f;
 };
-/// RayCastResult
+/// CastResult
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -321,8 +356,12 @@ FREYA_API void physics_world_shutdown();
 FREYA_API void physics_world_step(const i32 sub_steps = 4);
 
 /// Cast a ray using the information provided by `cast_desc` into the world, 
-/// firing the `EVENT_PHYSICS_RAYCAST_HIT` event upon any successful intersections.
+/// firing the `EVENT_PHYSICS_CAST_HIT` event upon any successful intersections.
 FREYA_API void physics_world_cast_ray(const RayCastDesc& cast_desc);
+
+/// Cast a collider using the information provided by `cast_desc` into the world, 
+/// firing the `EVENT_PHYSICS_CAST_HIT` event upon any successful intersections.
+FREYA_API void physics_world_cast_collider(const ColliderCastDesc& cast_desc);
 
 /// Add an explosion defined by the given `desc`, firing collision
 /// events if the explosion affects any bodies in the simulation.

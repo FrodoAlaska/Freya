@@ -90,7 +90,7 @@ enum EventType {
   EVENT_PHYSICS_SENSOR_CONTACT_ADDED,
   EVENT_PHYSICS_SENSOR_CONTACT_REMOVED,
   
-  EVENT_PHYSICS_RAYCAST_HIT,
+  EVENT_PHYSICS_CAST_HIT,
 
   /// Entity events
   
@@ -181,8 +181,8 @@ struct Event {
   SensorCollisionData sensor_data;
 
   /// The ray cast result given to this event 
-  /// by `EVENT_PHYSICS_RAYCAST_HIT`.
-  RayCastResult cast_result;
+  /// by `EVENT_PHYSICS_CAST_HIT`.
+  CastResult cast_result;
 
   /// The entity given to this event by 
   /// either `EVENT_ENTITY_ADDED` or `EVENT_ENTITY_DESTROYED`.

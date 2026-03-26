@@ -21,7 +21,8 @@ set(TESTBED_TYPE
   # "pathfinding_testbed"
   # "noise_testbed"
   # "poisson_testbed"
-  "tilemap_testbed"
+  # "tilemap_testbed"
+  "physics_testbed"
 )
 ############################################################
 
