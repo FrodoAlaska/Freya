@@ -282,11 +282,7 @@ StaticBodyComponent& entity_add_static_body(EntityWorld& world,
   desc.user_data     = (uintptr)entt.get_id();
   PhysicsBodyID body = physics_body_create(desc);
 
-  entt.enter_func = enter_func;
-  entt.exit_func  = exit_func;
-  entt.cast_func  = hit_func;
-
-  return world.emplace<StaticBodyComponent>(entt.get_id(), body);
+  return world.emplace<StaticBodyComponent>(entt.get_id(), body, enter_func, exit_func, hit_func);
 }
 
 DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world, 
@@ -303,11 +299,7 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
   desc.user_data     = (uintptr)entt.get_id();
   PhysicsBodyID body = physics_body_create(desc);
 
-  entt.enter_func = enter_func;
-  entt.exit_func  = exit_func;
-  entt.cast_func  = hit_func;
-
-  return world.emplace<DynamicBodyComponent>(entt.get_id(), body);
+  return world.emplace<DynamicBodyComponent>(entt.get_id(), body, enter_func, exit_func, hit_func);
 }
 
 NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc) {
@@ -315,6 +307,77 @@ NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, con
   return world.emplace<NoiseGenerator*>(entt.get_id(), gen);
 }
 
+bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other) {
+  OnCollisionFn coll_func = nullptr;
+
+  // Retrieve the function from the correct component
+
+  if(entity_has_component<StaticBodyComponent>(world, entt)) {
+    coll_func = entity_get_component<StaticBodyComponent>(world, entt).enter_func;
+  }
+  else if(entity_has_component<DynamicBodyComponent>(world, entt)) {
+    coll_func = entity_get_component<DynamicBodyComponent>(world, entt).enter_func;
+  }
+
+  // Call the function
+
+  if(!coll_func) {
+    return false;
+  }
+
+  // Done!
+  
+  coll_func(world, entt, other);
+  return true;
+}
+
+bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other) {
+  OnCollisionFn coll_func = nullptr;
+
+  // Retrieve the function from the correct component
+
+  if(entity_has_component<StaticBodyComponent>(world, entt)) {
+    coll_func = entity_get_component<StaticBodyComponent>(world, entt).exit_func;
+  }
+  else if(entity_has_component<DynamicBodyComponent>(world, entt)) {
+    coll_func = entity_get_component<DynamicBodyComponent>(world, entt).exit_func;
+  }
+
+  // Call the function
+
+  if(!coll_func) {
+    return false;
+  }
+
+  // Done!
+  
+  coll_func(world, entt, other);
+  return true;
+}
+
+bool entity_on_cast_hit(EntityWorld& world, Entity& entt, const Vec2& normal, const f32 fraction) {
+  OnCastHitFn hit_func = nullptr;
+
+  // Retrieve the function from the correct component
+
+  if(entity_has_component<StaticBodyComponent>(world, entt)) {
+    hit_func = entity_get_component<StaticBodyComponent>(world, entt).hit_func;
+  }
+  else if(entity_has_component<DynamicBodyComponent>(world, entt)) {
+    hit_func = entity_get_component<DynamicBodyComponent>(world, entt).hit_func;
+  }
+
+  // Call the function
+
+  if(!hit_func) {
+    return false;
+  }
+
+  // Done!
+  
+  hit_func(world, entt, normal, fraction);
+  return true;
+}
 
 /// EntityID functions
 /// ----------------------------------------------------------------------
