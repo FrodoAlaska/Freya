@@ -32,12 +32,12 @@ function Log-Msg {
 function Show-Help {
   Log-Msg -msg "[Usage]: .\build-freya.ps1 [options]"                      -log_level "WARN"
   Log-Msg -msg "An easy to use build script to build Freya on Windows"     -log_level "WARN"
-  Log-Msg -msg "   --clean          = Have a new fresh build"              -log_level "WARN"
-  Log-Msg -msg "   --debug          = Build for the debug configuration"   -log_level "WARN"
-  Log-Msg -msg "   --rel            = Build for the release configuration" -log_level "WARN"
-  Log-Msg -msg "   --jobs [threads] = Threads to use when building"        -log_level "WARN"
-  Log-Msg -msg "   --run-testbed    = Run the testbed examples"            -log_level "WARN"
-  Log-Msg -msg "   --help           = Display this help message"           -log_level "WARN"
+  Log-Msg -msg "   -clean          = Have a new fresh build"              -log_level "WARN"
+  Log-Msg -msg "   -debug          = Build for the debug configuration"   -log_level "WARN"
+  Log-Msg -msg "   -rel            = Build for the release configuration" -log_level "WARN"
+  Log-Msg -msg "   -jobs [threads] = Threads to use when building"        -log_level "WARN"
+  Log-Msg -msg "   -run            = Run the testbed examples"            -log_level "WARN"
+  Log-Msg -msg "   -help           = Display this help message"           -log_level "WARN"
 }
 
 function Check-Build-Dir {
@@ -87,13 +87,13 @@ for ($i = 0; $i -lt $Args.Count; $i++) {
   $arg = $($args[$i]);
   
   switch ($arg) {
-    "--clean"       { $build_flags += "--clean-first" }
-    "--debug"       { Check-Build-Dir $build_dir; $build_config = "Debug" }
-    "--rel"         { Check-Build-Dir $build_dir; $build_config = "Release" }
-    "--jobs"        { $i++; $build_flags += "--parallel $($args[$i])" }
-    "--run-testbed" { $can_run_testbed = $true }
-    "--help"        { Show-Help; exit 1 }
-    Default { 
+    "-clean" { $build_flags += "--clean-first" }
+    "-debug" { Check-Build-Dir $build_dir; $build_config = "Debug" }
+    "-rel"   { Check-Build-Dir $build_dir; $build_config = "Release" }
+    "-jobs"  { $i++; $build_flags += "--parallel $($args[$i])" }
+    "-run"   { $can_run_testbed = $true }
+    "-help"  { Show-Help; exit 1 }
+    Default  { 
       Log-Msg -msg "Invalid argument '$arg' passed" -log_level "ERROR"; 
       Show-Help; 
       exit 1
