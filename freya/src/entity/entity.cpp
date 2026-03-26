@@ -273,7 +273,7 @@ StaticBodyComponent& entity_add_static_body(EntityWorld& world,
                                             PhysicsBodyDesc& desc, 
                                             const OnCollisionFn& enter_func, 
                                             const OnCollisionFn& exit_func, 
-                                            const OnCastHitFn hit_func) {
+                                            const OnCastHitFn& hit_func) {
   Transform& transform = world.get<Transform>(entt.get_id());
 
   desc.type          = PHYSICS_BODY_STATIC;
@@ -294,7 +294,7 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
                                               PhysicsBodyDesc& desc, 
                                               const OnCollisionFn& enter_func, 
                                               const OnCollisionFn& exit_func, 
-                                              const OnCastHitFn hit_func) {
+                                              const OnCastHitFn& hit_func) {
   Transform& transform = world.get<Transform>(entt.get_id());
 
   desc.type          = PHYSICS_BODY_DYNAMIC;
