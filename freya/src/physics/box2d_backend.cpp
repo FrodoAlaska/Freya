@@ -78,8 +78,8 @@ static b2ShapeDef define_shape_def(const ColliderDesc& desc) {
   shape_def.filter.categoryBits = (u64)desc.layer;
   shape_def.filter.maskBits     = (u64)desc.mask_layers;
 
-  shape_def.density             = desc.density;
-  shape_def.material.friction   = desc.friction;
+  shape_def.density              = desc.density;
+  shape_def.material.friction    = desc.friction;
   shape_def.material.restitution = desc.restitution;
 
   shape_def.isSensor            = desc.is_sensor;

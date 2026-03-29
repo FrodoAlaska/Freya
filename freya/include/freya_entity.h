@@ -284,6 +284,8 @@ FREYA_API StaticBodyComponent& entity_add_static_body(EntityWorld& world,
 /// @NOTE: The position, rotation, and user data of the given `desc` will be
 /// set inside the function using the transform of `entt` and its ID respectively.
 /// However, the rest of the memebers of `desc` must be filled by the caller.
+///
+/// Important to note that the type of the body MUST be either `PHYSICS_BODY_DYNAMIC` or `PHYSICS_BODY_KINEMATIC`.
 FREYA_API DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world, 
                                                         Entity& entt, 
                                                         PhysicsBodyDesc& desc, 
