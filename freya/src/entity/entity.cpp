@@ -291,8 +291,7 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
                                               const OnCollisionFn& enter_func, 
                                               const OnCollisionFn& exit_func, 
                                               const OnCastHitFn& hit_func) {
-  FREYA_DEBUG_ASSERT((desc.type == PHYSICS_BODY_DYNAMIC || desc.type == PHYSICS_BODY_KINEMATIC), 
-                     "Invalid type given to dynamic body component");
+  FREYA_DEBUG_ASSERT((desc.type != PHYSICS_BODY_STATIC), "Invalid type given to dynamic body component");
 
   Transform& transform = world.get<Transform>(entt.get_id());
 
