@@ -29,6 +29,8 @@ struct PhysicsWorld {
 
   f32 timestep      = PHYSICS_FIXED_DELTA_TIME;
   Color debug_color = Color(1.0f, 0.0f, 1.0f, 0.3f);
+
+  Queue<OnCastHitFn> funcs;
 };
 
 static PhysicsWorld s_world{};
@@ -108,16 +110,13 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fractio
     .fraction = fraction,
   };
 
-  // Dispatch en event
-
-  Event event = {
-    .type        = EVENT_PHYSICS_CAST_HIT,
-    .cast_result = result,
-  };
-  event_dispatch(event);
+  // Get the latest function
+  
+  OnCastHitFn hit_func = s_world.funcs.back();
+  s_world.funcs.pop();
 
   // Done!
-  return fraction;
+  return hit_func(result);
 }
 
 static void b2draw_circle(b2Transform b2transform, f32 radius, b2HexColor b2color, void* context) {
@@ -322,12 +321,15 @@ void physics_world_step(const i32 sub_steps) {
   }
 }
 
-void physics_world_cast_ray(const RayCastDesc& cast_desc) {
+void physics_world_cast_ray(const RayCastDesc& cast_desc, const OnCastHitFn& hit_func) {
   // Build the filter
 
   b2QueryFilter filter = b2DefaultQueryFilter();
   filter.categoryBits  = (u64)cast_desc.layer;
   filter.maskBits      = (u64)cast_desc.mask_layers;
+
+  // Save the function
+  s_world.funcs.push(hit_func);
 
   // Cast a ray into the world
 
@@ -339,7 +341,7 @@ void physics_world_cast_ray(const RayCastDesc& cast_desc) {
                   nullptr);
 }
 
-void physics_world_cast_collider(const ColliderCastDesc& cast_desc) {
+void physics_world_cast_collider(const ColliderCastDesc& cast_desc, const OnCastHitFn& hit_func) {
   // Build the filter
 
   b2QueryFilter filter = b2DefaultQueryFilter();
@@ -371,6 +373,9 @@ void physics_world_cast_collider(const ColliderCastDesc& cast_desc) {
       // @TODO (Physics/capsule shape cast)
     } break;
   }
+
+  // Save the function
+  s_world.funcs.push(hit_func);
 
   // Cast a collider into the world
 

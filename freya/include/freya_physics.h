@@ -341,6 +341,14 @@ struct ColliderDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Function signatures
+
+using OnCastHitFn = std::function<f32(const CastResult& result)>;
+
+/// Function signatures
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Physics world functions
 
 /// Initialize the physics world with the given `gravity`.
@@ -359,12 +367,12 @@ FREYA_API void physics_world_shutdown();
 FREYA_API void physics_world_step(const i32 sub_steps = 4);
 
 /// Cast a ray using the information provided by `cast_desc` into the world, 
-/// firing the `EVENT_PHYSICS_CAST_HIT` event upon any successful intersections.
-FREYA_API void physics_world_cast_ray(const RayCastDesc& cast_desc);
+/// calling `hit_func` upon any successful intersections.
+FREYA_API void physics_world_cast_ray(const RayCastDesc& cast_desc, const OnCastHitFn& hit_func);
 
 /// Cast a collider using the information provided by `cast_desc` into the world, 
-/// firing the `EVENT_PHYSICS_CAST_HIT` event upon any successful intersections.
-FREYA_API void physics_world_cast_collider(const ColliderCastDesc& cast_desc);
+/// calling `hit_func` upon any successful intersections.
+FREYA_API void physics_world_cast_collider(const ColliderCastDesc& cast_desc, const OnCastHitFn& hit_func);
 
 /// Add an explosion defined by the given `desc`, firing collision
 /// events if the explosion affects any bodies in the simulation.

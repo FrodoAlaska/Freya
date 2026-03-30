@@ -37,10 +37,6 @@ struct Entity;
 /// Called when the physics body of `entt` is collided with `other` in the physics world.
 using OnCollisionFn = std::function<void(EntityWorld& world, Entity& entt, Entity& other)>;
 
-/// Called for each body that was hit by either a ray or a collider cast, passing in 
-/// the normal vector at the point of intersection, and the fraction.
-using OnCastHitFn   = std::function<void(EntityWorld& world, Entity& entt, const Vec2& normal, const f32 fraction)>;
-
 /// Callbacks
 /// ----------------------------------------------------------------------
 
@@ -138,11 +134,10 @@ struct StaticBodyComponent {
   PhysicsBodyID body; 
 
   /// Function pointers that will be called either 
-  /// on collision enter, collision exit, or cast hit. 
+  /// on collision enter or collision exit.
   
   OnCollisionFn enter_func = nullptr;
   OnCollisionFn exit_func  = nullptr;
-  OnCastHitFn hit_func     = nullptr;
 };
 /// StaticBodyComponent
 /// ----------------------------------------------------------------------
@@ -155,11 +150,10 @@ struct DynamicBodyComponent {
   PhysicsBodyID body; 
 
   /// Function pointers that will be called either 
-  /// on collision enter, collision exit, or cast hit. 
+  /// on collision enter or collision exit.
   
   OnCollisionFn enter_func = nullptr;
   OnCollisionFn exit_func  = nullptr;
-  OnCastHitFn hit_func     = nullptr;
 };
 /// DynamicBodyComponent
 /// ----------------------------------------------------------------------
@@ -265,7 +259,7 @@ FREYA_API TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
 FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, ParticleEmitterDesc& desc);
 
 /// A helper function to add a static body to `entt`, using the information 
-/// in `desc`, and `enter_func`, `exit_func`, and `hit_func` to call later on collision events. 
+/// in `desc`, and `enter_func`, and `exit_func`, to call later on collision events. 
 ///
 /// @NOTE: The position, rotation, type, and user data of the given `desc` will be
 /// set inside the function using the transform of `entt` and its ID respectively.
@@ -275,11 +269,10 @@ FREYA_API StaticBodyComponent& entity_add_static_body(EntityWorld& world,
                                                       Entity& entt, 
                                                       PhysicsBodyDesc& desc, 
                                                       const OnCollisionFn& enter_func = nullptr, 
-                                                      const OnCollisionFn& exit_func  = nullptr, 
-                                                      const OnCastHitFn& hit_func     = nullptr);
+                                                      const OnCollisionFn& exit_func  = nullptr);
 
 /// A helper function to add a dynamic body to `entt`, using the information 
-/// in `desc`, and `enter_func`, `exit_func`, and `hit_func` to call later on collision events. 
+/// in `desc`, and `enter_func`, and `exit_func`, to call later on collision events. 
 ///
 /// @NOTE: The position, rotation, and user data of the given `desc` will be
 /// set inside the function using the transform of `entt` and its ID respectively.
@@ -290,8 +283,7 @@ FREYA_API DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
                                                         Entity& entt, 
                                                         PhysicsBodyDesc& desc, 
                                                         const OnCollisionFn& enter_func = nullptr, 
-                                                        const OnCollisionFn& exit_func  = nullptr, 
-                                                        const OnCastHitFn& hit_func     = nullptr);
+                                                        const OnCollisionFn& exit_func  = nullptr);
 
 /// A helper function to add a noise generator to `entt`, using the information 
 /// in `desc`, mirroring the `noise_generator_create` function.
@@ -304,11 +296,6 @@ FREYA_API bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entit
 /// A helper function to call the on exit collision function for the given `entt` if it's available, 
 /// passing in `other`, and returning `true` if the function was successfully called, and `false` otherwise
 FREYA_API bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other);
-
-/// A helper function to call on cast hit function for the given `entt` if it's available, 
-/// passing in `normal` and `fraction`, and returning `true` if the 
-/// function was successfully called, and `false` otherwise
-FREYA_API bool entity_on_cast_hit(EntityWorld& world, Entity& entt, const Vec2& normal, const f32 fraction);
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///

@@ -2,7 +2,6 @@
 
 - Physics 
     - Implement `cast_ray_closest` function 
-    - Change the `cast_ray` and `cast_shape` functions to take lambdas instead of firing events
     - Simple AABB test between polygon and rect colliders?
 
 - ECS 

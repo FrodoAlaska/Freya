@@ -272,8 +272,7 @@ StaticBodyComponent& entity_add_static_body(EntityWorld& world,
                                             Entity& entt, 
                                             PhysicsBodyDesc& desc, 
                                             const OnCollisionFn& enter_func, 
-                                            const OnCollisionFn& exit_func, 
-                                            const OnCastHitFn& hit_func) {
+                                            const OnCollisionFn& exit_func) { 
   Transform& transform = world.get<Transform>(entt.get_id());
 
   desc.type          = PHYSICS_BODY_STATIC;
@@ -282,15 +281,14 @@ StaticBodyComponent& entity_add_static_body(EntityWorld& world,
   desc.user_data     = (uintptr)entt.get_id();
   PhysicsBodyID body = physics_body_create(desc);
 
-  return world.emplace<StaticBodyComponent>(entt.get_id(), body, enter_func, exit_func, hit_func);
+  return world.emplace<StaticBodyComponent>(entt.get_id(), body, enter_func, exit_func);
 }
 
 DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world, 
                                               Entity& entt, 
                                               PhysicsBodyDesc& desc, 
                                               const OnCollisionFn& enter_func, 
-                                              const OnCollisionFn& exit_func, 
-                                              const OnCastHitFn& hit_func) {
+                                              const OnCollisionFn& exit_func) {
   FREYA_DEBUG_ASSERT((desc.type != PHYSICS_BODY_STATIC), "Invalid type given to dynamic body component");
 
   Transform& transform = world.get<Transform>(entt.get_id());
@@ -300,7 +298,7 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
   desc.user_data     = (uintptr)entt.get_id();
   PhysicsBodyID body = physics_body_create(desc);
 
-  return world.emplace<DynamicBodyComponent>(entt.get_id(), body, enter_func, exit_func, hit_func);
+  return world.emplace<DynamicBodyComponent>(entt.get_id(), body, enter_func, exit_func);
 }
 
 NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc) {
@@ -353,30 +351,6 @@ bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other) {
   // Done!
   
   coll_func(world, entt, other);
-  return true;
-}
-
-bool entity_on_cast_hit(EntityWorld& world, Entity& entt, const Vec2& normal, const f32 fraction) {
-  OnCastHitFn hit_func = nullptr;
-
-  // Retrieve the function from the correct component
-
-  if(entity_has_component<StaticBodyComponent>(world, entt)) {
-    hit_func = entity_get_component<StaticBodyComponent>(world, entt).hit_func;
-  }
-  else if(entity_has_component<DynamicBodyComponent>(world, entt)) {
-    hit_func = entity_get_component<DynamicBodyComponent>(world, entt).hit_func;
-  }
-
-  // Call the function
-
-  if(!hit_func) {
-    return false;
-  }
-
-  // Done!
-  
-  hit_func(world, entt, normal, fraction);
   return true;
 }
 
