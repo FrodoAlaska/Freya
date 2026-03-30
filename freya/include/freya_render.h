@@ -535,7 +535,7 @@ FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 /// use it other than for simple debug purposes.
 FREYA_API void renderer_queue_debug_quad(const Transform& transform, const Color& color);
 
-/// Queue a debug circle at `position`, with a `radius` size, and with `color`. 
+/// Queue a debug polygon at `position`, with a `radius` size, and with `color`. 
 ///
 /// @NOTE: This function is only intended for debug uses. 
 /// It is extremely slow since it draws the geometry immediately. Do not 

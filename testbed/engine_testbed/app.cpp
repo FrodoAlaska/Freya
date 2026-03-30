@@ -57,7 +57,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     freya::Vec2(1.0f, -1.0f),
     freya::Vec2(0.0f, 1.0f),
   };
-  freya::collider_create(body1.body, freya::ColliderDesc{}, points, 0.0f);
+  freya::collider_create(body1.body, freya::ColliderDesc{}, points, 32.0f);
 
   freya::entity_add_sprite(app->ecs, app->entt1, freya::AssetID{}, freya::COLOR_GREEN);
 
@@ -141,9 +141,8 @@ void app_render(freya::App* app) {
   freya::Transform transform = {
     .position = freya::Vec2(300.0f),
     .scale    = freya::Vec2(32.0f),
-    .rotation = 180.0f * freya::DEG2RAD,
   };
-  freya::renderer_queue_debug_polygon(transform, 3, freya::COLOR_BLUE);
+  freya::renderer_queue_debug_polygon(transform, 12, freya::COLOR_BLUE);
   freya::renderer_end();
 
   // UI render

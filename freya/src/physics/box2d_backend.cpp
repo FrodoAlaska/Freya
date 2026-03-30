@@ -120,15 +120,19 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fractio
   return fraction;
 }
 
-static void b2draw_circle(b2Transform transform, f32 radius, b2HexColor b2color, void* context) {
-  Vec2 position = b2vec_to_vec(transform.p); 
-  // renderer_draw_debug_circle(position, radius * 100.0f, s_world.debug_color);
+static void b2draw_circle(b2Transform b2transform, f32 radius, b2HexColor b2color, void* context) {
+  Transform transform = {
+    .position = b2vec_to_vec(b2transform.p),
+    .scale    = Vec2(radius) * 75.0f,
+    .rotation = b2Rot_GetAngle(b2transform.q),
+  };
+  renderer_queue_debug_polygon(transform, 12, s_world.debug_color);
 }
 
 static void b2draw_polygon(b2Transform b2transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
   // Figuring out the size of the polygon
 
-  Vec2 size = Vec2(radius);
+  Vec2 size = Vec2(radius) * 75.0f;
   
   if(vertex_count == 4) { // A perfect quad
     b2Vec2 max = vertices[0];
@@ -136,14 +140,14 @@ static void b2draw_polygon(b2Transform b2transform, const b2Vec2* vertices, i32 
       max = b2Max(max, vertices[i]);
     }
 
-    size = b2vec_to_vec(max);
+    size = b2vec_to_vec(max) * 1.5f;
   }
 
   // Queue the polygon
 
   Transform transform = {
     .position = b2vec_to_vec(b2transform.p),
-    .scale    = size * 1.5f,
+    .scale    = size,
     .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
   };
   renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
@@ -633,7 +637,7 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
   b2Hull hull = b2ComputeHull(b2_points.data(), b2_points.size());
 
   // Shape init
-  b2Polygon shape = b2MakePolygon(&hull, radius * PHYSICS_METERS_TO_PIXELS);
+  b2Polygon shape = b2MakePolygon(&hull, radius * PHYSICS_PIXELS_TO_METERS);
 
   // Done!
   return b2CreatePolygonShape(body, &shape_def, &shape);
