@@ -19,12 +19,12 @@ Color color_hex_to_rgb(const u32 hex_color) {
 }
 
 u32 color_rgb_to_hex(const Color& rgb) {
-  IVec4 irgb = (IVec4(rgb) * 255) / 16; // Converting to hex
+  IVec4 irgb = (IVec4(rgb) * 255); // Converting to hex
 
   return ((irgb.r & 0xFF) << 24) + 
          ((irgb.g & 0xFF) << 16) +
          ((irgb.b & 0xFF) << 8)  +
-         ((irgb.a & 0xFF)); // @TODO (Color): The alpha channel is fucked
+         ((irgb.a & 0xFF));
 }
 
 void color_lerp(Color& color, const Color& other, const f32 delta) {

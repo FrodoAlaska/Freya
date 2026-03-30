@@ -8,8 +8,10 @@
 struct freya::App {
   freya::Window* window;
   freya::Camera camera;
-
   freya::AssetGroupID group_id;
+
+  freya::EntityWorld ecs; 
+  freya::Entity entt1, entt2;
 };
 /// App
 /// ----------------------------------------------------------------------
@@ -29,6 +31,9 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Editor init
   freya::gui_init(window);
 
+  // Physics world init
+  freya::physics_world_set_gravity(freya::Vec2(0.0f));
+
   // Camera init
   
   freya::CameraDesc cam_desc = {
@@ -39,7 +44,38 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Assets init
   app->group_id = freya::asset_group_create("app_assets");
-  
+ 
+  // Entity 1 init
+
+  app->entt1 = freya::entity_create(app->ecs, freya::Vec2(10.0f), freya::Vec2(32.0f));
+
+  freya::PhysicsBodyDesc body1_desc = {};
+  freya::StaticBodyComponent& body1 = freya::entity_add_static_body(app->ecs, app->entt1, body1_desc);
+
+  // freya::DynamicArray<freya::Vec2> points = {
+  //   freya::Vec2(0.0f, 1.0f),
+  //   freya::Vec2(1.0f, -1.0f),
+  //   freya::Vec2(-1.0f), 
+  // };
+  freya::collider_create(body1.body, freya::ColliderDesc{}, freya::Vec2(32.0f));
+
+  freya::entity_add_sprite(app->ecs, app->entt1, freya::AssetID{}, freya::COLOR_GREEN);
+
+  // Entity 2 init
+
+  app->entt2 = freya::entity_create(app->ecs, freya::Vec2(200.0f), freya::Vec2(32.0f));
+
+  freya::PhysicsBodyDesc body2_desc = {
+    .type = freya::PHYSICS_BODY_DYNAMIC,
+
+    .rotation_fixed = true,
+  };
+
+  freya::DynamicBodyComponent& body2 = freya::entity_add_dynamic_body(app->ecs, app->entt2, body2_desc);
+  freya::collider_create(body2.body, freya::ColliderDesc{}, freya::Vec2(32.0f));
+
+  freya::entity_add_sprite(app->ecs, app->entt2, freya::AssetID{}, freya::COLOR_WHITE);
+
   // Done!
   return app;
 }
@@ -66,15 +102,42 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
     freya::physics_world_toggle_debug();
   }
 
-  // Move the camera
-  freya::camera_move_top_down(app->camera, freya::Vec2(150.0f), delta_time);
+  // Move entt2 
+    
+  freya::DynamicBodyComponent& body = freya::entity_get_component<freya::DynamicBodyComponent>(app->ecs, app->entt2);
+  freya::Vec2 player_pos            = freya::physics_body_get_position(body.body); 
+
+  freya::Vec2 direction = freya::Vec2(0.0f);
+
+  if(freya::input_key_down(freya::KEY_W)) {
+    direction.y = -1.0f; 
+  }
+  else if(freya::input_key_down(freya::KEY_S)) {
+    direction.y = 1.0f; 
+  }
+
+  if(freya::input_key_down(freya::KEY_D)) {
+    direction.x = 1.0f;
+  }
+  else if(freya::input_key_down(freya::KEY_A)) {
+    direction.x = -1.0f;
+  }
+
+  freya::physics_body_set_linear_velocity(body.body, direction * 450.0f);
+
+  freya::Vec2 center_screen = (freya::Vec2)freya::window_get_size(app->window) / 2.0f;
+  freya::camera_follow_lerp(app->camera, player_pos, -center_screen, delta_time * 2.0f);
+
+  // Update
+  freya::entity_world_update(app->ecs, delta_time);
 }
 
 void app_render(freya::App* app) {
   // 2D render
 
   freya::renderer_begin(app->camera);
-  freya::renderer_queue_quad(freya::Transform{freya::Vec2(10.0f), freya::Vec2(32.0f)}, freya::COLOR_WHITE);
+  freya::entity_world_render(app->ecs);
+  freya::renderer_draw_debug_polygon(freya::Vec2(300.0f), 32.0f, 3, freya::COLOR_BLUE);
   freya::renderer_end();
 
   // UI render
@@ -96,7 +159,12 @@ void app_render_gui(freya::App* app) {
   // Editor
    
   freya::gui_begin_panel("Editor");
+
   freya::gui_edit_camera("Camera", &app->camera);
+  
+  freya::gui_edit_entity("Entity 1", app->ecs, app->entt1);
+  freya::gui_edit_entity("Entity 2", app->ecs, app->entt2);
+
   freya::gui_end_panel();
 
   freya::gui_end();

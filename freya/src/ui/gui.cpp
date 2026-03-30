@@ -328,6 +328,15 @@ void gui_debug_info() {
       if(ImGui::Checkbox("Debug draw", &debug)) {
         physics_world_toggle_debug();
       }
+      
+      // Debug color 
+    
+      Vec4 debug_color = physics_world_get_debug_color();
+      bool is_picked   = ImGui::ColorEdit4("Debug color", &debug_color[0]);
+      
+      if(is_picked) {
+        physics_world_set_debug_color(debug_color);
+      }
     }
   }
 

@@ -27,7 +27,8 @@ struct PhysicsWorld {
   bool is_paused = false;
   bool is_debug  = false;
 
-  f32 timestep = PHYSICS_FIXED_DELTA_TIME;
+  f32 timestep      = PHYSICS_FIXED_DELTA_TIME;
+  Color debug_color = Color(1.0f, 0.0f, 1.0f, 0.3f);
 };
 
 static PhysicsWorld s_world{};
@@ -120,28 +121,22 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fractio
 }
 
 static void b2draw_circle(b2Transform transform, f32 radius, b2HexColor b2color, void* context) {
-  Color color   = Color(1.0f, 0.0f, 1.0f, 0.5f);
   Vec2 position = b2vec_to_vec(transform.p); 
-
-  renderer_draw_debug_circle(position, radius * 100.0f, color);
+  renderer_draw_debug_circle(position, radius * 100.0f, s_world.debug_color);
 }
 
 static void b2draw_polygon(b2Transform transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
-  Color color = Color(1.0f, 0.0f, 1.0f, 0.5f);
-
   b2Vec2 size = vertices[0];
   for(i32 i = 1; i < vertex_count; i++) {
     size = b2Max(size, vertices[i]);
   }
 
-  renderer_draw_debug_quad(b2vec_to_vec(transform.p), Vec2(size.x, size.y) * 100.0f, 0.0f, color);
+  renderer_draw_debug_quad(b2vec_to_vec(transform.p), Vec2(size.x, size.y) * 100.0f, 0.0f, s_world.debug_color);
 }
 
 static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
-  Color color   = Color(1.0f, 0.0f, 1.0f, 0.5f);
   Vec2 position = b2vec_to_vec(p); 
-
-  renderer_draw_debug_quad(position, Vec2(size) * 100.0f, 0.0f, color);
+  renderer_draw_debug_quad(position, Vec2(size) * 100.0f, 0.0f, s_world.debug_color);
 }
 
 /// Callbacks
@@ -334,8 +329,9 @@ void physics_world_cast_collider(const ColliderCastDesc& cast_desc) {
   b2ShapeProxy proxy;
   proxy.radius = cast_desc.radius;
 
+  // @TEMP
   switch(cast_desc.type) {
-    case COLLIDER_BOX: {
+    case COLLIDER_POLYGON: {
       b2Vec2 min = vec_to_b2vec(cast_desc.origin);
       b2Vec2 max = vec_to_b2vec(cast_desc.origin + cast_desc.size);
 
@@ -382,8 +378,16 @@ void physics_world_set_gravity(const Vec2& gravity) {
   b2World_SetGravity(s_world.id, vec_to_b2vec(gravity));
 }
 
+void physics_world_set_debug_color(const Vec4& debug_color) {
+  s_world.debug_color = debug_color;
+}
+
 Vec2 physics_world_get_gravity() {
   return b2vec_to_vec(b2World_GetGravity(s_world.id));
+}
+
+Vec4 physics_world_get_debug_color() {
+  return s_world.debug_color;
 }
 
 void physics_world_toggle_paused() {
@@ -608,10 +612,10 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
     b2_points[i] = vec_to_b2vec(points[i]);
   }
 
-  b2Hull hull = b2ComputeHull(b2_points.data(), points.size());
+  b2Hull hull = b2ComputeHull(b2_points.data(), b2_points.size());
 
   // Shape init
-  b2Polygon shape = b2MakePolygon(&hull, radius);
+  b2Polygon shape = b2MakePolygon(&hull, radius * PHYSICS_METERS_TO_PIXELS);
 
   // Done!
   return b2CreatePolygonShape(body, &shape_def, &shape);
@@ -643,6 +647,20 @@ void collider_set_mask_layers(ColliderID& collider, const u64 layer, const u64 m
 
 void collider_enable_hit_events(ColliderID& collider, const bool enabled) {
   b2Shape_EnableHitEvents(collider, enabled);
+}
+
+ColliderType collider_get_type(ColliderID& collider) {
+  b2ShapeType type = b2Shape_GetType(collider);
+  switch(type) {
+    case b2_circleShape:
+      return COLLIDER_CIRCLE;
+    case b2_capsuleShape:
+      return COLLIDER_CAPSULE;
+    case b2_polygonShape:
+      return COLLIDER_POLYGON;
+    default:
+      return COLLIDER_INVALID;
+  }
 }
 
 ColliderDesc collider_get_desc(ColliderID& collider) {

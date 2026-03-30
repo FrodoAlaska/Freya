@@ -71,20 +71,19 @@ enum PhysicsBodyType {
 ///---------------------------------------------------------------------------------------------------------------------
 /// ColliderType
 enum ColliderType {
-  /// Passed to the `collider_create` function 
-  /// to construct a box collider.
-  COLLIDER_BOX = 0, 
+  /// Identifies an invalid collider type.
+  COLLIDER_INVALID = -1,
   
-  /// Passed to the `collider_create` function 
-  /// to construct a sphere collider.
+  /// Identifies a circle collider.
   COLLIDER_CIRCLE, 
   
-  /// Passed to the `collider_create` function 
-  /// to construct a capsule collider.
+  /// Identifies a capsule collider.
   COLLIDER_CAPSULE,
   
-  /// Passed to the `collider_create` function 
-  /// to construct a polygon collider.
+  /// Identifies a polygon collider.
+  ///
+  /// @NOTE: This type will be set for creating either 
+  /// a polygon collider or a box-shaped collider.
   COLLIDER_POLYGON,
 };
 /// ColliderType
@@ -98,7 +97,7 @@ using PhysicsBodyID = b2BodyId;
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Collider
-using ColliderID   = b2ShapeId;
+using ColliderID    = b2ShapeId;
 /// Collider
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -374,8 +373,16 @@ FREYA_API void physics_world_add_explosion(const ExplosionDesc& desc);
 /// Set the gravity of the physics world to the given `gravity`.
 FREYA_API void physics_world_set_gravity(const Vec2& gravity);
 
+/// Set the debug color of the colliders when drawn.
+///
+/// @NOTE: By default, the color is set to `Vec4(1.0f, 0.0f, 1.0f, 0.3f)`.
+FREYA_API void physics_world_set_debug_color(const Vec4& debug_color);
+
 /// Retrieve the current gravity value of the physics world.
 FREYA_API Vec2 physics_world_get_gravity();
+
+/// Retrieve the current debug color of the physics world.
+FREYA_API Vec4 physics_world_get_debug_color();
 
 /// Toggle "pause" mode either on or off, depending on the current state. 
 /// Pause mode will simply stop updating the physics world, which prompts 
@@ -512,6 +519,8 @@ FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& de
 
 /// Add a polygon collider to `body` using the information in `desc` with 
 /// the given `points` as the points of the polygon, and `radius` as the radius.
+///
+/// @NOTE: Each entry in the `points` array should be a value between [-1, 1], since they are more like vertices.
 FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const DynamicArray<Vec2>& points, const f32 radius);
 
 /// Test the given `point` against `collider`.
@@ -532,6 +541,9 @@ FREYA_API void collider_set_layers(ColliderID& collider, const u64 layer, const 
 
 /// Enable/disable contact events of the given `collider`.
 FREYA_API void collider_enable_hit_events(ColliderID& collider, const bool enabled);
+
+/// Get the type of the given `collider`.
+FREYA_API ColliderType collider_get_type(ColliderID& collider);
 
 /// Get the information of `collider` in the form of a `ColliderDesc`
 FREYA_API ColliderDesc collider_get_desc(ColliderID& collider);
