@@ -1,9 +1,5 @@
 ## TODO
 
-- Physics 
-    - Implement `cast_ray_closest` function 
-    - Simple AABB test between polygon and rect colliders?
-
 - ECS 
     - Add tilemap to the entity system
     - Hierarchy tree? 

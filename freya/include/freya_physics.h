@@ -343,6 +343,14 @@ struct ColliderDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Function signatures
 
+/// Called when a ray (or a collider) cast operation hits an object in the world. 
+/// The given `result` is generated from the cast intersection. The return value 
+/// will determine how to continue with the function:
+///
+/// - Return `-1`: Ignore the hit body and move on. 
+/// - Return `0`: Terminate the ray cast and don't go further. 
+/// - Return `result.fraction`: Clip the ray to this point. 
+/// - Return `1`: Don't clip the ray and continue.
 using OnCastHitFn = std::function<f32(const CastResult& result)>;
 
 /// Function signatures
@@ -369,6 +377,11 @@ FREYA_API void physics_world_step(const i32 sub_steps = 4);
 /// Cast a ray using the information provided by `cast_desc` into the world, 
 /// calling `hit_func` upon any successful intersections.
 FREYA_API void physics_world_cast_ray(const RayCastDesc& cast_desc, const OnCastHitFn& hit_func);
+
+/// A convenience function that will shoot a ray to collect the closest point, 
+/// returning back the information in `out_result`, and returning either `true` 
+/// for successful ray cast hit, and `false` otherwise.
+FREYA_API bool physics_world_cast_ray_closest(const RayCastDesc& cast_desc, CastResult& out_result);
 
 /// Cast a collider using the information provided by `cast_desc` into the world, 
 /// calling `hit_func` upon any successful intersections.

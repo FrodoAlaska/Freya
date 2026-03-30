@@ -341,6 +341,31 @@ void physics_world_cast_ray(const RayCastDesc& cast_desc, const OnCastHitFn& hit
                   nullptr);
 }
 
+bool physics_world_cast_ray_closest(const RayCastDesc& cast_desc, CastResult& out_result) {
+  // Build the filter
+
+  b2QueryFilter filter = b2DefaultQueryFilter();
+  filter.categoryBits  = (u64)cast_desc.layer;
+  filter.maskBits      = (u64)cast_desc.mask_layers;
+
+  // Shoot the ray
+
+  b2RayResult b2result = b2World_CastRayClosest(s_world.id, 
+                                                vec_to_b2vec(cast_desc.origin), 
+                                                vec_to_b2vec(cast_desc.direction) * cast_desc.distance,
+                                                filter);
+
+  // Write back the result
+  
+  out_result.body     = b2Shape_GetBody(b2result.shapeId);
+  out_result.point    = b2vec_to_vec(b2result.point);
+  out_result.normal   = b2vec_to_vec(b2result.normal);
+  out_result.fraction = b2result.fraction;
+
+  // Done! 
+  return b2result.hit;
+}
+
 void physics_world_cast_collider(const ColliderCastDesc& cast_desc, const OnCastHitFn& hit_func) {
   // Build the filter
 
