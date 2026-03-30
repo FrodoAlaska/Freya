@@ -597,6 +597,26 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
   return b2CreateCapsuleShape(body, &shape_def, &shape);
 }
 
+ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const DynamicArray<Vec2>& points, const f32 radius) {
+  // Shape def init
+  b2ShapeDef shape_def = define_shape_def(desc);
+
+  // Hull compute
+
+  DynamicArray<b2Vec2> b2_points(points.size());
+  for(sizei i = 0; i < points.size(); i++) {
+    b2_points[i] = vec_to_b2vec(points[i]);
+  }
+
+  b2Hull hull = b2ComputeHull(b2_points.data(), points.size());
+
+  // Shape init
+  b2Polygon shape = b2MakePolygon(&hull, radius);
+
+  // Done!
+  return b2CreatePolygonShape(body, &shape_def, &shape);
+}
+
 bool collider_test_point(ColliderID& collider, const Vec2& point) {
   return b2Shape_TestPoint(collider, vec_to_b2vec(point));
 }

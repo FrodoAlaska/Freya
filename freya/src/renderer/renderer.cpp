@@ -542,12 +542,6 @@ void renderer_begin(Camera& camera) {
 
   // Prepare the default pass
   post_process_prepare(s_renderer.default_pass);
-
-  // Clean the slate!
- 
-  s_renderer.textures.clear();
-  s_renderer.batches.clear();
-  s_renderer.debug_batches.clear();
 }
 
 void renderer_end() {
@@ -642,6 +636,14 @@ void renderer_end() {
 
   gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
   gfx_context_draw(s_renderer.ctx, 0);
+
+  //
+  // Clean the slate!
+  //
+
+  s_renderer.textures.clear();
+  s_renderer.batches.clear();
+  s_renderer.debug_batches.clear();
 }
 
 void renderer_set_clear_color(const Color& color) {

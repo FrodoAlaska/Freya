@@ -59,6 +59,13 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
     return;
   }
 
+  // Enable/disable debug mode
+
+  if(freya::input_key_pressed(freya::KEY_F1)) {
+    freya::gui_toggle_active();
+    freya::physics_world_toggle_debug();
+  }
+
   // Move the camera
   freya::camera_move_top_down(app->camera, freya::Vec2(150.0f), delta_time);
 }
@@ -77,6 +84,10 @@ void app_render(freya::App* app) {
 }
 
 void app_render_gui(freya::App* app) {
+  if(!freya::gui_is_active()) {
+    return;
+  }
+
   freya::gui_begin(); 
  
   // Debug
@@ -84,9 +95,6 @@ void app_render_gui(freya::App* app) {
 
   // Editor
    
-  freya::Vec2 world_pos = freya::camera_screen_to_world_space(app->camera, app->window, freya::input_mouse_position());
-  ImGui::Text("World = %.3f, %.3f", world_pos.x, world_pos.y);
-
   freya::gui_begin_panel("Editor");
   freya::gui_edit_camera("Camera", &app->camera);
   freya::gui_end_panel();

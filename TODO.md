@@ -1,10 +1,21 @@
-## Update 0.5 
+## TODO
+
+- Physics 
+    - More debug draw capabilities
+    - Implement `cast_ray_closest` function 
+    - Change the `cast_ray` and `cast_shape` functions to take lambdas instead of firing events
+    - Simple AABB test between polygon and rect colliders?
+
+- ECS 
+    - Add tilemap to the entity system
+    - Hierarchy tree? 
+    - Search through the world 
+    - Custom component
+    - General-purpose scene system? 
 
 - Web build testing
     - Figure out which flags to include in the web build process 
     - Main loop function for both the web and desktop
-
-## Update 0.6
 
 - Renderer
     - Dynamic 2D lighting

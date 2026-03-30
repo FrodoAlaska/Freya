@@ -71,17 +71,21 @@ enum PhysicsBodyType {
 ///---------------------------------------------------------------------------------------------------------------------
 /// ColliderType
 enum ColliderType {
-  /// Based to the `collider_create` function 
+  /// Passed to the `collider_create` function 
   /// to construct a box collider.
   COLLIDER_BOX = 0, 
   
-  /// Based to the `collider_create` function 
+  /// Passed to the `collider_create` function 
   /// to construct a sphere collider.
   COLLIDER_CIRCLE, 
   
-  /// Based to the `collider_create` function 
+  /// Passed to the `collider_create` function 
   /// to construct a capsule collider.
   COLLIDER_CAPSULE,
+  
+  /// Passed to the `collider_create` function 
+  /// to construct a polygon collider.
+  COLLIDER_POLYGON,
 };
 /// ColliderType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -505,6 +509,10 @@ FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& de
 /// the `center1` being the first local center, `center2` the second local center 
 /// of the capsule, and `radius` as the radius of the capsule.
 FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& center1, const Vec2& center2, const f32 radius);
+
+/// Add a polygon collider to `body` using the information in `desc` with 
+/// the given `points` as the points of the polygon, and `radius` as the radius.
+FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const DynamicArray<Vec2>& points, const f32 radius);
 
 /// Test the given `point` against `collider`.
 FREYA_API bool collider_test_point(ColliderID& collider, const Vec2& point);
