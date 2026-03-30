@@ -52,12 +52,12 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   freya::PhysicsBodyDesc body1_desc = {};
   freya::StaticBodyComponent& body1 = freya::entity_add_static_body(app->ecs, app->entt1, body1_desc);
 
-  // freya::DynamicArray<freya::Vec2> points = {
-  //   freya::Vec2(0.0f, 1.0f),
-  //   freya::Vec2(1.0f, -1.0f),
-  //   freya::Vec2(-1.0f), 
-  // };
-  freya::collider_create(body1.body, freya::ColliderDesc{}, freya::Vec2(32.0f));
+  freya::DynamicArray<freya::Vec2> points = {
+    freya::Vec2(-1.0f), 
+    freya::Vec2(1.0f, -1.0f),
+    freya::Vec2(0.0f, 1.0f),
+  };
+  freya::collider_create(body1.body, freya::ColliderDesc{}, points, 0.0f);
 
   freya::entity_add_sprite(app->ecs, app->entt1, freya::AssetID{}, freya::COLOR_GREEN);
 
@@ -137,7 +137,13 @@ void app_render(freya::App* app) {
 
   freya::renderer_begin(app->camera);
   freya::entity_world_render(app->ecs);
-  freya::renderer_draw_debug_polygon(freya::Vec2(300.0f), 32.0f, 3, freya::COLOR_BLUE);
+
+  freya::Transform transform = {
+    .position = freya::Vec2(300.0f),
+    .scale    = freya::Vec2(32.0f),
+    .rotation = 180.0f * freya::DEG2RAD,
+  };
+  freya::renderer_queue_debug_polygon(transform, 3, freya::COLOR_BLUE);
   freya::renderer_end();
 
   // UI render
@@ -161,7 +167,6 @@ void app_render_gui(freya::App* app) {
   freya::gui_begin_panel("Editor");
 
   freya::gui_edit_camera("Camera", &app->camera);
-  
   freya::gui_edit_entity("Entity 1", app->ecs, app->entt1);
   freya::gui_edit_entity("Entity 2", app->ecs, app->entt2);
 

@@ -528,27 +528,25 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 
-/// Draw a quad at `position`, with a `size` size, rotated by `rotation`, and with `color`. 
+/// Queue a debug quad using the given information.
 ///
 /// @NOTE: This function is only intended for debug uses. 
 /// It is extremely slow since it draws the geometry immediately. Do not 
 /// use it other than for simple debug purposes.
-FREYA_API void renderer_draw_debug_quad(const Vec2& position, const Vec2& size, const f32 rotation, const Color& color);
+FREYA_API void renderer_queue_debug_quad(const Transform& transform, const Color& color);
 
-/// Draw a circle at `position`, with a `radius` size, and with `color`. 
+/// Queue a debug circle at `position`, with a `radius` size, and with `color`. 
 ///
 /// @NOTE: This function is only intended for debug uses. 
 /// It is extremely slow since it draws the geometry immediately. Do not 
 /// use it other than for simple debug purposes.
-FREYA_API void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Color& color);
 
-/// Draw a polygon at `center` with `sides` amount of sides and 
-/// with a radius of `radius`, colored as `color`.
+/// Queue a debug polygon using `transform`, with `sides` of the polygon, and color.
 ///
 /// @NOTE: This function is only intended for debug uses. 
 /// It is extremely slow since it draws the geometry immediately. Do not 
 /// use it other than for simple debug purposes.
-FREYA_API void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const i32 sides, const Color& color);
+FREYA_API void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, const Color& color);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

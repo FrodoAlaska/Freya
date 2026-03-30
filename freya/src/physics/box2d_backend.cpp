@@ -122,21 +122,39 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fractio
 
 static void b2draw_circle(b2Transform transform, f32 radius, b2HexColor b2color, void* context) {
   Vec2 position = b2vec_to_vec(transform.p); 
-  renderer_draw_debug_circle(position, radius * 100.0f, s_world.debug_color);
+  // renderer_draw_debug_circle(position, radius * 100.0f, s_world.debug_color);
 }
 
-static void b2draw_polygon(b2Transform transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
-  b2Vec2 size = vertices[0];
-  for(i32 i = 1; i < vertex_count; i++) {
-    size = b2Max(size, vertices[i]);
+static void b2draw_polygon(b2Transform b2transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
+  // Figuring out the size of the polygon
+
+  Vec2 size = Vec2(radius);
+  
+  if(vertex_count == 4) { // A perfect quad
+    b2Vec2 max = vertices[0];
+    for(i32 i = 0; i < vertex_count; i++) {
+      max = b2Max(max, vertices[i]);
+    }
+
+    size = b2vec_to_vec(max);
   }
 
-  renderer_draw_debug_quad(b2vec_to_vec(transform.p), Vec2(size.x, size.y) * 100.0f, 0.0f, s_world.debug_color);
+  // Queue the polygon
+
+  Transform transform = {
+    .position = b2vec_to_vec(b2transform.p),
+    .scale    = size * 1.5f,
+    .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
+  };
+  renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
 }
 
 static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
-  Vec2 position = b2vec_to_vec(p); 
-  renderer_draw_debug_quad(position, Vec2(size) * 100.0f, 0.0f, s_world.debug_color);
+  Transform transform = {
+    .position = b2vec_to_vec(p),
+    .scale    = Vec2(size) * 100.0f,
+  };
+  renderer_queue_debug_quad(transform, s_world.debug_color);
 }
 
 /// Callbacks

@@ -12,7 +12,9 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Consts
 
-const sizei VERTEX_BUFFER_SIZE         = MiB(4);
+const sizei VERTEX_BUFFER_SIZE       = MiB(4);
+const sizei VERTEX_DEBUG_BUFFER_SIZE = MiB(1);
+
 const sizei SHADER_MATRIX_BUFFER_INDEX = 0;
 
 /// Consts
@@ -21,15 +23,22 @@ const sizei SHADER_MATRIX_BUFFER_INDEX = 0;
 ///---------------------------------------------------------------------------------------------------------------------
 /// ShaderID
 enum ShaderID {
-  SHADER_BATCH = 0, 
-  SHADER_QUAD, 
-  SHADER_CIRCLE,
-  SHADER_POLYGON,
+  SHADER_BATCH, 
+  SHADER_DEBUG,
   SHADER_SCREEN_SPACE,
 
   SHADERS_MAX,
 };
 /// ShaderID
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+// DebugVertex
+struct DebugVertex {
+  Vec2 position; 
+  Vec4 color;
+};
+// DebugVertex
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -41,24 +50,6 @@ struct RenderBatch {
   DynamicArray<Vertex2D> vertices;
 };
 /// RenderBatch
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// DebugBatch
-struct DebugBatch {
-  ShaderID shader_id;
-
-  // Common uniforms
-
-  Mat4 model;
-  Color color;
-
-  // Uniforms that are specific to shaders
-  
-  f32 radius;
-  i32 sides;
-};
-/// DebugBatch
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -94,7 +85,7 @@ struct Renderer {
   HashMap<GfxTexture*, sizei> textures;
 
   DynamicArray<RenderBatch> batches;
-  DynamicArray<DebugBatch> debug_batches;
+  DynamicArray<DebugVertex> debug_vertices;
 
   Color clear_color = Color(1.0f);
 
@@ -104,6 +95,8 @@ struct Renderer {
 
   PostProcessPass* default_pass = nullptr;
   DynamicArray<PostProcessPass*> passes;
+
+  GfxPipeline* screen_pipeline;
 };
 
 static Renderer s_renderer;
@@ -159,11 +152,6 @@ static void default_resize_pass_func(PostProcessPass* pass, const IVec2& new_siz
 ///---------------------------------------------------------------------------------------------------------------------
 /// Private functions
 
-static void batch_clear(RenderBatch& batch) {
-  // @TODO: Possibly other things??
-  batch.vertices.clear();
-}
-
 static void batch_flush(RenderBatch& batch) {
   // Update the vertex buffer
   
@@ -191,7 +179,7 @@ static void batch_flush(RenderBatch& batch) {
   gfx_context_draw(s_renderer.ctx, 0);
 
   // Start on a clean slate
-  batch_clear(batch);
+  batch.vertices.clear();
 }
 
 static void batches_flush_all() {
@@ -386,6 +374,34 @@ void renderer_init(Window* window) {
 
   // Vertex buffer init
 
+  buff_desc = {
+    .data  = nullptr, 
+    .size  = VERTEX_DEBUG_BUFFER_SIZE,
+    .type  = GFX_BUFFER_VERTEX, 
+    .usage = GFX_BUFFER_USAGE_DYNAMIC_DRAW,
+  };
+  s_renderer.debug_pipe_desc.vertex_buffer = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
+  
+  // Layout init
+  
+  s_renderer.debug_pipe_desc.layouts[0].attributes[0]    = GFX_LAYOUT_FLOAT2; // Position 
+  s_renderer.debug_pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_FLOAT4; // Color
+  s_renderer.debug_pipe_desc.layouts[0].attributes_count = 2;
+
+  // Draw mode init 
+  s_renderer.debug_pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE;
+
+  // Pipeline init
+  s_renderer.debug_pipeline = gfx_pipeline_create(s_renderer.ctx, s_renderer.debug_pipe_desc);
+
+  // 
+  // Screen pipeline init 
+  //
+
+  // Vertex buffer init
+  
+  GfxPipelineDesc screen_pipe_desc = {};
+
   f32 vertices[] = {
     -1.0f, -1.0f, 0.0f, 0.0f,
      1.0f, -1.0f, 1.0f, 0.0f,
@@ -403,20 +419,20 @@ void renderer_init(Window* window) {
     .usage = GFX_BUFFER_USAGE_STATIC_DRAW,
   };
 
-  s_renderer.debug_pipe_desc.vertex_buffer  = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
-  s_renderer.debug_pipe_desc.vertices_count = 6;
+  screen_pipe_desc.vertex_buffer  = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
+  screen_pipe_desc.vertices_count = 6;
   
   // Layout init
   
-  s_renderer.debug_pipe_desc.layouts[0].attributes[0]    = GFX_LAYOUT_FLOAT2; // Position 
-  s_renderer.debug_pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_FLOAT2; // Texture coords
-  s_renderer.debug_pipe_desc.layouts[0].attributes_count = 2;
+  screen_pipe_desc.layouts[0].attributes[0]    = GFX_LAYOUT_FLOAT2; // Position 
+  screen_pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_FLOAT2; // Texture coords
+  screen_pipe_desc.layouts[0].attributes_count = 2;
 
   // Draw mode init 
-  s_renderer.debug_pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE;
+  screen_pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE;
 
   // Pipeline init
-  s_renderer.debug_pipeline = gfx_pipeline_create(s_renderer.ctx, s_renderer.debug_pipe_desc);
+  s_renderer.screen_pipeline = gfx_pipeline_create(s_renderer.ctx, screen_pipe_desc);
 
   //
   // Default texture init
@@ -446,9 +462,7 @@ void renderer_init(Window* window) {
 
   AssetID shader_ids[SHADERS_MAX] = {
     asset_group_push_shader(ASSET_CACHE_ID, generate_batch_quad_shader()),
-    asset_group_push_shader(ASSET_CACHE_ID, generate_quad_shader()),
-    asset_group_push_shader(ASSET_CACHE_ID, generate_circle_shader()),
-    asset_group_push_shader(ASSET_CACHE_ID, generate_polygon_shader()),
+    asset_group_push_shader(ASSET_CACHE_ID, generate_debug_shader()),
     asset_group_push_shader(ASSET_CACHE_ID, generate_default_screen_space_shader()),
   };
 
@@ -492,9 +506,11 @@ void renderer_shutdown() {
   s_renderer.textures.clear();
 
   for(auto& batch : s_renderer.batches) {
-    batch_clear(batch);
+    batch.vertices.clear();
   }
+
   s_renderer.batches.clear();
+  s_renderer.debug_vertices.clear();
 
   // Destroy the framebuffers
 
@@ -508,6 +524,7 @@ void renderer_shutdown() {
   
   gfx_pipeline_destroy(s_renderer.pipeline);
   gfx_pipeline_destroy(s_renderer.debug_pipeline);
+  gfx_pipeline_destroy(s_renderer.screen_pipeline);
 
   // Destroy the context
   gfx_context_shutdown(s_renderer.ctx);
@@ -554,33 +571,24 @@ void renderer_end() {
   // Flush the debug batches
   //
 
-  for(auto& batch : s_renderer.debug_batches) {
-    // Get the corresponding shader
-    ShaderContext* shader = s_renderer.shaders[batch.shader_id];
-
-    // Set the common uniforms 
+  {
+  // Update the vertex buffer
   
-    shader_context_set_uniform(shader, "u_color", batch.color);
-    shader_context_set_uniform(shader, "u_model", batch.model);
+    gfx_buffer_upload_data(s_renderer.debug_pipe_desc.vertex_buffer, 
+                           0, 
+                           sizeof(DebugVertex) * s_renderer.debug_vertices.size(), 
+                           s_renderer.debug_vertices.data());
 
-    // Set uniform that are specific to the shader
- 
-    switch(batch.shader_id) {
-      case SHADER_QUAD:
-      case SHADER_CIRCLE:
-        break;
-      case SHADER_POLYGON:
-        shader_context_set_uniform(shader, "u_radius", batch.radius);
-        shader_context_set_uniform(shader, "u_sides", batch.sides);
-        break;
-      default:
-        break;
-    }
+    s_renderer.debug_pipe_desc.vertices_count = s_renderer.debug_vertices.size();
+    gfx_pipeline_update(s_renderer.debug_pipeline, s_renderer.debug_pipe_desc); 
 
     // Use the resources
 
     GfxBindingDesc bind_desc = {
-      .shader = shader->shader,
+      .shader = s_renderer.shaders[SHADER_DEBUG]->shader,
+
+      .textures       = &s_renderer.default_texture, 
+      .textures_count = 1,
     };
     gfx_context_use_bindings(s_renderer.ctx, bind_desc);
 
@@ -588,6 +596,9 @@ void renderer_end() {
 
     gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
     gfx_context_draw(s_renderer.ctx, 0);
+
+    // Start on a clean slate
+    s_renderer.debug_vertices.clear();
   }
 
   //
@@ -601,7 +612,7 @@ void renderer_end() {
 
     // Render the screen-space post-process effect
 
-    gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+    gfx_context_use_pipeline(s_renderer.ctx, s_renderer.screen_pipeline); 
     gfx_context_draw(s_renderer.ctx, 0);
 
     // Set the current pass to render at the end
@@ -634,7 +645,7 @@ void renderer_end() {
 
   // Render the final image
 
-  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.debug_pipeline); 
+  gfx_context_use_pipeline(s_renderer.ctx, s_renderer.screen_pipeline); 
   gfx_context_draw(s_renderer.ctx, 0);
 
   //
@@ -643,7 +654,7 @@ void renderer_end() {
 
   s_renderer.textures.clear();
   s_renderer.batches.clear();
-  s_renderer.debug_batches.clear();
+  s_renderer.debug_vertices.clear();
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -740,56 +751,144 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
   }
 }
 
-void renderer_draw_debug_quad(const Vec2& position, const Vec2& size, const f32 rotation, const Color& color) {
-  // Construct the transform
+void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
+  //
+  // Taken from `batch_generate_quad`, because I'm lazy... 
+  // 
 
-  Transform transform = {
-    .position = position, 
-    .scale    = size,
-    .rotation = rotation,
+  GfxTextureDesc& tex_desc = gfx_texture_get_desc(s_renderer.default_texture);
+  Vec2 texture_size        = Vec2(tex_desc.width, tex_desc.height); 
+
+  Rect2D src = {
+    .size     = texture_size,
+    .position = Vec2(0.0f),
   };
   
-  // Add to the batch
+  Rect2D dest = {
+    .size     = texture_size * transform.scale,
+    .position = transform.position, 
+  };
 
-  s_renderer.debug_batches.emplace_back(SHADER_QUAD, 
-                                        mat4_transform(transform), 
-                                        color, 
-                                        0.0f, 
-                                        0);
+  // 
+  // Generate the vertices 
+  //
+  
+  Vec2 center     = dest.size / 2.0f;
+  Vec2 origin_pos = dest.position - center;
+
+  // Set the default destination rects
+
+  Vec2 top_left     = origin_pos;
+  Vec2 bottom_left  = Vec2(origin_pos.x, origin_pos.y + dest.size.y);
+  Vec2 bottom_right = origin_pos + dest.size;
+  Vec2 top_right    = Vec2(origin_pos.x + dest.size.x, origin_pos.y);
+
+  // Calculate the rotation of each vertex (if there is any rotation)
+  
+  if(transform.rotation != 0.0f) {
+    // Calculate the sine and cosine
+
+    f32 sin_rot = freya::sin(transform.rotation);
+    f32 cos_rot = freya::cos(transform.rotation);
+
+    Vec2 origin = -center;
+
+    // Rotate each corner
+
+    top_left.x = (dest.position.x + origin.x * cos_rot) - (origin.y * sin_rot);
+    top_left.y = (dest.position.y + origin.x * sin_rot) + (origin.y * cos_rot);
+
+    bottom_left.x = (dest.position.x + origin.x * cos_rot) - ((origin.y + dest.size.y) * sin_rot);
+    bottom_left.y = (dest.position.y + origin.x * sin_rot) + ((origin.y + dest.size.y) * cos_rot);
+
+    bottom_right.x = (dest.position.x + (origin.x + dest.size.x) * cos_rot) - ((origin.y + dest.size.y) * sin_rot);
+    bottom_right.y = (dest.position.y + (origin.x + dest.size.x) * sin_rot) + ((origin.y + dest.size.y) * cos_rot);
+
+    top_right.x = (dest.position.x + (origin.x + dest.size.x) * cos_rot) - (origin.y * sin_rot);
+    top_right.y = (dest.position.y + (origin.x + dest.size.x) * sin_rot) + (origin.y * cos_rot);
+  }
+
+  // Top-left
+
+  DebugVertex v1 = {
+    .position = top_left,
+    .color    = color,
+  };
+  s_renderer.debug_vertices.push_back(v1);
+
+  // Bottom-left
+  
+  DebugVertex v2 = {
+    .position = bottom_left,
+    .color    = color,
+  };
+  s_renderer.debug_vertices.push_back(v2);
+
+  // Bottom-right
+  
+  DebugVertex v3 = {
+    .position = bottom_right,
+    .color    = color,
+  };
+  s_renderer.debug_vertices.push_back(v3);
+  s_renderer.debug_vertices.push_back(v3);
+
+  // Top-right
+  
+  DebugVertex v4 = {
+    .position = top_right,
+    .color    = color,
+  };
+  s_renderer.debug_vertices.push_back(v4);
+  s_renderer.debug_vertices.push_back(v1);
 }
 
 void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Color& color) {
-  // Construct the transform
-
-  Transform transform = {
-    .position = position, 
-    .scale    = Vec2(radius),
-  };
-  
-  // Add to the batch
-
-  s_renderer.debug_batches.emplace_back(SHADER_CIRCLE, 
-                                        mat4_transform(transform), 
-                                        color, 
-                                        radius, 
-                                        0);
+  // @TODO (Renderer)
 }
 
-void renderer_draw_debug_polygon(const Vec2& center, const f32 radius, const i32 sides, const Color& color) {
-  // Construct the transform
-
-  Transform transform = {
-    .position = center, 
-    .scale    = Vec2(radius),
-  };
+void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, const Color& color) {
+  ///  
+  /// @NOTE:
+  /// Most of this code came from the wonderful Raylib library. 
+  /// In particular, it was taken from here: https://github.com/raysan5/raylib/blob/master/src/rshapes.c
+  ///
   
-  // Add to the batch
+  f32 radius  = transform.scale.x;
+  Vec2 center = transform.position;
 
-  s_renderer.debug_batches.emplace_back(SHADER_POLYGON, 
-                                        mat4_transform(transform), 
-                                        color, 
-                                        radius, 
-                                        sides);
+  // Calculate the angles
+
+  f32 central_angle = transform.rotation;
+  f32 angle_step    = FREYA_TO_RADIANS(360.0f / (f32)sides);
+
+  //
+  // Generate the vertices 
+  //
+
+  for(i32 i = 0; i < sides; i++) {
+    f32 next_angle = central_angle + angle_step;
+
+    DebugVertex v1 = {
+      .position = center,
+      .color    = color,
+    };
+    s_renderer.debug_vertices.push_back(v1);
+    
+    DebugVertex v2 = {
+      .position = center + Vec2(freya::cos(next_angle), freya::sin(next_angle)) * radius,
+      .color    = color,
+    };
+    s_renderer.debug_vertices.push_back(v2);
+
+    DebugVertex v3 = {
+      .position = center + Vec2(freya::cos(central_angle), freya::sin(central_angle)) * radius,
+      .color    = color,
+    };
+    s_renderer.debug_vertices.push_back(v3);
+
+    central_angle = next_angle;
+  }
 }
 
 /// Renderer functions

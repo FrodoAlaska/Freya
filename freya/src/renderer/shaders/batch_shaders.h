@@ -29,10 +29,10 @@ inline freya::String generate_default_vertex_shader() {
     };
 
     void main() {
-      vs_out.pixel_pos     = aPos;
-      vs_out.normal        = aNormal;
-      vs_out.tex_coords    = aTextureCoords;
-      vs_out.out_color     = aColor;
+      vs_out.pixel_pos  = aPos;
+      vs_out.normal     = aNormal;
+      vs_out.tex_coords = aTextureCoords;
+      vs_out.out_color  = aColor;
 
       gl_Position = u_ortho * vec4(aPos, 0.0f, 1.0f);
     }
@@ -74,12 +74,12 @@ inline freya::String generate_debug_vertex_shader() {
     // Layouts
     
     layout (location = 0) in vec2 aPos;
-    layout (location = 1) in vec2 aTextureCoords;
+    layout (location = 1) in vec4 aColor;
 
     // Outputs
     
     out VS_OUT {
-      vec2 tex_coords;
+      vec4 color;
     } vs_out;
 
     // Buffers
@@ -87,19 +87,15 @@ inline freya::String generate_debug_vertex_shader() {
     layout(std140, binding = 0) uniform MatrixBuffer {
       mat4 u_ortho;
     };
-    
-    // Uniforms
-    uniform mat4 u_model;
 
     void main() {
-      vs_out.tex_coords = aTextureCoords;
-
-      gl_Position = u_ortho * u_model * vec4(aPos, 0.0f, 1.0f);
+      vs_out.color = aColor;
+      gl_Position  = u_ortho * vec4(aPos, 0.0f, 1.0f);
     }
   )";
 }
 
-inline freya::GfxShaderDesc generate_quad_shader() {
+inline freya::GfxShaderDesc generate_debug_shader() {
   return freya::GfxShaderDesc {
     .vertex_source = generate_debug_vertex_shader(),
     .pixel_source  = 
@@ -111,91 +107,11 @@ inline freya::GfxShaderDesc generate_quad_shader() {
       // Inputs
       
       in VS_OUT {
-        vec2 tex_coords;
+        vec4 color;
       } fs_in;
 
-      // Uniforms
-      uniform vec4 u_color;
-
       void main() {
-        frag_color = u_color;
-      }
-    )"
-  };
-}
-
-inline freya::GfxShaderDesc generate_circle_shader() {
-  return freya::GfxShaderDesc {
-    .vertex_source = generate_debug_vertex_shader(),
-    .pixel_source  = 
-      freya::String(FREYA_PIXEL_SHADER_HEADER) +
-      R"(
-      // Outputs
-      layout (location = 0) out vec4 frag_color;
-      
-      // Inputs
-      
-      in VS_OUT {
-        vec2 tex_coords;
-      } fs_in;
-
-      // Uniforms
-      uniform vec4 u_color;
-
-      void main() {
-        vec2 uv    = fs_in.tex_coords.xy * 2.0 - 1.0;
-        float dist = 1.0 - length(uv);
-
-        if(dist < 0.0) {
-          discard;
-        }
-
-        frag_color = u_color;
-      }
-    )"
-  };
-}
-
-inline freya::GfxShaderDesc generate_polygon_shader() {
-  return freya::GfxShaderDesc {
-    .vertex_source = generate_debug_vertex_shader(),
-    .pixel_source  = 
-      freya::String(FREYA_PIXEL_SHADER_HEADER) +
-      R"(
-      // Defines
-      
-      #define PI     3.14159265359
-      #define TWO_PI 6.28318530718
-     
-      // Outputs
-      layout (location = 0) out vec4 frag_color;
-      
-      // Inputs
-      
-      in VS_OUT {
-        vec2 tex_coords;
-      } fs_in;
-
-      // Uniforms
-      
-      uniform vec4 u_color;
-      uniform float u_radius;
-      uniform int u_sides;
-
-      void main() {
-        vec2 uv = fs_in.tex_coords.xy * 2.0 - 1.0;
-
-        float angle  = atan(uv.x, uv.y);
-        float radius = TWO_PI / u_sides;
-
-        float d   = cos(floor(0.5 + angle / u_radius) * u_radius - angle) * length(uv);
-        float val = 1.0 - smoothstep(0.4, 0.41, d);
-
-        if(val <= 0.0) {
-          discard;
-        }
-        
-        frag_color = u_color;
+        frag_color = fs_in.color;
       }
     )"
   };
