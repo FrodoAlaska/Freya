@@ -1,6 +1,7 @@
 #include "freya_entity.h"
 #include "freya_event.h"
 #include "freya_logger.h"
+#include "freya_tilemap.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -304,6 +305,17 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
 NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc) {
   NoiseGenerator* gen = noise_generator_create(desc);
   return world.emplace<NoiseGenerator*>(entt.get_id(), gen);
+}
+
+TileMap& entity_add_tilemap(EntityWorld& world, 
+                            Entity& entt, 
+                            const Vec2& start_pos, 
+                            const Vec2& tile_size, 
+                            const IVec2& tiles_count) {
+  TileMap& tilemap = world.emplace<TileMap>(entt.get_id()); 
+  tilemap_create(tilemap, &world, start_pos, tile_size, tiles_count);
+
+  return tilemap;
 }
 
 bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other) {

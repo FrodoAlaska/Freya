@@ -9,6 +9,14 @@
 namespace freya { // Start of freya
 
 /// ----------------------------------------------------------------------
+/// Forward declarations
+
+struct TileMap;
+
+/// Forward declarations
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// EntityID
 using EntityID = entt::entity;
 /// EntityID
@@ -288,6 +296,14 @@ FREYA_API DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
 /// A helper function to add a noise generator to `entt`, using the information 
 /// in `desc`, mirroring the `noise_generator_create` function.
 FREYA_API NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc);
+
+/// A helper function to add a tile map component to `entt`, using the given 
+/// `start_pos`, `tile_size`, and `tiles_count`, mirroring the `tilemap_create` function.
+FREYA_API TileMap& entity_add_tilemap(EntityWorld& world, 
+                                      Entity& entt, 
+                                      const Vec2& start_pos, 
+                                      const Vec2& tile_size, 
+                                      const IVec2& tiles_count);
 
 /// A helper function to call the on enter collision function for the given `entt` if it's available, 
 /// passing in `other`, and returning `true` if the function was successfully called, and `false` otherwise

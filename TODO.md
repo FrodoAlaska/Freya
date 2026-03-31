@@ -1,7 +1,6 @@
 ## TODO
 
 - ECS 
-    - Add tilemap to the entity system
     - Hierarchy tree? 
     - Search through the world 
     - Custom component
