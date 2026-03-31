@@ -85,7 +85,7 @@ struct Renderer {
   HashMap<GfxTexture*, sizei> textures;
 
   DynamicArray<RenderBatch> batches;
-  DynamicArray<DebugVertex> debug_vertices;
+  DynamicArray<DebugVertex> debug_vertices[GFX_DRAW_MODE_COUNT];
 
   Color clear_color = Color(1.0f);
 
@@ -508,9 +508,11 @@ void renderer_shutdown() {
   for(auto& batch : s_renderer.batches) {
     batch.vertices.clear();
   }
-
   s_renderer.batches.clear();
-  s_renderer.debug_vertices.clear();
+
+  for(sizei i = 0; i < GFX_DRAW_MODE_COUNT; i++) {
+    s_renderer.debug_vertices[i].clear();
+  }
 
   // Destroy the framebuffers
 
@@ -571,15 +573,19 @@ void renderer_end() {
   // Flush the debug batches
   //
 
-  {
-  // Update the vertex buffer
-  
+  for(sizei i = 0; i < GFX_DRAW_MODE_COUNT; i++) {
+    DynamicArray<DebugVertex>& vertices = s_renderer.debug_vertices[i];
+
+    // Update the vertex buffer
+
     gfx_buffer_upload_data(s_renderer.debug_pipe_desc.vertex_buffer, 
                            0, 
-                           sizeof(DebugVertex) * s_renderer.debug_vertices.size(), 
-                           s_renderer.debug_vertices.data());
+                           sizeof(DebugVertex) * vertices.size(), 
+                           vertices.data());
 
-    s_renderer.debug_pipe_desc.vertices_count = s_renderer.debug_vertices.size();
+    s_renderer.debug_pipe_desc.vertices_count = vertices.size();
+    s_renderer.debug_pipe_desc.draw_mode      = (GfxDrawMode)i;
+
     gfx_pipeline_update(s_renderer.debug_pipeline, s_renderer.debug_pipe_desc); 
 
     // Use the resources
@@ -598,7 +604,7 @@ void renderer_end() {
     gfx_context_draw(s_renderer.ctx, 0);
 
     // Start on a clean slate
-    s_renderer.debug_vertices.clear();
+    vertices.clear();
   }
 
   //
@@ -654,7 +660,10 @@ void renderer_end() {
 
   s_renderer.textures.clear();
   s_renderer.batches.clear();
-  s_renderer.debug_vertices.clear();
+
+  for(sizei i = 0; i < GFX_DRAW_MODE_COUNT; i++) {
+    s_renderer.debug_vertices[i].clear();
+  }
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -808,13 +817,15 @@ void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
     top_right.y = (dest.position.y + (origin.x + dest.size.x) * sin_rot) + (origin.y * cos_rot);
   }
 
+  DynamicArray<DebugVertex>& vertices = s_renderer.debug_vertices[GFX_DRAW_MODE_TRIANGLE];
+
   // Top-left
 
   DebugVertex v1 = {
     .position = top_left,
     .color    = color,
   };
-  s_renderer.debug_vertices.push_back(v1);
+  vertices.push_back(v1);
 
   // Bottom-left
   
@@ -822,7 +833,7 @@ void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
     .position = bottom_left,
     .color    = color,
   };
-  s_renderer.debug_vertices.push_back(v2);
+  vertices.push_back(v2);
 
   // Bottom-right
   
@@ -830,8 +841,8 @@ void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
     .position = bottom_right,
     .color    = color,
   };
-  s_renderer.debug_vertices.push_back(v3);
-  s_renderer.debug_vertices.push_back(v3);
+  vertices.push_back(v3);
+  vertices.push_back(v3);
 
   // Top-right
   
@@ -839,8 +850,8 @@ void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
     .position = top_right,
     .color    = color,
   };
-  s_renderer.debug_vertices.push_back(v4);
-  s_renderer.debug_vertices.push_back(v1);
+  vertices.push_back(v4);
+  vertices.push_back(v1);
 }
 
 void renderer_draw_debug_circle(const Vec2& position, const f32 radius, const Color& color) {
@@ -866,6 +877,7 @@ void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, c
   // Generate the vertices 
   //
 
+  DynamicArray<DebugVertex>& vertices = s_renderer.debug_vertices[GFX_DRAW_MODE_TRIANGLE];
   for(i32 i = 0; i < sides; i++) {
     f32 next_angle = central_angle + angle_step;
 
@@ -873,22 +885,42 @@ void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, c
       .position = center,
       .color    = color,
     };
-    s_renderer.debug_vertices.push_back(v1);
+    vertices.push_back(v1);
     
     DebugVertex v2 = {
       .position = center + Vec2(freya::cos(next_angle), freya::sin(next_angle)) * radius,
       .color    = color,
     };
-    s_renderer.debug_vertices.push_back(v2);
+    vertices.push_back(v2);
 
     DebugVertex v3 = {
       .position = center + Vec2(freya::cos(central_angle), freya::sin(central_angle)) * radius,
       .color    = color,
     };
-    s_renderer.debug_vertices.push_back(v3);
+    vertices.push_back(v3);
 
     central_angle = next_angle;
   }
+}
+
+void renderer_queue_debug_line(const Vec2& start, const Vec2& end, const Color& color) {
+  //
+  // Generate the vertices 
+  //
+
+  DynamicArray<DebugVertex>& vertices = s_renderer.debug_vertices[GFX_DRAW_MODE_LINE];
+  
+  DebugVertex v1 = {
+    .position = start,
+    .color    = color,
+  };
+  vertices.push_back(v1);
+  
+  DebugVertex v2 = {
+    .position = end,
+    .color    = color,
+  };
+  vertices.push_back(v2);
 }
 
 /// Renderer functions

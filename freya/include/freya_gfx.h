@@ -332,6 +332,9 @@ enum GfxDrawMode {
   
   /// Will set up the pipeline to draw line strips.
   GFX_DRAW_MODE_LINE_STRIP,
+
+  /// The maximum number of enum entries.
+  GFX_DRAW_MODE_COUNT,
 };
 /// GfxDrawMode
 ///---------------------------------------------------------------------------------------------------------------------

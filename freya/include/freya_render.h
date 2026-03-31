@@ -548,6 +548,13 @@ FREYA_API void renderer_queue_debug_quad(const Transform& transform, const Color
 /// use it other than for simple debug purposes.
 FREYA_API void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, const Color& color);
 
+/// Queue a debug line starting from `start` till `end`, tinted with `color`.
+///
+/// @NOTE: This function is only intended for debug uses. 
+/// It is extremely slow since it draws the geometry immediately. Do not 
+/// use it other than for simple debug purposes.
+FREYA_API void renderer_queue_debug_line(const Vec2& start, const Vec2& end, const Color& color);
+
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
 

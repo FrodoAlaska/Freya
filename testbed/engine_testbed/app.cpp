@@ -72,7 +72,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   };
 
   freya::DynamicBodyComponent& body2 = freya::entity_add_dynamic_body(app->ecs, app->entt2, body2_desc);
-  freya::collider_create(body2.body, freya::ColliderDesc{}, freya::Vec2(32.0f));
+  freya::collider_create(body2.body, freya::ColliderDesc{}, freya::Vec2(32.0f, 64.0f));
 
   freya::entity_add_sprite(app->ecs, app->entt2, freya::AssetID{}, freya::COLOR_WHITE);
 
@@ -127,6 +127,18 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   freya::Vec2 center_screen = (freya::Vec2)freya::window_get_size(app->window) / 2.0f;
   freya::camera_follow_lerp(app->camera, player_pos, -center_screen, delta_time * 2.0f);
+
+  // Ray test
+
+  if(freya::input_key_pressed(freya::KEY_SPACE)) {
+    freya::RayCastDesc ray_desc = {
+      .origin    = player_pos, 
+      .direction = freya::Vec2(1.0f, 0.0f),
+      .distance  = 1000000.0f,
+    };
+
+    freya::physics_world_cast_ray(ray_desc, nullptr);
+  } 
 
   // Update
   freya::entity_world_update(app->ecs, delta_time);

@@ -102,7 +102,7 @@ static b2ShapeDef define_shape_def(const ColliderDesc& desc) {
 static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fraction, void* context) {
   // Build the result
 
-  CastResult result = {
+  CastResult cast_result = {
     .body = b2Shape_GetBody(shape),
 
     .point    = b2vec_to_vec(point),
@@ -114,9 +114,15 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fractio
   
   OnCastHitFn hit_func = s_world.funcs.back();
   s_world.funcs.pop();
+  
+  // Initate the callback
 
-  // Done!
-  return hit_func(result);
+  f32 result = 0.0f;
+  if(hit_func) {
+    result = hit_func(cast_result);
+  }
+
+  return result;
 }
 
 static void b2draw_circle(b2Transform b2transform, f32 radius, b2HexColor b2color, void* context) {
@@ -129,27 +135,34 @@ static void b2draw_circle(b2Transform b2transform, f32 radius, b2HexColor b2colo
 }
 
 static void b2draw_polygon(b2Transform b2transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
-  // Figuring out the size of the polygon
+  if(vertex_count != 4) { // Not a perfect quad
+    Vec2 size = Vec2(radius) * 75.0f;
 
-  Vec2 size = Vec2(radius) * 75.0f;
-  
-  if(vertex_count == 4) { // A perfect quad
-    b2Vec2 max = vertices[0];
-    for(i32 i = 0; i < vertex_count; i++) {
-      max = b2Max(max, vertices[i]);
-    }
+    // Queue the polygon
 
-    size = b2vec_to_vec(max) * 1.5f;
+    Transform transform = {
+      .position = b2vec_to_vec(b2transform.p),
+      .scale    = size,
+      .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
+    };
+    renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
+
+    return;
   }
+ 
+  // Queue a perfect quad
 
-  // Queue the polygon
-
+  Vec2 max = b2vec_to_vec(vertices[0]);
+  for(i32 i = 0; i < vertex_count; i++) {
+    max = vec2_max(max, b2vec_to_vec(vertices[i]));
+  }
+  
   Transform transform = {
     .position = b2vec_to_vec(b2transform.p),
-    .scale    = size,
-    .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
+    .scale    = (max * 2.0f),
+    .rotation = b2Rot_GetAngle(b2transform.q), 
   };
-  renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
+  renderer_queue_debug_quad(transform, s_world.debug_color);
 }
 
 static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
@@ -158,6 +171,13 @@ static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context
     .scale    = Vec2(size) * 100.0f,
   };
   renderer_queue_debug_quad(transform, s_world.debug_color);
+}
+
+static void b2draw_line(b2Vec2 p1, b2Vec2 p2, b2HexColor b2color, void* context) {
+  Vec2 start = b2vec_to_vec(p1);
+  Vec2 end   = b2vec_to_vec(p2);
+
+  renderer_queue_debug_line(start, end, s_world.debug_color);
 }
 
 /// Callbacks
@@ -183,6 +203,7 @@ void physics_world_init(const Vec2& gravity) {
   s_world.draw_def.DrawSolidCircleFcn  = b2draw_circle;
   s_world.draw_def.DrawSolidPolygonFcn = b2draw_polygon;
   s_world.draw_def.DrawPointFcn        = b2draw_point;
+  s_world.draw_def.DrawSegmentFcn      = b2draw_line;
 
   // Done!
   FREYA_LOG_INFO("Successfully initialized the physics world");
@@ -354,6 +375,12 @@ bool physics_world_cast_ray_closest(const RayCastDesc& cast_desc, CastResult& ou
                                                 vec_to_b2vec(cast_desc.origin), 
                                                 vec_to_b2vec(cast_desc.direction) * cast_desc.distance,
                                                 filter);
+
+  // Early out
+
+  if(!b2result.hit) {
+    return false;
+  }
 
   // Write back the result
   
