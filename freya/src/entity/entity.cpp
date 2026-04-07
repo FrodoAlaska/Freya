@@ -318,7 +318,7 @@ TileMap& entity_add_tilemap(EntityWorld& world,
   return tilemap;
 }
 
-bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other) {
+bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other, void* user_data) {
   OnCollisionFn coll_func = nullptr;
 
   // Retrieve the function from the correct component
@@ -338,11 +338,11 @@ bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other) 
 
   // Done!
   
-  coll_func(world, entt, other);
+  coll_func(world, entt, other, user_data);
   return true;
 }
 
-bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other) {
+bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other, void* user_data) {
   OnCollisionFn coll_func = nullptr;
 
   // Retrieve the function from the correct component
@@ -362,7 +362,7 @@ bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other) {
 
   // Done!
   
-  coll_func(world, entt, other);
+  coll_func(world, entt, other, user_data);
   return true;
 }
 

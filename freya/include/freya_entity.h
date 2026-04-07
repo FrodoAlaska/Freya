@@ -43,7 +43,7 @@ const EntityID ENTITY_NULL = entt::null;
 struct Entity;
 
 /// Called when the physics body of `entt` is collided with `other` in the physics world.
-using OnCollisionFn = std::function<void(EntityWorld& world, Entity& entt, Entity& other)>;
+using OnCollisionFn = std::function<void(EntityWorld& world, Entity& entt, Entity& other, void* user_data)>;
 
 /// Callbacks
 /// ----------------------------------------------------------------------
@@ -307,11 +307,11 @@ FREYA_API TileMap& entity_add_tilemap(EntityWorld& world,
 
 /// A helper function to call the on enter collision function for the given `entt` if it's available, 
 /// passing in `other`, and returning `true` if the function was successfully called, and `false` otherwise
-FREYA_API bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other);
+FREYA_API bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other, void* user_data);
 
 /// A helper function to call the on exit collision function for the given `entt` if it's available, 
 /// passing in `other`, and returning `true` if the function was successfully called, and `false` otherwise
-FREYA_API bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other);
+FREYA_API bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other, void* user_data);
 
 /// Retrieve a reference to a generic component `Comp` from `entt` that lives in the given `world`.
 ///
