@@ -559,7 +559,7 @@ FREYA_API void transform_lerp_scale(Transform& trans, const Vec2& scale, const f
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Point functions
+/// Basic collision functions
 
 /// Check if the given `point` is inside the bounds of `position` and `position + size`.
 FREYA_API bool point_in_rect(const Vec2& point, const Vec2& position, const Vec2& size);
@@ -570,7 +570,10 @@ FREYA_API bool point_in_rect(const Vec2& point, const Rect2D& rect);
 /// Check if the given `point` is inside the circle centered at `position` with `radius` radius.
 FREYA_API bool point_in_circle(const Vec2& point, const Vec2& position, const f32 radius);
 
-/// Point functions
+/// Initiate a simple AABB test between the given `r1` and `r2` rectangles.
+FREYA_API bool rect_in_rect(const Rect2D& r1, const Rect2D& r2);
+
+/// Basic collision functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
