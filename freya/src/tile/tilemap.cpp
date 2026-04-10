@@ -99,14 +99,14 @@ void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<E
   }
 }
 
-void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Entity>& out_tiles, const sizei layer) {
+void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Vec2>& out_tiles, const sizei layer) {
   out_tiles.clear();
   IVec2 count = (IVec2)(select_box.size / map.tile_size);
 
   for(i32 i = 0; i < count.x; i++) {
     for(i32 j = 0; j < count.y; j++) {
       Vec2 position = select_box.position + (map.tile_size * Vec2(i, j));
-      out_tiles.push_back(tilemap_get_at(map, position, layer));
+      out_tiles.push_back(position);
     }
   }
 }

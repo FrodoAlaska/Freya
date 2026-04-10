@@ -72,8 +72,9 @@ FREYA_API Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, co
 /// Retrieve all adjacent neighbors of the given `base_tile` in `layer` index, writing the result to `out_tiles`.
 FREYA_API void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles, const sizei layer = 0);
 
-/// Select all tiles within the given `select_box` in `layer` index, writing the result to `out_tiles`.
-FREYA_API void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Entity>& out_tiles, const sizei layer = 0);
+/// Select all positions (that then can be used to retrieve the tiles at those positions) within 
+/// the given `select_box` in `layer` index, writing the result to `out_tiles`.
+FREYA_API void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Vec2>& out_tiles, const sizei layer = 0);
 
 /// Create and place a new tile entity at `x_cell` and `y_cell` in `layer` index.
 FREYA_API Entity& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer = 0);

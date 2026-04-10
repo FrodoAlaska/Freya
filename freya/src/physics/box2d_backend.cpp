@@ -216,6 +216,12 @@ void physics_world_shutdown() {
 }
 
 void physics_world_step(const i32 sub_steps) {
+  // Draw the debug mode (if enabled)
+
+  if(s_world.is_debug) {
+    b2World_Draw(s_world.id, &s_world.draw_def);
+  }
+  
   // Paused the world!
 
   if(s_world.is_paused) {
@@ -234,12 +240,6 @@ void physics_world_step(const i32 sub_steps) {
     b2World_Step(s_world.id, dt, sub_steps);
 
     s_world.timestep -= dt;
-  }
-  
-  // Draw the debug mode (if enabled)
-
-  if(s_world.is_debug) {
-    b2World_Draw(s_world.id, &s_world.draw_def);
   }
 
   //
