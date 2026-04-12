@@ -75,8 +75,8 @@ struct Entity {
     // Assignment operators
     // 
     
-    inline Entity& operator=(const EntityID& other) {_id = other;}
-    inline Entity& operator=(const EntityID&& other) {_id = other;}
+    inline Entity& operator=(const EntityID& other) {_id = other; return *this;}
+    inline Entity& operator=(const EntityID&& other) {_id = other; return *this;}
 
 
     //
