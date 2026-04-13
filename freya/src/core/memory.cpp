@@ -26,7 +26,7 @@ static MemoryState s_state;
 /// Memory functions
 
 void* memory_allocate(const sizei size) {
-  FREYA_ASSERT_LOG((size >= 0), "Cannot allocate a memory block of size 0");
+  FREYA_ASSERT_LOG((size > 0), "Cannot allocate a memory block of size 0");
 
   void* ptr = malloc(size);
   FREYA_ASSERT_LOG(ptr, "Could not allocate any more memory!");

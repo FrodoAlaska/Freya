@@ -13,9 +13,6 @@
 - Renderer
     - Dynamic 2D lighting
 
-- Procedural generation
-    - Play around with proc-gen algorithms. Why not? They're fun.
-
 - Misc.
     - Memory arenas and custom allocaters
 

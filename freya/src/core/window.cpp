@@ -36,6 +36,7 @@ struct Window {
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Callbacks
+
 static void error_callback(int err_code, const char* desc) {
   FREYA_LOG_FATAL("%s", desc);
 }

@@ -285,6 +285,7 @@ void gui_debug_info() {
   { 
     if(ImGui::CollapsingHeader("Memory")) {
       ImGui::Text("Allocations: %zu", memory_get_allocations_count());
+      ImGui::Text("Frees: %zu", memory_get_frees_count());
 
       sizei mbytes = memory_get_allocation_bytes() / MiB(1);
       ImGui::Text("Bytes allocated: %zuMiB", mbytes);

@@ -146,6 +146,13 @@ add_library(${PROJECT_NAME} ${FREYA_BUILD_TYPE} ${FREYA_SOURCES} ${FREYA_HEADERS
 
 ### Linking ###
 ############################################################
+# @TEMP: Tracy leeks a lot of memory when turned on (??), so 
+# we just turn it off for now..
+# 
+# if(NOT FREYA_DISTRIBUTE)
+#   set(FREYA_LIBRARIES "${FREYA_LIBRARIES};TracyClient")
+# endif()
+
 target_include_directories(${PROJECT_NAME} PUBLIC BEFORE 
   ${FREYA_INCLUDES}
 )
@@ -153,10 +160,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC BEFORE
 target_link_libraries(${PROJECT_NAME} PUBLIC 
   ${FREYA_LIBRARIES}
 )
-
-if(NOT FREYA_DISTRIBUTE)
-  target_link_libraries(${PROJECT_NAME} PRIVATE TracyClient)
-endif()
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE 
   "$<$<COMPILE_LANGUAGE:CXX>:${FREYA_PCH}>"

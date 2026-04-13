@@ -47,8 +47,13 @@ FREYA_API String perf_timer_to_string(PerfTimer& timer);
   #define FREYA_PERF_TIMER_END(timer, tag)
 #endif
 
-#define FREYA_PROFILE_FUNCTION()           ZoneScoped
-#define FREYA_PROFILE_FUNCTION_NAMED(name) ZoneScopedN(name)
+#ifndef FREYA_BUILD_DISTRIBUTION
+  #define FREYA_PROFILE_FUNCTION()           ZoneScoped
+  #define FREYA_PROFILE_FUNCTION_NAMED(name) ZoneScopedN(name)
+#else 
+  #define FREYA_PROFILE_FUNCTION()          
+  #define FREYA_PROFILE_FUNCTION_NAMED(name)
+#endif
 
 /// Macros
 ///---------------------------------------------------------------------------------------------------------------------

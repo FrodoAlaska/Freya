@@ -658,9 +658,6 @@ void renderer_end() {
   // Clean the slate!
   //
 
-  s_renderer.textures.clear();
-  s_renderer.batches.clear();
-
   for(sizei i = 0; i < GFX_DRAW_MODE_COUNT; i++) {
     s_renderer.debug_vertices[i].clear();
   }
