@@ -99,14 +99,14 @@ static b2ShapeDef define_shape_def(const ColliderDesc& desc) {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Callbacks
 
-static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 normal, f32 fraction, void* context) {
+static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 b2normal, f32 fraction, void* context) {
   // Build the result
 
   CastResult cast_result = {
     .body = b2Shape_GetBody(shape),
 
     .point    = b2vec_to_vec(point),
-    .normal   = b2vec_to_vec(normal),
+    .normal   = freya::Vec2(b2normal.x, b2normal.y),
     .fraction = fraction,
   };
 
@@ -258,7 +258,7 @@ void physics_world_step(const i32 sub_steps) {
 
     coll_data.body1  = b2Shape_GetBody(event->shapeIdA);
     coll_data.body2  = b2Shape_GetBody(event->shapeIdB);
-    coll_data.normal = b2vec_to_vec(event->manifold.normal); 
+    coll_data.normal = freya::Vec2(event->manifold.normal.x, event->manifold.normal.y);
 
     // Dispatch an event 
 
@@ -386,7 +386,7 @@ bool physics_world_cast_ray_closest(const RayCastDesc& cast_desc, CastResult& ou
   
   out_result.body     = b2Shape_GetBody(b2result.shapeId);
   out_result.point    = b2vec_to_vec(b2result.point);
-  out_result.normal   = b2vec_to_vec(b2result.normal);
+  out_result.normal   = freya::Vec2(b2result.normal.x, b2result.normal.y);
   out_result.fraction = b2result.fraction;
 
   // Done! 

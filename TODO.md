@@ -1,8 +1,10 @@
 ## TODO
 
 - Tilemap colliders?
+- A way to control the resolution of the renderer image independent of the window
 
 - ECS 
+    - Camera controller component
     - Hierarchy tree? 
     - Search through the world 
     - Custom component
