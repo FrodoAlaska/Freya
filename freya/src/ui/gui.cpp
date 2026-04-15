@@ -384,14 +384,14 @@ void gui_edit_camera(const char* name, Camera* camera) {
   // Position
   ImGui::DragFloat2("Position", &camera->position[0], s_gui.big_step);
 
+  // View bounds
+  ImGui::DragInt2("View bounds", &camera->view_bounds[0], s_gui.big_step);
+
   // Zoom
   ImGui::DragFloat("Zoom", &camera->zoom, s_gui.big_step);
 
   // Rotation
   ImGui::DragFloat("Rotation (in radians)", &camera->rotation, s_gui.big_step);
-
-  // Sensitivity
-  ImGui::DragFloat("Sensitivity", &camera->sensitivity, s_gui.small_step);
 
   // Exposure
   ImGui::DragFloat("Exposure", &camera->exposure, s_gui.small_step);

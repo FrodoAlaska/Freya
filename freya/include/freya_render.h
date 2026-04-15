@@ -109,13 +109,27 @@ struct PostProcessPassDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// CameraDesc
 struct CameraDesc {
+  /// The starting position of the camera.
   Vec2 position; 
-  
-  f32 sensitivity = 0.1f;
-  f32 exposure    = 1.0f; 
 
-  f32 zoom     = 1.0f;
+  /// The view bounds of the camera which 
+  /// will be passed to the renderer. 
+  IVec2 view_bounds;
+
+  /// The starting rotation of the camera.
+  ///
+  /// @NOTE: The default value is `0.0f`.
   f32 rotation = 0.0f;
+
+  /// The zoom factor of the camera.
+  ///
+  /// @NOTE: The default value is `1.0f`.
+  f32 zoom     = 1.0f;
+ 
+  /// The HDR exposure of the camera.
+  ///
+  /// @NOTE: The default value is `1.0f`.
+  f32 exposure = 1.0f; 
 };
 /// CameraDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -123,15 +137,16 @@ struct CameraDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Camera 
 struct Camera {
-  Vec2 position; 
+  Vec2 position;
+  IVec2 view_bounds;
+
   f32 zoom, rotation;
 
   Mat4 view       = Mat4(1.0f);
   Mat4 projection = Mat4(1.0f);
   Mat4 view_proj  = Mat4(1.0f);
 
-  f32 sensitivity = 0.1f;
-  f32 exposure    = 1.0f; 
+  f32 exposure = 1.0f; 
 };
 /// Camera 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -393,8 +408,10 @@ FREYA_API void camera_follow_lerp(Camera& cam, const Vec2& target, const Vec2& o
 /// Using the given `cam`, convert the world space `position` to screen space coordinates.
 FREYA_API Vec2 camera_world_to_screen_space(const Camera& cam, const Vec2& position);
 
-/// Using the given `cam` and `window`, convert the screen space `position` to world space coordinates.
-FREYA_API Vec2 camera_screen_to_world_space(const Camera& cam, const Window* window, const Vec2& position);
+/// Using the given `cam`, convert the screen space `position` to world space coordinates.
+///
+/// @NOTE: The bounds size will be taken from `cam.view_bounds`.
+FREYA_API Vec2 camera_screen_to_world_space(const Camera& cam, const Vec2& position);
 
 /// Camera functions
 ///---------------------------------------------------------------------------------------------------------------------

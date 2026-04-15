@@ -546,10 +546,8 @@ void renderer_begin(Camera& camera) {
     .rotation = camera.rotation
   };
 
-  IVec2 window_size = window_get_size(s_renderer.ctx_desc.window);
-
   camera.view       = mat4_transform(camera_transform);
-  camera.projection = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f);
+  camera.projection = mat4_ortho(0.0f, (f32)camera.view_bounds.x, (f32)camera.view_bounds.y, 0.0f);
   camera.view_proj  = camera.projection * camera.view;
 
   // Update the camera buffer

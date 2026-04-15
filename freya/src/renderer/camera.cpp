@@ -1,5 +1,6 @@
 #include "freya_render.h"
 #include "freya_input.h"
+#include "freya_logger.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -9,12 +10,14 @@ namespace freya { // Start of freya
 /// Camera functions
 
 void camera_create(Camera& out_camera, const CameraDesc& desc) {
-  out_camera.position = desc.position;
+  FREYA_DEBUG_ASSERT((out_camera.view_bounds.x >= 0 && out_camera.view_bounds.y >= 0), "Invalid camera view bounds!");
+
+  out_camera.position    = desc.position;
+  out_camera.view_bounds = desc.view_bounds;
+
   out_camera.rotation = desc.rotation;
   out_camera.zoom     = desc.zoom;
-
-  out_camera.sensitivity = 0.1f;
-  out_camera.exposure    = 1.0f;
+  out_camera.exposure = desc.exposure;
 }
 
 void camera_move_top_down(Camera& cam, const Vec2& speed, const f32 delta_time) {
@@ -63,14 +66,12 @@ Vec2 camera_world_to_screen_space(const Camera& cam, const Vec2& position) {
   return Vec2(new_pos.x, new_pos.y);
 }
 
-Vec2 camera_screen_to_world_space(const Camera& cam, const Window* window, const Vec2& position) {
-  IVec2 window_size = window_get_size(window); 
-
+Vec2 camera_screen_to_world_space(const Camera& cam, const Vec2& position) {
   // Converting to the NDC coordinates 
   // (converting the given pixel position to a range of [-1, 1]).
 
-  f32 ndc_x = (position.x / window_size.x) * 2.0f - 1.0f;
-  f32 ndc_y = 1.0f - (position.y / window_size.y) * 2.0f; // Flipping the Y-axis, because OpenGL...
+  f32 ndc_x = (position.x / cam.view_bounds.x) * 2.0f - 1.0f;
+  f32 ndc_y = 1.0f - (position.y / cam.view_bounds.y) * 2.0f; // Flipping the Y-axis, because OpenGL...
 
   Vec4 world_pos = mat4_inverse(cam.view_proj) * Vec4(ndc_x, ndc_y, 0.0f, 1.0f);
 

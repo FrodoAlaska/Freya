@@ -1,5 +1,7 @@
 ## TODO
 
+- Tilemap colliders?
+
 - ECS 
     - Hierarchy tree? 
     - Search through the world 

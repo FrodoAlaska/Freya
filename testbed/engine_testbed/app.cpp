@@ -37,8 +37,9 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Camera init
   
   freya::CameraDesc cam_desc = {
-    .position = freya::Vec2(0.0f),
-    .zoom     = 1.0f,
+    .position    = freya::Vec2(0.0f),
+    .view_bounds = freya::window_get_size(app->window), 
+    .zoom        = 1.0f,
   };
   freya::camera_create(app->camera, cam_desc);
 
@@ -125,7 +126,7 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
 
   freya::physics_body_set_linear_velocity(body.body, direction * 450.0f);
 
-  freya::Vec2 center_screen = (freya::Vec2)freya::window_get_size(app->window) / 2.0f;
+  freya::Vec2 center_screen = (freya::Vec2)app->camera.view_bounds / 2.0f;
   freya::camera_follow_lerp(app->camera, player_pos, -center_screen, delta_time * 2.0f);
 
   // Ray test
