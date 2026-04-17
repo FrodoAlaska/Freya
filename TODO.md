@@ -1,7 +1,7 @@
 ## TODO
 
-- Tilemap colliders?
-- A way to control the resolution of the renderer image independent of the window
+- Tilemap colliders? Maybe using chain shapes?
+- Optimize the tilemap
 
 - ECS 
     - Camera controller component

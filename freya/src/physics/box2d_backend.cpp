@@ -356,7 +356,7 @@ void physics_world_cast_ray(const RayCastDesc& cast_desc, const OnCastHitFn& hit
 
   b2World_CastRay(s_world.id, 
                   vec_to_b2vec(cast_desc.origin), 
-                  vec_to_b2vec(cast_desc.direction) * cast_desc.distance,
+                  b2Vec2(cast_desc.direction.x, cast_desc.direction.y) * cast_desc.distance,
                   filter, 
                   on_cast_hit, 
                   nullptr);
@@ -373,7 +373,7 @@ bool physics_world_cast_ray_closest(const RayCastDesc& cast_desc, CastResult& ou
 
   b2RayResult b2result = b2World_CastRayClosest(s_world.id, 
                                                 vec_to_b2vec(cast_desc.origin), 
-                                                vec_to_b2vec(cast_desc.direction) * cast_desc.distance,
+                                                b2Vec2(cast_desc.direction.x, cast_desc.direction.y) * cast_desc.distance,
                                                 filter);
 
   // Early out
@@ -521,6 +521,22 @@ void physics_body_destroy(PhysicsBodyID& body) {
 
 void physics_body_set_transform(PhysicsBodyID& body, const Vec2 position, const f32 rotation) {
   b2Body_SetTransform(body, vec_to_b2vec(position), b2MakeRot(rotation));
+}
+
+void physics_body_set_transform(PhysicsBodyID& body, const Transform& transform) {
+  physics_body_set_transform(body, transform.position, transform.rotation);
+}
+
+void physics_body_set_target_transform(PhysicsBodyID& body, const Vec2 position, const f32 rotation, const f32 timestep) {
+  b2Transform b2trans; 
+  b2trans.p = vec_to_b2vec(position);
+  b2trans.q = b2MakeRot(rotation);
+
+  b2Body_SetTargetTransform(body, b2trans, timestep);
+}
+
+void physics_body_set_target_transform(PhysicsBodyID& body, const Transform& transform, const f32 timestep) {
+  physics_body_set_target_transform(body, transform.position, transform.rotation, timestep);
 }
 
 void physics_body_set_linear_velocity(PhysicsBodyID& body, const Vec2 velocity) {

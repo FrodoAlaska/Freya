@@ -441,6 +441,18 @@ FREYA_API void physics_body_destroy(PhysicsBodyID& body);
 /// Use with caution.
 FREYA_API void physics_body_set_transform(PhysicsBodyID& body, const Vec2 position, const f32 rotation);
 
+/// Set the transform of the given `body` to `transform`
+///
+/// @NOTE: This works as a teleport and is generally more expensive. 
+/// Use with caution.
+FREYA_API void physics_body_set_transform(PhysicsBodyID& body, const Transform& transform);
+
+/// Set the velocity of the given `body` to reach the target `position` and `rotation` (in radians) after a given `timestep`.
+FREYA_API void physics_body_set_target_transform(PhysicsBodyID& body, const Vec2 position, const f32 rotation, const f32 timestep);
+
+/// Set the velocity of the given `body` to reach the target `transform` after a given `timestep`.
+FREYA_API void physics_body_set_target_transform(PhysicsBodyID& body, const Transform& transform, const f32 timestep);
+
 /// Set the linear velocity of the given `body` to `velocity`.
 FREYA_API void physics_body_set_linear_velocity(PhysicsBodyID& body, const Vec2 velocity);
 

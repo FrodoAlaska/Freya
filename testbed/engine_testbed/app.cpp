@@ -48,7 +48,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
  
   // Entity 1 init
 
-  app->entt1 = freya::entity_create(app->ecs, freya::Vec2(10.0f), freya::Vec2(32.0f));
+  app->entt1 = freya::entity_create(app->ecs, freya::Vec2(0.0f), freya::Vec2(32.0f));
 
   freya::PhysicsBodyDesc body1_desc = {};
   freya::StaticBodyComponent& body1 = freya::entity_add_static_body(app->ecs, app->entt1, body1_desc);
@@ -64,7 +64,7 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
 
   // Entity 2 init
 
-  app->entt2 = freya::entity_create(app->ecs, freya::Vec2(200.0f), freya::Vec2(32.0f));
+  app->entt2 = freya::entity_create(app->ecs, freya::Vec2(48.0f, 0.0f), freya::Vec2(32.0f));
 
   freya::PhysicsBodyDesc body2_desc = {
     .type = freya::PHYSICS_BODY_DYNAMIC,
@@ -104,30 +104,31 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   }
 
   // Move entt2 
-    
+  
   freya::DynamicBodyComponent& body = freya::entity_get_component<freya::DynamicBodyComponent>(app->ecs, app->entt2);
   freya::Vec2 player_pos            = freya::physics_body_get_position(body.body); 
 
-  freya::Vec2 direction = freya::Vec2(0.0f);
+  static freya::i32 current_target = 0;
+  freya::Vec2 targets[]            = {
+    player_pos,
+    freya::Vec2(128.0f, 0.0f),
+    freya::Vec2(256.0f, 0.0f),
+    freya::Vec2(512.0f, 0.0f),
+  };
 
-  if(freya::input_key_down(freya::KEY_W)) {
-    direction.y = -1.0f; 
+  if(freya::input_key_pressed(freya::KEY_LEFT)) {
+    current_target--;
   }
-  else if(freya::input_key_down(freya::KEY_S)) {
-    direction.y = 1.0f; 
-  }
-
-  if(freya::input_key_down(freya::KEY_D)) {
-    direction.x = 1.0f;
-  }
-  else if(freya::input_key_down(freya::KEY_A)) {
-    direction.x = -1.0f;
+  else if(freya::input_key_pressed(freya::KEY_RIGHT)) {
+    current_target++;
   }
 
-  freya::physics_body_set_linear_velocity(body.body, direction * 450.0f);
+  current_target = freya::clamp_int(current_target, 0, 3);
+
+  freya::physics_body_set_target_transform(body.body, targets[current_target], 0.0f, 120.0f * delta_time);
 
   freya::Vec2 center_screen = (freya::Vec2)app->camera.view_bounds / 2.0f;
-  freya::camera_follow_lerp(app->camera, player_pos, -center_screen, delta_time * 2.0f);
+  freya::camera_follow(app->camera, player_pos, -center_screen);
 
   // Ray test
 
@@ -138,7 +139,10 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
       .distance  = 1000000.0f,
     };
 
-    freya::physics_world_cast_ray(ray_desc, nullptr);
+    freya::CastResult result;
+    if(freya::physics_world_cast_ray_closest(ray_desc, result)) {
+      FREYA_LOG_TRACE("HIT!!");
+    }
   } 
 
   // Update
