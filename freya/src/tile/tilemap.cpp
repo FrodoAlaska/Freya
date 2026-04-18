@@ -90,13 +90,33 @@ Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2&
   return tilemap_get_at(map, tile_pos, layer);
 }
 
-void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles, const sizei layer) {
-  out_tiles.clear();
-  for(i32 i = -1; i <= 1; i++) {
-    for(i32 j = -1; j <= 1; j++) {
-      out_tiles.push_back(tilemap_get_neighbor(map, base_tile, IVec2(i, j), layer));
-    }
-  }
+void tilemap_get_neighbors_immediate(TileMap& map, const Entity& base_tile, Array<Entity, 4>& out_tiles, const sizei layer) {
+  /// @NOTE: 
+  ///
+  /// Doing it by hand because I'm lazy and hate double for-loops...
+  /// Also, formatting it because it just looks nice lol.
+  ///
+
+  out_tiles[0] = tilemap_get_neighbor(map, base_tile, IVec2( 0, -1), layer); // Top
+  out_tiles[1] = tilemap_get_neighbor(map, base_tile, IVec2(-1,  0), layer); // Left
+  out_tiles[2] = tilemap_get_neighbor(map, base_tile, IVec2( 0, -1), layer); // Bottom
+  out_tiles[3] = tilemap_get_neighbor(map, base_tile, IVec2(-1,  0), layer); // Right
+}
+
+void tilemap_get_neighbors_all(TileMap& map, const Entity& base_tile, Array<Entity, 8>& out_tiles, const sizei layer) {
+  /// @NOTE: 
+  ///
+  /// Just the same story...
+  ///
+  
+  out_tiles[0] = tilemap_get_neighbor(map, base_tile, IVec2(-1    ), layer); // Top-left
+  out_tiles[1] = tilemap_get_neighbor(map, base_tile, IVec2( 0, -1), layer); // Top-center
+  out_tiles[2] = tilemap_get_neighbor(map, base_tile, IVec2( 1    ), layer); // Top-right
+  out_tiles[3] = tilemap_get_neighbor(map, base_tile, IVec2(-1,  0), layer); // Center-left
+  out_tiles[4] = tilemap_get_neighbor(map, base_tile, IVec2( 1,  0), layer); // Center-right
+  out_tiles[5] = tilemap_get_neighbor(map, base_tile, IVec2(-1,  1), layer); // Bottom-left
+  out_tiles[6] = tilemap_get_neighbor(map, base_tile, IVec2( 0,  1), layer); // Bottom-center
+  out_tiles[7] = tilemap_get_neighbor(map, base_tile, IVec2( 0, -1), layer); // Bottom-right
 }
 
 void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Vec2>& out_tiles, const sizei layer) {

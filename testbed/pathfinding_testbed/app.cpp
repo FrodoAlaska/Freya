@@ -327,8 +327,9 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Camera init
   
   freya::CameraDesc cam_desc = {
-    .position = freya::Vec2(0.0f),
-    .zoom     = 1.0f,
+    .position    = freya::Vec2(0.0f),
+    .view_bounds = freya::window_get_size(app->window),
+    .zoom        = 1.0f,
   };
   freya::camera_create(app->camera, cam_desc);
 

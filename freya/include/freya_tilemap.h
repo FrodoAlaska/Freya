@@ -69,8 +69,29 @@ FREYA_API Entity& tilemap_get_at(TileMap& map, const Vec2& position, const sizei
 /// Retrieve the neighbor tile at `offset` from `base_tile` in `layer`.
 FREYA_API Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset, const sizei layer = 0);
 
-/// Retrieve all adjacent neighbors of the given `base_tile` in `layer` index, writing the result to `out_tiles`.
-FREYA_API void tilemap_get_neighbors(TileMap& map, const Entity& base_tile, DynamicArray<Entity>& out_tiles, const sizei layer = 0);
+/// Retrieve all the immediate neighbors of the given `base_tile` in `layer` index, writing the 
+/// result to `out_tiles`, totaling 4 tiles.
+///
+/// @NOTE: The order will be as follows: 
+///   - Top 
+///   - Left 
+///   - Bottom 
+///   - Right
+FREYA_API void tilemap_get_neighbors_immediate(TileMap& map, const Entity& base_tile, Array<Entity, 4>& out_tiles, const sizei layer = 0);
+
+/// Retrieve all adjacent neighbors of the given `base_tile` in `layer` index, writing the 
+/// result to `out_tiles`, totaling 8 tiles.
+///
+/// @NOTE: The order will be as follows: 
+///   - Top-left 
+///   - Top-center 
+///   - Top-right 
+///   - Center-left 
+///   - Center-right 
+///   - Bottom-left
+///   - Bottom-center
+///   - Bottom-right
+FREYA_API void tilemap_get_neighbors_all(TileMap& map, const Entity& base_tile, Array<Entity, 8>& out_tiles, const sizei layer = 0);
 
 /// Select all positions (that then can be used to retrieve the tiles at those positions) within 
 /// the given `select_box` in `layer` index, writing the result to `out_tiles`.
