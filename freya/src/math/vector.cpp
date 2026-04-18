@@ -39,6 +39,10 @@ const f32 vec2_distance(const Vec2& v1, const Vec2& v2) {
   return glm::length((v2 - v1));
 }
 
+const f32 vec2_manhattan_distance(const Vec2& v1, const Vec2& v2) {
+  return (freya::abs(v1.x - v2.x) + freya::abs(v1.y - v2.y));
+}
+
 const f32 vec2_angle(const Vec2& point1, const Vec2& point2) {
   Vec2 diff = point2 - point1;
   return freya::atan(diff.y, diff.x);

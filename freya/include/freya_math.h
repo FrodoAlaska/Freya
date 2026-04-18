@@ -320,8 +320,11 @@ FREYA_API const Vec2 vec2_max(const Vec2& v1, const Vec2& v2);
 /// Returns the dot product between `v1` and `v2`
 FREYA_API const f32 vec2_dot(const Vec2& v1, const Vec2& v2);
 
-/// Returns the distance between `v1` and `v2`
+/// Returns the euler distance between `v1` and `v2`
 FREYA_API const f32 vec2_distance(const Vec2& v1, const Vec2& v2);
+
+/// Returns the manhattan distance between `v1` and `v2`
+FREYA_API const f32 vec2_manhattan_distance(const Vec2& v1, const Vec2& v2);
 
 /// Returns the angle in radians between `point1` and `point2`
 FREYA_API const f32 vec2_angle(const Vec2& point1, const Vec2& point2);
@@ -364,7 +367,7 @@ FREYA_API const f32 vec3_dot(const Vec3& v1, const Vec3& v2);
 /// Returns the cross product between `v1` and `v2`
 FREYA_API const Vec3 vec3_cross(const Vec3& v1, const Vec3& v2);
 
-/// Returns the distance between `point1` and `point2`
+/// Returns the euler distance between `point1` and `point2`
 FREYA_API const f32 vec3_distance(const Vec3& v1, const Vec3& v2);
 
 /// Returns the resulting rotation of `vec` by `angle`. 

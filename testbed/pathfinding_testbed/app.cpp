@@ -51,16 +51,6 @@ struct PathMap {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// Private functions
-
-static freya::u32 manhattan_dist(const freya::IVec2& v1, const freya::IVec2& v2) {
-  return (freya::u32)(freya::abs(v1.x - v2.x) + freya::abs(v1.y - v2.y));
-}
-
-/// Private functions
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// PathMap functions
 
 void pathmap_create(PathMap& map) {
@@ -128,7 +118,7 @@ void pathmap_calculate(PathMap& map) {
   // Setup the starting node
 
   map.start->g = 0;
-  map.start->h = manhattan_dist(map.start->position, map.end->position);
+  map.start->h = (freya::u32)freya::vec2_manhattan_distance(map.start->position, map.end->position);
   map.start->f = map.start->g + map.start->h;
   map.open_nodes.push_front(map.start);
 
@@ -175,7 +165,7 @@ void pathmap_calculate(PathMap& map) {
       // Calculate the G cost of the neighbor, and see if we 
       // can update it or not
 
-      freya::u32 move_cost = current->g + manhattan_dist(map.start->position, neighbor->position);
+      freya::u32 move_cost = current->g + freya::vec2_manhattan_distance(map.start->position, neighbor->position);
       if(move_cost > neighbor->g) { // We're not responsible for updating this neighbor... skip
         continue;
       }
@@ -183,7 +173,7 @@ void pathmap_calculate(PathMap& map) {
       // Calculate the G, H, and F costs for the neighbor
 
       neighbor->g = move_cost; 
-      neighbor->h = manhattan_dist(neighbor->position, map.end->position);
+      neighbor->h = freya::vec2_manhattan_distance(neighbor->position, map.end->position);
       neighbor->f = neighbor->g + neighbor->h;
 
       neighbor->parent = current;
