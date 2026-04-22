@@ -97,6 +97,10 @@ PostProcessPass* post_process_define_greyscale(Window* window) {
   return greyscale_pass_create(window);
 }
 
+PostProcessPass* post_process_define_vignette(Window* window, const f32 intensity) {
+  return vignette_pass_create(window, intensity);
+}
+
 void post_process_prepare(PostProcessPass* pass) {
   // Prepare the context
 

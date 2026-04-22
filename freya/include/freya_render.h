@@ -369,6 +369,9 @@ FREYA_API PostProcessPass* post_process_define_blur(Window* window);
 /// Create a pre-defined greyscale pass, using the given `window`.
 FREYA_API PostProcessPass* post_process_define_greyscale(Window* window);
 
+/// Create a pre-defined vignette pass, using the given `window` and `intensity` of the vignette.
+FREYA_API PostProcessPass* post_process_define_vignette(Window* window, const f32 intensity = 12.0f);
+
 /// Prepare the given `pass` for rendering.
 ///
 /// @NOTE: This function does not need to be called by any client code. 

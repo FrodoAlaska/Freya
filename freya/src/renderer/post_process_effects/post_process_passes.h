@@ -37,3 +37,15 @@ void greyscale_pass_on_resize(freya::PostProcessPass* pass, const freya::IVec2& 
 
 /// Greyscale pass functions
 ///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Vignette pass functions
+
+freya::PostProcessPass* vignette_pass_create(freya::Window* window, const freya::f32 intensity);
+
+void vignette_pass_on_prepare(freya::PostProcessPass* pass);
+
+void vignette_pass_on_resize(freya::PostProcessPass* pass, const freya::IVec2& new_size);
+
+/// Vignette pass functions
+///---------------------------------------------------------------------------------------------------------------------

@@ -338,6 +338,11 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
   // Path map init
   pathmap_create(app->path);
 
+  // Post-process init
+  
+  freya::PostProcessPass* pass = freya::post_process_define_vignette(app->window, 6.0f);
+  freya::renderer_push_post_process(pass);
+
   // Done!
   return app;
 }

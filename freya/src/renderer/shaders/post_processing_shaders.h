@@ -227,3 +227,59 @@ inline freya::GfxShaderDesc generate_greyscale_shader() {
     )"
   };
 }
+
+inline freya::GfxShaderDesc generate_vignette_shader() {
+  return freya::GfxShaderDesc {
+    .vertex_source = 
+      freya::String(FREYA_VERTEX_SHADER_HEADER) + // @TEMP (Shaders): Ew. Find a better way
+      R"(
+      // Layouts
+      
+      layout (location = 0) in vec2 aPos;
+      layout (location = 1) in vec2 aTextureCoords;
+       
+      // Outputs
+      
+      out VS_OUT {
+        vec2 tex_coords;
+      } vs_out;
+
+      void main() {
+        vs_out.tex_coords = aTextureCoords;
+        gl_Position       = vec4(aPos, 0.0f, 1.0f);
+      }
+    )",
+    .pixel_source = 
+      freya::String(FREYA_PIXEL_SHADER_HEADER) +
+      R"(
+      // Outputs
+      layout (location = 0) out vec4 frag_color;
+       
+      // Inputs
+      
+      in VS_OUT {
+        vec2 tex_coords;
+      } fs_in;
+
+      // Uniforms
+      
+      layout (binding = 0) uniform sampler2D u_input;
+      uniform float u_intensity;
+      
+      void main() {
+        /// @NOTE: 
+        ///
+        /// Taken from: https://www.shadertoy.com/view/lsKSWR
+        ///
+
+        vec2 uv = fs_in.tex_coords;
+        uv     *= 1.0 - uv.xy;
+
+        float vig = uv.x * uv.y * u_intensity;
+        vig       = pow(vig, 0.25);
+
+        frag_color = texture(u_input, fs_in.tex_coords) * vec4(vec3(vig), 1.0);
+      }
+    )"
+  };
+}
