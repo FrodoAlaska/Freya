@@ -89,6 +89,12 @@ struct Entity {
     
     inline bool operator==(const EntityID& rhs) const {return _id == rhs;}
     inline bool operator!=(const EntityID& rhs) const {return _id != rhs;}
+    
+    inline bool operator==(const Entity& rhs) {return _id == rhs.get_id();}
+    inline bool operator!=(const Entity& rhs) {return _id != rhs.get_id();}
+    
+    inline bool operator==(const Entity& rhs) const {return _id == rhs.get_id();}
+    inline bool operator!=(const Entity& rhs) const {return _id != rhs.get_id();}
 
   /// Private members
 
