@@ -125,7 +125,7 @@ elseif(DEFINED EMSCRIPTEN)
   ### Linker Flags ### 
   ###############################
   set(FREYA_LINKER_FLAGS
-    "-sUSE_GLFW=3"
+    "--use-port=contrib.glfw3"
     "-sFORCE_FILESYSTEM=1"
     "-sFULL_ES3=1"
   )
