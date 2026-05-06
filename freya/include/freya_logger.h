@@ -126,18 +126,6 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
 
 #ifdef FREYA_ASSERTS_ENABLED // FREYA_ASSERTS_ENABLED
 
-/// Windows debug break
-
-#if FREYA_PLATFORM_WINDOWS == 1
-  #define DEBUG_BREAK() __debugbreak()
-
-/// Linux debug break
-
-#elif FREYA_PLATFORM_LINUX == 1
-  #define DEBUG_BREAK() __builtin_trap()
-
-#endif
-
 /// Assert if `expr` is false.
 
 #define FREYA_ASSERT(expr)                                            \
@@ -146,7 +134,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
           }                                                           \
           else {                                                      \
             freya::logger_log_assert(#expr, "", __FILE__, __LINE__);  \
-            DEBUG_BREAK();                                            \
+            FREYA_DEBUG_BREAK();                                      \
           }                                                           \
         }
 
@@ -159,7 +147,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
           }                                                           \
           else {                                                      \
             freya::logger_log_assert(#expr, msg, __FILE__, __LINE__); \
-            DEBUG_BREAK();                                            \
+            FREYA_DEBUG_BREAK();                                      \
           }                                                           \
         }
 
@@ -172,7 +160,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
           }                                                           \
           else {                                                      \
             freya::logger_log_assert(#expr, msg, __FILE__, __LINE__); \
-            DEBUG_BREAK();                                            \
+            FREYA_DEBUG_BREAK();                                      \
           }                                                           \
         }
 #else 

@@ -92,17 +92,17 @@ typedef double        f64;
 
 #ifdef FREYA_EXPORT 
 
-  /// Window exports
+  // Window exports
   
   #if FREYA_PLATFORM_WINDOWS == 1
     #define FREYA_API __declspec(dllexport) 
   
-  /// Linux exports
+  // Linux exports
  
   #elif FREYA_PLATFORM_LINUX == 1
     #define FREYA_API __attribute__((visibility("default"))) 
 
-  /// No platform-specific exports
+  // No platform-specific exports
   
   #else 
     #define FREYA_API
@@ -110,20 +110,40 @@ typedef double        f64;
 
 #endif
 
-/// Window imports
+/// Imports
+
+// Windows
 
 #if FREYA_PLATFORM_WINDOWS == 1
   #define FREYA_API __declspec(dllexport) 
 
-/// Linux imports
+// Linux
 
 #elif FREYA_PLATFORM_LINUX == 1
   #define FREYA_API __attribute__((visibility("default"))) 
 
-/// No platform-specific imports
+// No platform-specific imports
 
 #else 
   #define FREYA_API
+#endif
+
+/// Debug break
+
+// Windows
+
+#if FREYA_PLATFORM_WINDOWS == 1
+  #define FREYA_DEBUG_BREAK() __debugbreak()
+
+// Web
+
+#elif FREYA_PLATFORM_WEB == 1
+  #define FREYA_DEBUG_BREAK() __builtin_trap() 
+
+// Linux
+
+#elif FREYA_PLATFORM_LINUX == 1
+  #define FREYA_DEBUG_BREAK() __builtin_trap()
 #endif
 
 /// DEFS

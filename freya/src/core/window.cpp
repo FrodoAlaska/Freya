@@ -13,6 +13,8 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Window
 struct Window {
+  String title;
+
   GLFWwindow* handle  = nullptr;
   GLFWcursor* cursor  = nullptr;
 
@@ -335,10 +337,11 @@ static void set_window_callbacks(Window* window) {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Window functions
 
-Window* window_open(const char* title, const i32 width, const i32 height, i32 flags) {
+Window* window_open(const String& title, const i32 width, const i32 height, i32 flags) {
   Window* window = (Window*)memory_allocate(sizeof(Window));
   memory_zero(window, sizeof(Window));
 
+  window->title    = title;
   window->size     = IVec2(width, height);
   window->old_size = window->size;
   window->flags    = (WindowFlags)flags;
@@ -364,7 +367,7 @@ Window* window_open(const char* title, const i32 width, const i32 height, i32 fl
   }
 
   // Creating the window
-  window->handle = glfwCreateWindow(width, height, title, monitor, nullptr);
+  window->handle = glfwCreateWindow(width, height, window->title.c_str(), monitor, nullptr);
 
   // Setting the new refresh rate
   window->refresh_rate = glfwGetVideoMode(glfwGetPrimaryMonitor())->refreshRate;
@@ -403,7 +406,7 @@ Window* window_open(const char* title, const i32 width, const i32 height, i32 fl
   i32 mode = (window->is_cursor_shown ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
   glfwSetInputMode(window->handle, GLFW_CURSOR, mode);
   
-  FREYA_LOG_INFO("Window: {t = \"%s\", w = %i, h = %i} was successfully opened", title, width, height);
+  FREYA_LOG_INFO("Window: {t = \"%s\", w = %i, h = %i} was successfully opened", title.c_str(), width, height);
   return window;
 }
 
@@ -460,8 +463,8 @@ void* window_get_handle(const Window* window) {
   return window->handle;
 }
 
-const char* window_get_title(const Window* window) {
-  return glfwGetWindowTitle(window->handle);
+const String& window_get_title(const Window* window) {
+  return window->title;
 }
 
 const IVec2 window_get_monitor_size(const Window* window) {
@@ -546,8 +549,9 @@ void window_set_size(Window* window, const IVec2& size) {
   glfwSetWindowSize(window->handle, size.x, size.y);
 }
 
-void window_set_title(Window* window, const char* title) {
-  glfwSetWindowTitle(window->handle, title);
+void window_set_title(Window* window, const String& title) {
+  window->title = title;
+  glfwSetWindowTitle(window->handle, window->title.c_str());
 }
 
 void window_set_position(Window* window, const IVec2& position) {

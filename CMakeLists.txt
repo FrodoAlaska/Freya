@@ -30,37 +30,15 @@ if(WIN32)
   endif()
 endif()
 
-# GLFW
-
-FetchContent_Declare(
-  glfw-3.4 
-  URL https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.zip
-)
-
 # GLM
 
-set(GLM_ENABLE_SIMD_AVX ON)
+if(NOT DEFINED EMSCRIPTEN)
+  set(GLM_ENABLE_SIMD_AVX ON)
+endif()
 
 FetchContent_Declare(
   glm 
   URL https://github.com/g-truc/glm/archive/refs/tags/1.0.1.zip
-)
-
-# OpenAL-Soft
-
-set(ALSOFT_EXAMPLES OFF)
-set(LIBTYPE STATIC)
-
-FetchContent_Declare(
-  OpenAL 
-  URL https://github.com/kcat/openal-soft/archive/refs/tags/latest.zip
-)
-
-# Tracy
-
-FetchContent_Declare(
-  tracy 
-  URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.13.1.zip
 )
 
 # Box2D
@@ -78,7 +56,43 @@ FetchContent_Declare(
   GIT_TAG        f6875a7c13fddd23e79b378065211eaeef5f9509 
 )
 
-FetchContent_MakeAvailable(glfw-3.4 glm OpenAL tracy box2d rmlui)
+# ImGui
+
+FetchContent_Declare(
+  imgui 
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG        docking
+)
+
+# Tracy
+
+FetchContent_Declare(
+  tracy 
+  URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.13.1.zip
+)
+
+FetchContent_MakeAvailable(glm box2d rmlui imgui tracy)
+
+if(NOT DEFINED EMSCRIPTEN) # These libraries are not required when building for the web
+  # GLFW
+
+  FetchContent_Declare(
+    glfw-3.4 
+    URL https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.zip
+  )
+
+  # OpenAL-Soft
+
+  set(ALSOFT_EXAMPLES OFF)
+  set(LIBTYPE STATIC)
+
+  FetchContent_Declare(
+    OpenAL 
+    URL https://github.com/kcat/openal-soft/archive/refs/tags/latest.zip
+  )
+
+  FetchContent_MakeAvailable(glfw-3.4 OpenAL)
+endif()
 ############################################################
 
 ### Project Variables ###
@@ -98,15 +112,25 @@ set(FREYA_INCLUDES
   ${tracy_SOURCE_DIR}/public
   ${box2d_SOURCE_DIR}/public
   ${rmlui_SOURCE_DIR}/Include
+
+  ${imgui_SOURCE_DIR}
+  ${imgui_SOURCE_DIR}/backends
+  ${imgui_SOURCE_DIR}/misc/cpp
 )
 
-set(FREYA_LIBRARIES 
-  glfw 
-  OpenAL
+set(FREYA_COMMON_LIBRARIES 
   box2d
   rmlui
   rmlui_debugger
 )
+
+set(FREYA_LIBRARIES ${FREYA_COMMON_LIBRARIES})
+
+if(NOT DEFINED EMSCRIPTEN)
+  set(FREYA_LIBRARIES "${FREYA_COMMON_LIBRARIES};glfw;OpenAL")
+else()
+  set(FREYA_LIBRARIES "${FREYA_COMMON_LIBRARIES};openal;glfw")
+endif()
 
 # This script includes a bunch of platform-specific variables 
 # and definitions that will be helpful later on. 

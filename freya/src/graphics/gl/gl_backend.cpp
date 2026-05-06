@@ -31,6 +31,7 @@ struct GfxContext {
 ///---------------------------------------------------------------------------------------------------------------------
 /// GfxFramebuffer
 struct GfxFramebuffer {
+  GfxContext* gfx         = nullptr;
   GfxFramebufferDesc desc = {};
   
   u32 clear_flags;
@@ -46,8 +47,8 @@ struct GfxFramebuffer {
 ///---------------------------------------------------------------------------------------------------------------------
 /// GfxBuffer  
 struct GfxBuffer {
-  GfxBufferDesc desc = {};
   GfxContext* gfx    = nullptr;
+  GfxBufferDesc desc = {};
 
   u32 id;
 
@@ -628,6 +629,7 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
 
   GfxFramebuffer* buff = (GfxFramebuffer*)alloc_fn(sizeof(GfxFramebuffer));
 
+  buff->gfx         = gfx;
   buff->desc        = desc; 
   buff->clear_flags = gl_get_clear_flags(desc.clear_flags);
 

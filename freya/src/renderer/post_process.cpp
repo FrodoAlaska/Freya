@@ -11,7 +11,7 @@ namespace freya { // Start of freya
 /// PostProcess functions
 
 PostProcessPass* post_process_create(const PostProcessPassDesc& desc) {
-  FREYA_ASSERT(desc.attachments.size() < RENDER_TARGETS_MAX, "Cannot add more than RENDER_TARGETS_MAX attachments");
+  FREYA_ASSERT_LOG(desc.attachments.size() < RENDER_TARGETS_MAX, "Cannot add more than RENDER_TARGETS_MAX attachments");
 
   //
   // Pass init

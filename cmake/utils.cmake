@@ -31,20 +31,12 @@ if(WIN32)
   set(CMAKE_CXX_FLAGS_DEBUG   ${FREYA_DEBUG_BUILD_FLAGS})
   set(CMAKE_CXX_FLAGS_RELEASE ${FREYA_RELEASE_BUILD_FLAGS})
   ###############################
+  
+  ### Linker Flags ### 
+  ###############################
+  set(FREYA_LINKER_FLAGS "") 
+  ###############################
 elseif(LINUX) 
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug") 
-    set(BUILD_FLAGS 
-      "FREYA_BUILD_DEBUG"
-      "DEBUG"
-      "_DEBUG"
-    )
-  else()
-    set(BUILD_FLAGS 
-      "FREYA_BUILD_RELEASE"
-      "RELEASE"
-    )
-  endif()
-
   ### Definitions ###
   ###############################
   set(FREYA_BUILD_DEFS 
@@ -63,29 +55,35 @@ elseif(LINUX)
  
   ### Build Flags ### 
   ###############################
-  set(FREYA_BUILD_FLAGS
+  set(FREYA_DEBUG_BUILD_FLAGS 
+    "FREYA_BUILD_DEBUG"
+    "DEBUG"
+    "_DEBUG"
+  )
+    
+  set(FREYA_RELEASE_BUILD_FLAGS 
+    "FREYA_BUILD_RELEASE"
+    "RELEASE"
+  )
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug") 
+    set(FREYA_BUILD_FLAGS ${FREYA_DEBUG_BUILD_FLAGS})
+  else()
+    set(FREYA_BUILD_FLAGS ${FREYA_RELEASE_BUILD_FLAGS})
+  endif()
+
+  set(CMAKE_CXX_FLAGS_DEBUG   ${FREYA_DEBUG_BUILD_FLAGS})
+  set(CMAKE_CXX_FLAGS_RELEASE ${FREYA_RELEASE_BUILD_FLAGS})
+  ###############################
+  
+  ### Linker Flags ### 
+  ###############################
+  set(FREYA_LINKER_FLAGS
     "-lm" 
     "-w"
   )
-
-  # TODO (Linux build)
-  set(CMAKE_CXX_FLAGS_DEBUG   ${FREYA_BUILD_FLAGS})
-  set(CMAKE_CXX_FLAGS_RELEASE ${FREYA_BUILD_FLAGS})
   ###############################
-elseif(WEB) # Must be the web, right?
-  if(CMAKE_BUILD_TYPE STREQUAL "Debug") 
-    set(BUILD_FLAGS 
-      "FREYA_BUILD_DEBUG"
-      "DEBUG"
-      "_DEBUG"
-    )
-  else()
-    set(BUILD_FLAGS 
-      "FREYA_BUILD_RELEASE"
-      "RELEASE"
-    )
-  endif()
-
+elseif(DEFINED EMSCRIPTEN)
   ### Definitions ###
   ###############################
   set(FREYA_BUILD_DEFS 
@@ -105,20 +103,31 @@ elseif(WEB) # Must be the web, right?
   ### Build Flags ### 
   ###############################
   set(FREYA_DEBUG_BUILD_FLAGS
-    "-sUSE_GLFW=3"
-    "-sFORCE_FILESYSTEM=1"
-    "-sFULL_ES3=1"
+    "--use-port=contrib.glfw3"
   )
-  
+
   set(FREYA_RELEASE_BUILD_FLAGS
     "-Wall"
-    "-sUSE_GLFW=3"
-    "-sFORCE_FILESYSTEM=1"
-    "-sFULL_ES3=1"
+    "--use-port=contrib.glfw3"
     "-Os"
   )
+
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug") 
+    set(FREYA_BUILD_FLAGS ${FREYA_DEBUG_BUILD_FLAGS})
+  else()
+    set(FREYA_BUILD_FLAGS ${FREYA_RELEASE_BUILD_FLAGS})
+  endif()
   
   set(CMAKE_CXX_FLAGS_DEBUG   ${FREYA_DEBUG_BUILD_FLAGS})
   set(CMAKE_CXX_FLAGS_RELEASE ${FREYA_RELEASE_BUILD_FLAGS})
+  ###############################
+  
+  ### Linker Flags ### 
+  ###############################
+  set(FREYA_LINKER_FLAGS
+    "-sUSE_GLFW=3"
+    "-sFORCE_FILESYSTEM=1"
+    "-sFULL_ES3=1"
+  )
   ###############################
 endif()

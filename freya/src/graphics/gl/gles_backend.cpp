@@ -7,9 +7,8 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-#include <glad/glad.h>
-
-#include <cstring>
+#include "gl_common.h"
+#include <GLFW/glfw3.h>
 
 namespace freya { // Start of freya
 
@@ -33,6 +32,7 @@ struct GfxContext {
 ///---------------------------------------------------------------------------------------------------------------------
 /// GfxFramebuffer
 struct GfxFramebuffer {
+  GfxContext* gfx         = nullptr;
   GfxFramebufferDesc desc = {};
   
   u32 clear_flags;
@@ -189,16 +189,16 @@ static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
 
       bool is_normalized = (gl_comp_type != GL_FLOAT);
 
-      glEnableVertexArrayAttrib(start + j);
-      glVertexArrayAttribFormat(start + j, comp_count, gl_comp_type, is_normalized, stride);
-      glVertexArrayAttribBinding(start + j, i);
+      glEnableVertexAttribArray(start + j);
+      glVertexAttribFormat(start + j, comp_count, gl_comp_type, is_normalized, stride);
+      glVertexAttribBinding(start + j, i);
       
       // Increase the stride for the next round
       stride += size;
     }
 
     strides[i] = stride;
-    glVertexArrayBindingDivisor(pipe->vertex_array, i, pipe->desc.layouts[i].instance_rate);
+    glVertexBindingDivisor(i, pipe->desc.layouts[i].instance_rate);
   }
 }
 
@@ -218,7 +218,7 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
 
   // Glad init
   
-  if(!gladLoadGLES2Loader(glfwGetProcAddress)) {
+  if(!gladLoadGLES2Loader((GLADloadproc)glfwGetProcAddress)) {
     FREYA_LOG_FATAL("Could not create an OpenGL-ES instance");
     return nullptr;
   }
@@ -386,7 +386,7 @@ void gfx_context_use_bindings(GfxContext* gfx, const GfxBindingDesc& binding_des
 
     FREYA_DEBUG_ASSERT(texture, "An invalid texture found in texutres array");
     glBindTexture(texture->gl_type, texture->id);
-    glActivateTexture(GL_TEXTURE0 + i);
+    glActiveTexture(GL_TEXTURE0 + i);
   }
 
   // Bind the images
@@ -431,7 +431,7 @@ void gfx_context_use_bindings(GfxContext* gfx, const GfxBindingDesc& binding_des
 
     FREYA_DEBUG_ASSERT(cubemap, "An invalid cubemap found in cubemaps array");
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->id);
-    glActivateTexture(GL_TEXTURE0 + i);
+    glActiveTexture(GL_TEXTURE0 + i);
   }
 }
 
@@ -576,6 +576,7 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
 
   GfxFramebuffer* buff = (GfxFramebuffer*)alloc_fn(sizeof(GfxFramebuffer));
 
+  buff->gfx         = gfx; 
   buff->desc        = desc; 
   buff->clear_flags = gl_get_clear_flags(desc.clear_flags);
 
@@ -603,7 +604,7 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
     GLenum depth_type = gl_get_attachment_type(desc.depth_attachment->desc.format); 
 
     if(glIsRenderbuffer(desc.depth_attachment->id)) {
-      GLenum access_type = (desc.depth_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_FRAMEBUFFER_DRAW : GL_FRAMEBUFFER_READ;
+      GLenum access_type = (desc.depth_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
       glFramebufferRenderbuffer(access_type, 
                                 depth_type, 
                                 GL_RENDERBUFFER, 
@@ -628,7 +629,7 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
     // write-only purposes.
 
     if(glIsRenderbuffer(desc.stencil_attachment->id)) {
-      GLenum access_type = (desc.stencil_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_FRAMEBUFFER_DRAW : GL_FRAMEBUFFER_READ;
+      GLenum access_type = (desc.depth_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
       glFramebufferRenderbuffer(access_type, 
                                 GL_STENCIL_ATTACHMENT, 
                                 GL_RENDERBUFFER, 
@@ -636,8 +637,8 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
     }
     else {
       glFramebufferTexture2D(GL_FRAMEBUFFER, 
-                             depth_type, 
                              GL_STENCIL_ATTACHMENT, 
+                             GL_TEXTURE_2D,
                              desc.stencil_attachment->id, 
                              0);
     }
@@ -737,7 +738,7 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
     GLenum depth_type = gl_get_attachment_type(desc.depth_attachment->desc.format); 
 
     if(glIsRenderbuffer(desc.depth_attachment->id)) {
-      GLenum access_type = (desc.depth_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_FRAMEBUFFER_DRAW : GL_FRAMEBUFFER_READ;
+      GLenum access_type = (desc.depth_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
       glFramebufferRenderbuffer(access_type, 
                                 depth_type, 
                                 GL_RENDERBUFFER, 
@@ -762,7 +763,7 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
     // write-only purposes.
 
     if(glIsRenderbuffer(desc.stencil_attachment->id)) {
-      GLenum access_type = (desc.stencil_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_FRAMEBUFFER_DRAW : GL_FRAMEBUFFER_READ;
+      GLenum access_type = (desc.depth_attachment->desc.access == GFX_TEXTURE_ACCESS_WRITE) ? GL_DRAW_FRAMEBUFFER : GL_READ_FRAMEBUFFER;
       glFramebufferRenderbuffer(access_type, 
                                 GL_STENCIL_ATTACHMENT, 
                                 GL_RENDERBUFFER, 
@@ -770,8 +771,8 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
     }
     else {
       glFramebufferTexture2D(GL_FRAMEBUFFER, 
-                             depth_type, 
                              GL_STENCIL_ATTACHMENT, 
+                             GL_TEXTURE_2D,
                              desc.stencil_attachment->id, 
                              0);
     }
@@ -792,7 +793,7 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
   }
 
   // Done!
-  glBindFramebuffer(GL_FRAMEBUFFER, gfx->current_target);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->gfx->current_target);
 }
 
 /// Framebuffer functions

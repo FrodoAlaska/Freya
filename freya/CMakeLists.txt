@@ -120,15 +120,17 @@ set(LIBS_SOURCES
   ${FREYA_LIBS_DIR}/glad/glad.c
 
   # imgui
-  ${FREYA_LIBS_DIR}/imgui/backends/imgui_impl_glfw.cpp
-  ${FREYA_LIBS_DIR}/imgui/backends/imgui_impl_opengl3.cpp
-  ${FREYA_LIBS_DIR}/imgui/imgui.cpp
-  ${FREYA_LIBS_DIR}/imgui/imgui_demo.cpp
-  ${FREYA_LIBS_DIR}/imgui/imgui_draw.cpp
-  ${FREYA_LIBS_DIR}/imgui/imgui_stdlib.cpp
-  ${FREYA_LIBS_DIR}/imgui/imgui_stdlib.h
-  ${FREYA_LIBS_DIR}/imgui/imgui_tables.cpp
-  ${FREYA_LIBS_DIR}/imgui/imgui_widgets.cpp
+  
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+
+  ${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
+
+  ${imgui_SOURCE_DIR}/imgui.cpp
+  ${imgui_SOURCE_DIR}/imgui_demo.cpp
+  ${imgui_SOURCE_DIR}/imgui_draw.cpp
+  ${imgui_SOURCE_DIR}/imgui_tables.cpp
+  ${imgui_SOURCE_DIR}/imgui_widgets.cpp
 
   # stb
   ${FREYA_LIBS_DIR}/stb/stb_image.cpp
@@ -154,17 +156,11 @@ add_library(${PROJECT_NAME} ${FREYA_BUILD_TYPE} ${FREYA_SOURCES} ${FREYA_HEADERS
 #   set(FREYA_LIBRARIES "${FREYA_LIBRARIES};TracyClient")
 # endif()
 
-target_include_directories(${PROJECT_NAME} PUBLIC BEFORE 
-  ${FREYA_INCLUDES}
-)
+target_link_options(${PROJECT_NAME} PUBLIC ${FREYA_LINKER_FLAGS})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC 
-  ${FREYA_LIBRARIES}
-)
-
-target_precompile_headers(${PROJECT_NAME} PRIVATE 
-  "$<$<COMPILE_LANGUAGE:CXX>:${FREYA_PCH}>"
-)
+target_include_directories(${PROJECT_NAME} PUBLIC BEFORE ${FREYA_INCLUDES})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${FREYA_LIBRARIES})
+target_precompile_headers(${PROJECT_NAME} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${FREYA_PCH}>")
 ############################################################
 
 ### Compiling Options ###

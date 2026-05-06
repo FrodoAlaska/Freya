@@ -21,6 +21,10 @@
 #include <memory>
 #include <chrono>
 
+#if defined(__EMSCRIPTEN__)
+  #define GLM_FORCE_PURE
+#endif
+
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/ext/quaternion_float.hpp>

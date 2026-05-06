@@ -72,7 +72,7 @@ enum WindowFlags {
 ///   - `WINDOW_FLAGS_HIDE_CURSOR`         = Hide the cursor at creation. The cursor will be shown by default.
 ///   - `WINDOW_FLAGS_FULLSCREEN`          = Set the window to be fullscreen on creation. 
 /// 
-FREYA_API Window* window_open(const char* title, const i32 width, const i32 height, i32 flags);
+FREYA_API Window* window_open(const String& title, const i32 width, const i32 height, i32 flags);
 
 /// Closes the `window` context and clears up any memory.
 FREYA_API void window_close(Window* window);
@@ -111,7 +111,7 @@ FREYA_API const IVec2 window_get_framebuffer_size(const Window* window);
 FREYA_API void* window_get_handle(const Window* window);
 
 /// Retrieve the current title of the `window` context.
-FREYA_API const char* window_get_title(const Window* window);
+FREYA_API const String& window_get_title(const Window* window);
 
 /// Retrieve the current size of the monitor.
 FREYA_API const IVec2 window_get_monitor_size(const Window* window);
@@ -141,7 +141,7 @@ FREYA_API void window_set_show(Window* window, const bool show);
 FREYA_API void window_set_size(Window* window, const IVec2& size);
 
 /// Set the title of the `window` to `title`.
-FREYA_API void window_set_title(Window* window, const char* title);
+FREYA_API void window_set_title(Window* window, const String& title);
 
 /// Set the position of the `window` to `position`.
 FREYA_API void window_set_position(Window* window, const IVec2& position);

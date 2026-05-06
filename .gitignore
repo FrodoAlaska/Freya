@@ -2,6 +2,7 @@
 build/
 build-debug/
 build-release/
+build-web/
 bin/
 obj/
 out/

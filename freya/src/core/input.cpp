@@ -136,7 +136,11 @@ void input_update() {
   memory_copy(s_input.previous_gamepad_state, s_input.current_gamepad_state, sizeof(s_input.current_gamepad_state)); 
   
   // Checking for joystick input every frame to set the current state
-  
+  //
+  // @NOTE: Sadly, the web build does not currently support gamepads. 
+  // So this code will not run on web builds
+
+#if FREYA_PLATFORM_WEB != 1 
   for(i32 i = 0; i < JOYSTICK_ID_LAST; i++) {
     // We don't care about non-gamepad joysticks
    
@@ -153,6 +157,7 @@ void input_update() {
       s_input.current_gamepad_state[i][j] = (gamepad_state.buttons[j] == GLFW_PRESS); 
     }
   }
+#endif
 } 
 
 const bool input_key_pressed(const Key key) {
@@ -215,12 +220,20 @@ const bool input_gamepad_connected(const JoystickID id) {
 }
 
 Vec2 input_gamepad_axis_value(const JoystickID id, const GamepadAxis axis) {
+  Vec2 result = Vec2(0.0f);
+
+  // @NOTE: Check the `input_update` function for more notes about this...
+
+#if FREYA_PLATFORM_WEB != 1 
   GLFWgamepadstate gamepad_state; 
   glfwGetGamepadState(id, &gamepad_state);
   
-  f32 x = gamepad_state.axes[axis];
-  f32 y = gamepad_state.axes[axis + 1];
-  return Vec2(x, y);
+  f32 x  = gamepad_state.axes[axis];
+  f32 y  = gamepad_state.axes[axis + 1];
+  result = Vec2(x, y);
+#endif
+
+  return result;
 }
 
 const bool input_gamepad_button_pressed(const JoystickID id, const GamepadButton button) {
@@ -240,7 +253,13 @@ const bool input_gamepad_button_up(const JoystickID id, const GamepadButton butt
 }
 
 const char* input_gamepad_get_name(const JoystickID id) {
+  // @NOTE: Check the `input_update` function for more notes about this...
+
+#if FREYA_PLATFORM_WEB != 1 
   return glfwGetGamepadName(id);
+#else 
+  return "INVALID";
+#endif
 }
 
 void input_action_bind(const String& action_name, const InputAction action) {
