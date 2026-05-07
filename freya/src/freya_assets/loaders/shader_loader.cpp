@@ -1,6 +1,5 @@
 #include "asset_loaders.h"
 
-#include "freya_assets.h"
 #include "freya_logger.h"
 #include "freya_memory.h"
 

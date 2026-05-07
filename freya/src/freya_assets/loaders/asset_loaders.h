@@ -37,3 +37,11 @@ void audio_loader_unload(freya::AudioBufferDesc& audio_desc);
 
 /// Audio loader functions
 /// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// UIConfig loader functions
+
+bool ui_config_loader_load(const freya::FilePath& path, freya::UIConfig* ui_cfg);
+
+/// UIConfig loader functions
+/// ----------------------------------------------------------------------

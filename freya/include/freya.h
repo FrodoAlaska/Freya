@@ -13,6 +13,7 @@
 #include <freya_audio.h>
 #include <freya_timer.h>
 #include <freya_ui.h>
+#include <freya_gui.h>
 #include <freya_file.h>
 #include <freya_assets.h>
 #include <freya_render.h>

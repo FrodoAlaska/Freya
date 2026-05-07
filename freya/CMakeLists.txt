@@ -52,8 +52,9 @@ set(FREYA_SOURCES
   # Assets/loaders
   ${FREYA_SRC_DIR}/freya_assets/loaders/texture_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/shader_loader.cpp
-  ${FREYA_SRC_DIR}/freya_assets/loaders/audio_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/font_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/audio_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/ui_config_loader.cpp
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp

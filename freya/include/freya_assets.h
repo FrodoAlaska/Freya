@@ -10,7 +10,7 @@ namespace freya { // Start of freya
 
 struct Font;
 struct ShaderContext;
-struct Animation;
+struct UIConfig;
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Assets consts
@@ -41,7 +41,7 @@ enum AssetType {
   ASSET_TYPE_SHADER_CONTEXT,
   ASSET_TYPE_FONT,
   ASSET_TYPE_AUDIO_BUFFER,
-  ASSET_TYPE_UI_STYLE,
+  ASSET_TYPE_UI_CONFIG,
 
   ASSET_TYPES_MAX,
 };
@@ -204,6 +204,10 @@ FREYA_API AssetID asset_group_push_font(const AssetGroupID& group_id, const Dyna
 /// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
+/// Push a new `UIConfig` into `group_id`, using the given `html_source`,
+/// returning a valid `AssetID` to be used later.
+FREYA_API AssetID asset_group_push_ui_config(const AssetGroupID& group_id, const String& html_source);
+
 /// Load a `FRPKG` file at `frpkg_path` and push all of the assts into the given `group_id`. 
 ///
 /// @NOTE: See `asset_group_create` for more information about internal paths.
@@ -262,6 +266,14 @@ FREYA_API Font* asset_group_get_font(const AssetID& id);
 ///   2 - the internal group ID is invalid,
 ///   3 - or the internal type does not match this asset.
 FREYA_API const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id);
+
+/// Retrieve a `UIConfig`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
+FREYA_API const UIConfig& asset_group_get_ui_config(const AssetID& id);
 
 /// AssetGroupID functions
 ///---------------------------------------------------------------------------------------------------------------------

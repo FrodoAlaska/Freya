@@ -851,9 +851,9 @@ UIDocument* ui_document_load(UIContext* ui_ctx, const FilePath& doc_path) {
   return ui_ctx->LoadDocument(doc_path);
 }
 
-UIDocument* ui_document_load_from_memory(UIContext* ui_ctx, const String& doc_src) {
+UIDocument* ui_document_load_from_memory(UIContext* ui_ctx, const UIConfig& ui_cfg) {
   FREYA_DEBUG_ASSERT(ui_ctx, "Invalid UIContext given to ui_document_load_from_memory");
-  return ui_ctx->LoadDocumentFromMemory(doc_src);
+  return ui_ctx->LoadDocumentFromMemory(ui_cfg.html_source);
 }
 
 UIDocument* ui_document_create(UIContext* ui_ctx, const String& maker_name) {

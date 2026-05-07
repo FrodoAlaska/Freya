@@ -1,7 +1,7 @@
 #include "app.h"
 
 #include <freya.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 /// ----------------------------------------------------------------------
 /// App

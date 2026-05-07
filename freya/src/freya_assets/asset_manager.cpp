@@ -25,6 +25,7 @@ struct AssetGroup {
   
   DynamicArray<ShaderContext*> shader_contexts;
   DynamicArray<Font*> fonts;
+  DynamicArray<UIConfig> ui_configs;
 
   HashMap<String, AssetID> named_ids;
 };
@@ -284,6 +285,31 @@ static void build_audio_buffers(File& pkg_file, const ListSection& section) {
   }
 }
 
+static void build_ui_config(File& pkg_file, const ListSection& section) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Write the number of assets of this type
+
+  u16 asset_count = (u16)section.assets.size(); 
+  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  
+  // Load and write all of the assets
+  
+  for(const auto& path : section.assets) {
+    // Write the name of the asset
+
+    FilePath name = filepath_stem(path);
+    file_write_bytes(pkg_file, name);
+
+    // Load and save the asset
+
+    UIConfig ui_cfg{};
+
+    ui_config_loader_load(path, &ui_cfg);
+    file_write_bytes(pkg_file, ui_cfg.html_source);
+  }
+}
+
 static void read_textures(File& file, AssetGroup& group) {
   FREYA_PROFILE_FUNCTION();
   
@@ -406,6 +432,34 @@ static void read_audio_buffers(File& file, AssetGroup& group) {
     memory_free(desc.data); 
 
     FREYA_LOG_DEBUG("Loaded audio buffer \'%s\' from frpkg ", name.c_str());
+  }
+}
+
+static void read_ui_config(File& file, AssetGroup& group) {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Read the count
+
+  u16 count;
+  file_read_bytes(file, &count, sizeof(count));
+
+  // Read the asset
+
+  for(u16 i = 0; i < count; i++) {
+    // Read the name
+
+    String name;
+    file_read_bytes(file, &name);
+
+    // Read the ui config
+
+    String html;
+    file_read_bytes(file, &html);
+
+    // Add the ui config to the group
+    group.named_ids[name] = asset_group_push_ui_config(group.id, html); 
+
+    FREYA_LOG_DEBUG("Loaded UI config \'%s\' from frpkg ", name.c_str());
   }
 }
 
@@ -542,6 +596,9 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
         break;
       case ASSET_TYPE_AUDIO_BUFFER:
         build_audio_buffers(pkg_file, section);
+        break;
+      case ASSET_TYPE_UI_CONFIG:
+        build_ui_config(pkg_file, section);
         break;
       default:
         break;
@@ -725,6 +782,27 @@ AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioB
   return id;
 }
 
+AssetID asset_group_push_ui_config(const AssetGroupID& group_id, const String& html_source) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+  
+  // Create a new UI config
+  UIConfig cfg = {html_source};
+
+  // New audio buffer added!
+  
+  AssetID id;
+  PUSH_ASSET(group, ui_configs, cfg, ASSET_TYPE_UI_CONFIG, id);
+
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed a UI config:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Length = %zu", html_source.size());
+
+  // Done!
+  return id;
+}
+
 bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
@@ -781,6 +859,9 @@ bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpk
       case ASSET_TYPE_AUDIO_BUFFER:
         read_audio_buffers(file, group);
         break;
+      case ASSET_TYPE_UI_CONFIG:
+        read_ui_config(file, group);
+        break;
       default:
         break;
     }
@@ -835,6 +916,11 @@ Font* asset_group_get_font(const AssetID& id) {
 const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id) {
   AssetGroup& group = s_manager.groups[id.get_group_id()];
   return get_asset(id, group.audio_buffers, ASSET_TYPE_AUDIO_BUFFER);
+}
+
+const UIConfig& asset_group_get_ui_config(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.ui_configs, ASSET_TYPE_UI_CONFIG);
 }
 
 /// AssetGroupID functions

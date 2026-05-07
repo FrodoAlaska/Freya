@@ -50,7 +50,7 @@ void engine_init(const AppDesc& desc) {
  
   // Window init 
   
-  s_engine.window = window_open(desc.window_title.c_str(), desc.window_width, desc.window_height, desc.window_flags);
+  s_engine.window = window_open(desc.window_title, desc.window_width, desc.window_height, desc.window_flags);
   FREYA_ASSERT(s_engine.window);
 
   // Useful input actions init

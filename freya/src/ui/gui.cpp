@@ -1,4 +1,4 @@
-#include "freya_ui.h"
+#include "freya_gui.h"
 #include "freya_logger.h"
 #include "freya_memory.h"
 #include "freya_input.h"
