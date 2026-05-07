@@ -135,7 +135,7 @@ static const char* audio_format_str(const AudioBufferFormat format) {
 }
 
 template<typename T> 
-static T get_asset(const AssetID& id, DynamicArray<T>& asset, const AssetType type) {
+static T& get_asset(const AssetID& id, DynamicArray<T>& asset, const AssetType type) {
   FREYA_DEBUG_ASSERT((id == type), "Invalid type when trying to retrieve a resource");
   FREYA_DEBUG_ASSERT((id >= 0 && id <= (i16)asset.size()), "Invalid ID when trying to retrieve a resource");
 
