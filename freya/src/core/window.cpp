@@ -338,8 +338,7 @@ static void set_window_callbacks(Window* window) {
 /// Window functions
 
 Window* window_open(const String& title, const i32 width, const i32 height, i32 flags) {
-  Window* window = (Window*)memory_allocate(sizeof(Window));
-  memory_zero(window, sizeof(Window));
+  Window* window = new Window{};
 
   window->title    = title;
   window->size     = IVec2(width, height);
@@ -406,7 +405,7 @@ Window* window_open(const String& title, const i32 width, const i32 height, i32 
   i32 mode = (window->is_cursor_shown ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
   glfwSetInputMode(window->handle, GLFW_CURSOR, mode);
   
-  FREYA_LOG_INFO("Window: {t = \"%s\", w = %i, h = %i} was successfully opened", title.c_str(), width, height);
+  FREYA_LOG_INFO("Window: {t = \"%s\", w = %i, h = %i} was successfully opened", window->title.c_str(), width, height);
   return window;
 }
 
@@ -417,9 +416,8 @@ void window_close(Window* window) {
 
   glfwDestroyWindow(window->handle);
   glfwTerminate();
-  
-  memory_free(window);
-
+ 
+  delete window;
   FREYA_LOG_INFO("Window was successfully closed");
 }
 
