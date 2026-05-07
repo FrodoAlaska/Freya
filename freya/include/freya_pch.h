@@ -23,6 +23,7 @@
 
 #if defined(__EMSCRIPTEN__)
   #define GLM_FORCE_PURE
+  #undef GLM_FORCE_INTRINSICS
 #endif
 
 #include <glm/glm.hpp>

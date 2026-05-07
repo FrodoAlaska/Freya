@@ -1,19 +1,19 @@
 ## TODO
 
 - Find a way to listen to a directory of files, so that we can reload assets without having to exit the application
+- We have to find a way to add a custom asset in the asset group to make integration with applications easier
+- Add LUA as a configuration file asset using `sol3`?
 
 - Web build testing
-    - Figure out which flags to include in the web build process 
     - Main loop function for both the web and desktop
 
 - ECS 
     - Camera controller component
+    - Animation controller component
     - Make sure to destroy an audio source if it is attached to a soon-to-be destroyed entity
     - Improve the UI situation to make it more compatibale with the ECS
-    - Hierarchy tree? 
     - Search through the world 
     - Custom component
-    - General-purpose scene system? 
 
 - Tilemap
     - Tilemap colliders? Maybe using chain shapes?

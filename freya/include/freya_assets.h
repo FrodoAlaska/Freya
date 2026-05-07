@@ -92,7 +92,7 @@ struct AssetID {
     AssetID() {}
 
     AssetID(const AssetType type, const AssetGroupID& group_id, const i16 id) 
-      :_type(type), _group(group_id), _id(id)
+      :_type(type), _id(id), _group(group_id)
     {}
   
   /// Getters (yuck!)

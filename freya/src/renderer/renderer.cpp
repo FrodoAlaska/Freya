@@ -763,11 +763,6 @@ void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
   GfxTextureDesc& tex_desc = gfx_texture_get_desc(s_renderer.default_texture);
   Vec2 texture_size        = Vec2(tex_desc.width, tex_desc.height); 
 
-  Rect2D src = {
-    .size     = texture_size,
-    .position = Vec2(0.0f),
-  };
-  
   Rect2D dest = {
     .size     = texture_size * transform.scale,
     .position = transform.position, 

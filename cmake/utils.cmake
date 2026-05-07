@@ -128,6 +128,7 @@ elseif(DEFINED EMSCRIPTEN)
     "--use-port=contrib.glfw3"
     "-sFORCE_FILESYSTEM=1"
     "-sFULL_ES3=1"
+    "-sWASM=0"
   )
   ###############################
 endif()
