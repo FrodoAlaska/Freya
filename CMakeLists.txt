@@ -130,6 +130,7 @@ if(NOT DEFINED EMSCRIPTEN)
   set(FREYA_LIBRARIES "${FREYA_COMMON_LIBRARIES};glfw;OpenAL")
 else()
   set(FREYA_LIBRARIES "${FREYA_COMMON_LIBRARIES};openal;glfw")
+  set(CMAKE_EXECUTABLE_SUFFIX ".html")
 endif()
 
 # This script includes a bunch of platform-specific variables 

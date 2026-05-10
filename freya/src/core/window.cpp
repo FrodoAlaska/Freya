@@ -220,13 +220,6 @@ static bool freya_cursor_show_callback(const Event& event, const void* dispatche
   return true;
 }
 
-static bool freya_quit_app_callback(const Event& event, const void* dispatcher, const void* listener) {
-  Window* window = (Window*)listener;
-  glfwSetWindowShouldClose(window->handle, GLFW_TRUE);
-
-  return true;
-}
-
 /// Callbacks
 ///---------------------------------------------------------------------------------------------------------------------
 

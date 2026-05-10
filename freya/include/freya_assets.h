@@ -6,11 +6,18 @@
 
 namespace freya { // Start of freya
 
-// Forward declarations
+///---------------------------------------------------------------------------------------------------------------------
+/// Forward declarations
 
 struct Font;
 struct ShaderContext;
 struct UIConfig;
+
+template<typename TAsset, typename TAssetDesc>
+struct AssetCollection;
+
+/// Forward declarations
+///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Assets consts
@@ -31,6 +38,35 @@ const i32 ASSET_CACHE_ID      = 0;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Callbacks
+
+/// Called upon the asset's push operation, taking in a template `TAssetDesc`, and 
+/// returning a `TAsset` type.
+template<typename TAsset, typename TAssetDesc>
+using OnCreateFunc    = std::function<TAsset&(const TAssetDesc& desc)>;
+
+/// Called upon the asset's destruction, taking in the asset of `TAsset` type.
+template<typename TAsset>
+using OnDestroyFunc   = std::function<void(TAsset& asset)>;
+
+/// Called upon the asset's build operation, given the `pkg_file` currently being written to, and
+/// the `asset_path`, returning either `true` on success and `false` otherwise.
+using OnAssetBuildFn  = std::function<bool(File& pkg_file, const FilePath& asset_path)>;
+
+/// Called upon the asset's load operation from the package, given the `pkg_file` currently 
+/// being read from, and `out_desc` of type `TAssetDesc` which the function will write to.
+template<typename TAssetDesc>
+using OnAssetLoadFn   = std::function<void(File& pkg_file, TAssetDesc& out_desc)>;
+
+/// Called after loading and pushing the asset, making sure to get rid of any dangling 
+/// data found in `desc`.
+template<typename TAssetDesc>
+using OnAssetUnloadFn = std::function<void(TAssetDesc& desc)>;
+
+/// Callbacks
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// AssetType
 enum AssetType {
   ASSET_TYPE_INVALID = -1,
@@ -42,8 +78,12 @@ enum AssetType {
   ASSET_TYPE_FONT,
   ASSET_TYPE_AUDIO_BUFFER,
   ASSET_TYPE_UI_CONFIG,
+  ASSET_TYPE_CUSTOM,
 
-  ASSET_TYPES_MAX,
+  /// @NOTE: Any custom type is allowed to be between 
+  /// `ASSET_TYPE_CUSTOM` and `ASSET_TYPES_MAX - 1`.
+
+  ASSET_TYPES_MAX = ASSET_TYPE_CUSTOM + 8,
 };
 /// AssetType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -149,6 +189,26 @@ struct AssetID {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// AssetGroup 
+struct AssetGroup {
+  String name; 
+  AssetGroupID id;
+
+  DynamicArray<GfxBuffer*> buffers;
+  DynamicArray<GfxTexture*> textures;
+  DynamicArray<GfxShader*> shaders;
+  DynamicArray<AudioBufferID> audio_buffers;
+  
+  DynamicArray<ShaderContext*> shader_contexts;
+  DynamicArray<Font*> fonts;
+  DynamicArray<UIConfig> ui_configs;
+
+  HashMap<String, AssetID> named_ids;
+};
+/// AssetGroup 
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Asset manager functions
 
 /// Initialize the global asset manager.
@@ -157,6 +217,9 @@ FREYA_API void asset_manager_init();
 /// Shutdown the global asset manager, reclaming any memory in the process 
 /// and destroying the cache asset group.
 FREYA_API void asset_manager_shutdown();
+
+/// Retrieve a reference to an `AssetGroup` object using the given `group_id`.
+FREYA_API AssetGroup& asset_manager_get_group(const AssetGroupID& group_id);
 
 /// Asset manager functions
 ///---------------------------------------------------------------------------------------------------------------------

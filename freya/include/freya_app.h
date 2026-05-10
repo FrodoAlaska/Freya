@@ -10,11 +10,8 @@
   /// with unnecessary crap, this define should disable 
   /// that completely.
   ///
-
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
-#elif FREYA_PLATFORM_WEB == 1
-  #include <emscripten.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -25,25 +22,14 @@ namespace freya { // Start of freya
 /// Macros 
 
 #if FREYA_PLATFORM_WINDOWS == 1
- 
-  /// The entry point to a C++ application
+  
   #define FREYA_MAIN(engine_main)                                                         \
   int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev_inst, LPSTR cmd_line, int cmd_show) { \
     return engine_main(0, &cmd_line);                                                     \
   }                                                                                       \
 
-#elif FREYA_PLATFORM_WEB == 1
-
-  /// The entry point to an Emscripten application
-  #define FREYA_MAIN(engine_main)                    \
-  int main(int argc, char** argv) {                  \
-    emscripten_set_main_loop(engine_main, 60, true); \
-    return 0;                                        \
-  }                                                  \
-
-#elif FREYA_PLATFORM_LINUX == 1
-
-  /// The entry point to a C++ application
+#elif (FREYA_PLATFORM_LINUX == 1) || (FREYA_PLATFORM_WEB == 1)
+ 
   #define FREYA_MAIN(engine_main)   \
   int main(int argc, char** argv) { \
     return engine_main(argc, argv); \

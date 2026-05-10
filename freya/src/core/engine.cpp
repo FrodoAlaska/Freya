@@ -1,5 +1,9 @@
 #include "freya.h"
 
+#if FREYA_PLATFORM_WEB == 1
+  #include <emscripten/html5.h>
+#endif
+
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
@@ -26,6 +30,50 @@ static Engine s_engine;
 #define CHECK_VALID_CALLBACK(func, ...) if(func) func(__VA_ARGS__); 
 
 /// Macros
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Callbacks
+
+static bool on_app_quit(const Event& event, const void* dispatcher, const void* listener) {
+  s_engine.is_running = false;
+  return true;
+}
+
+/// Callbacks
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Private functions
+
+static bool update_and_render(f64 dt, void* user_data) {
+  // Poll for input events
+  window_poll_events(s_engine.window);
+
+  // Physics world update
+  physics_world_step();
+
+  // Update 
+  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, s_engine.app, (f32)clock_get_delta_time());
+
+  // Render
+
+  CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn, s_engine.app);
+  CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn, s_engine.app);
+
+  // Update the internal systems
+
+  input_update();
+  clock_update();
+
+  // Present
+  gfx_context_present(s_engine.gfx_context); 
+
+  // Done!
+  return s_engine.is_running;
+}
+
+/// Private functions
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -98,35 +146,20 @@ void engine_init(const AppDesc& desc) {
   
   FREYA_DEBUG_ASSERT(s_engine.app_desc.init_fn, "Cannot start the engine with an invalid application initialization callback");
   s_engine.app = s_engine.app_desc.init_fn(cli_args, s_engine.window);
+ 
+  // Listen to events
+  event_register(EVENT_APP_QUIT, on_app_quit);
 
   // Done!
   FREYA_LOG_INFO("Successfully initialized the application \'%s\'", desc.window_title.c_str());
 }
 
 void engine_run() {
-  while(window_is_open(s_engine.window)) {
-    // Poll for input events
-    window_poll_events(s_engine.window);
-
-    // Physics world update
-    physics_world_step();
-
-    // Update 
-    CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, s_engine.app, (f32)clock_get_delta_time());
-
-    // Render
-    
-    CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn, s_engine.app);
-    CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn, s_engine.app);
-    
-    // Update the internal systems
-
-    input_update();
-    clock_update();
-
-    // Present
-    gfx_context_present(s_engine.gfx_context); 
-  }
+#if FREYA_PLATFORM_WEB == 1
+  emscripten_request_animation_frame_loop(update_and_render, nullptr);
+#else
+  while(update_and_render(0.0, nullptr));
+#endif
 }
 
 void engine_shutdown() {

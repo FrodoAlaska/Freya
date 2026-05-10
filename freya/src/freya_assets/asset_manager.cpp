@@ -12,27 +12,6 @@
 namespace freya { // Start of freya
 
 /// ----------------------------------------------------------------------
-/// AssetGroup 
-struct AssetGroup {
-  String name; 
-  AssetGroupID id;
-
-  DynamicArray<GfxBuffer*> buffers;
-  DynamicArray<GfxTexture*> textures;
-  DynamicArray<GfxCubemap*> cubemaps;
-  DynamicArray<GfxShader*> shaders;
-  DynamicArray<AudioBufferID> audio_buffers;
-  
-  DynamicArray<ShaderContext*> shader_contexts;
-  DynamicArray<Font*> fonts;
-  DynamicArray<UIConfig> ui_configs;
-
-  HashMap<String, AssetID> named_ids;
-};
-/// AssetGroup 
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// AssetManager 
 struct AssetManager {
   AssetGroupID cache_id;
@@ -488,6 +467,10 @@ void asset_manager_shutdown() {
 
   // Done!
   FREYA_LOG_INFO("The global asset manager was successfully shutdown");
+}
+
+AssetGroup& asset_manager_get_group(const AssetGroupID& group_id) {
+  return s_manager.groups[group_id.get_id()];
 }
 
 /// Asset manager functions

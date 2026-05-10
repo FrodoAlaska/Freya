@@ -1,6 +1,6 @@
 #include "app.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
   freya::AppDesc app_desc {
     .init_fn     = app_init,
     .shutdown_fn = app_shutdown,
@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
     .window_title  = "Freya Testbed", 
     .window_width  = 1600, 
     .window_height = 900, 
-    .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_RESIZABLE | freya::WINDOW_FLAGS_CENTER_MOUSE),
+    .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_CENTER_MOUSE),
 
     .args_values = argv, 
     .args_count  = argc,
@@ -25,4 +25,4 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-// FREYA_MAIN(engine_run);
+// FREYA_MAIN(engine_main);
