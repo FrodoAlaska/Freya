@@ -85,7 +85,7 @@ Of course, the project can be built regardless of this build script. This is not
 
 ## Simple Example 
 
-Below is a example of the Freya Engine being used.
+Below is a simple example of the Freya Engine being used.
 
 ```c++
 #include <freya.h>
