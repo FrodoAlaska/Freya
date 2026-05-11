@@ -1,31 +1,31 @@
 #include "app.h"
 
 #include <freya.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 /// ----------------------------------------------------------------------
 /// App
-struct freya::App {
+struct App {
   freya::Window* window;
   freya::Camera camera;
   freya::AssetGroupID group_id;
 
   freya::EntityWorld ecs;
 };
+
+static App s_app;
 /// App
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// App functions 
 
-freya::App* app_init(const freya::Args& args, freya::Window* window) {
+bool app_init(const freya::Args& args, freya::Window* window) {
   // App init
-  
-  freya::App* app = new freya::App{};
   freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
   // Window init
-  app->window = window;
+  s_app.window = window;
 
   // Editor init
   freya::gui_init(window);
@@ -36,24 +36,22 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     .position = freya::Vec2(0.0f),
     .zoom     = 1.0f,
   };
-  freya::camera_create(app->camera, cam_desc);
+  freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
-  app->group_id = freya::asset_group_create("app_assets");
+  s_app.group_id = freya::asset_group_create("app_assets");
   
   // Done!
-  return app;
+  return true;
 }
 
-void app_shutdown(freya::App* app) {
-  freya::entity_world_clear(app->ecs);
-  freya::asset_group_destroy(app->group_id);
+void app_shutdown() {
+  freya::entity_world_clear(s_app.ecs);
+  freya::asset_group_destroy(s_app.group_id);
   freya::gui_shutdown();
-
-  delete app;
 }
 
-void app_update(freya::App* app, const freya::f32 delta_time) {
+void app_update(freya::f32 dt) {
   // Quit the application when the specified exit key is pressed
   
   if(freya::input_key_pressed(freya::KEY_ESCAPE)) {
@@ -62,17 +60,17 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   }
 
   // Update the ECS 
-  freya::entity_world_update(app->ecs, delta_time);
+  freya::entity_world_update(s_app.ecs, dt);
 
   // Move the camera
-  freya::camera_move_top_down(app->camera, freya::Vec2(150.0f), delta_time);
+  freya::camera_move_top_down(s_app.camera, freya::Vec2(150.0f), dt);
 }
 
-void app_render(freya::App* app) {
+void app_render() {
   // 2D render
 
-  freya::renderer_begin(app->camera);
-  freya::entity_world_render(app->ecs);
+  freya::renderer_begin(s_app.camera);
+  freya::entity_world_render(s_app.ecs);
   freya::renderer_end();
 
   // UI render
@@ -81,7 +79,7 @@ void app_render(freya::App* app) {
   freya::ui_renderer_end();
 }
 
-void app_render_gui(freya::App* app) {
+void app_render_gui() {
   freya::gui_begin(); 
  
   // Debug
@@ -90,7 +88,7 @@ void app_render_gui(freya::App* app) {
   // Editor
    
   freya::gui_begin_panel("Editor");
-  freya::gui_edit_camera("Camera", &app->camera);
+  freya::gui_edit_camera("Camera", &s_app.camera);
   freya::gui_end_panel();
 
   freya::gui_end();

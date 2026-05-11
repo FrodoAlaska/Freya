@@ -16,22 +16,22 @@ set(TESTBED_INCLUDES
   ${TESTBED_INCLUDE_DIR}
 )
 
-set(TESTBED_TYPE 
-  "engine_testbed"
-  # "pathfinding_testbed"
+set(CURRENT_TESTBED 
+  # "engine_testbed"
   # "noise_testbed"
+  # "pathfinding_testbed"
+  # "physics_testbed"
   # "poisson_testbed"
   # "tilemap_testbed"
-  # "physics_testbed"
-  # "ui_testbed"
+  "ui_testbed"
 )
 ############################################################
 
 ### Project Sources ###
 ############################################################
 set(TESTBED_SOURCES 
-  ${TESTBED_SRC_DIR}/${TESTBED_TYPE}/main.cpp
-  ${TESTBED_SRC_DIR}/${TESTBED_TYPE}/app.cpp
+  ${TESTBED_SRC_DIR}/${CURRENT_TESTBED}/app.cpp
+  ${TESTBED_SRC_DIR}/${CURRENT_TESTBED}/main.cpp
 )
 ############################################################
 

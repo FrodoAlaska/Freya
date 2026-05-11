@@ -45,8 +45,8 @@ namespace freya { // Start of freya
 /// Specify shader headers for OpenGL-ES
 
 #elif (FREYA_GFX_GLES == 1)
-  #define FREYA_VERTEX_SHADER_HEADER "#version 320 es"
-  #define FREYA_PIXEL_SHADER_HEADER  "#version 320 es\nprecision mediump float"
+  #define FREYA_VERTEX_SHADER_HEADER "#version 300 es"
+  #define FREYA_PIXEL_SHADER_HEADER  "#version 300 es\nprecision mediump float"
 #endif
 
 /// DEFS

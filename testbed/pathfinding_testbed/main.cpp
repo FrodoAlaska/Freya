@@ -1,6 +1,6 @@
 #include "app.h"
 
-void engine_main() {
+int main(int argc, char* arv[]) {
   freya::AppDesc app_desc {
     .init_fn     = app_init,
     .shutdown_fn = app_shutdown,
@@ -14,10 +14,7 @@ void engine_main() {
     .window_height = 900, 
     .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_RESIZABLE | freya::WINDOW_FLAGS_CENTER_MOUSE),
   };
-
-  freya::engine_init(app_desc);
-  freya::engine_run();
-  freya::engine_shutdown();
+  return freya::engine_run(app_desc);
 }
 
-FREYA_MAIN(engine_main);
+// FREYA_MAIN(engine_main);

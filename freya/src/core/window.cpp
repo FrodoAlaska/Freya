@@ -320,9 +320,7 @@ static void set_window_callbacks(Window* window) {
   glfwSetJoystickCallback(joystick_callback); 
 
   // Listen to events
-  
   event_register(EVENT_MOUSE_CURSOR_SHOWN, freya_cursor_show_callback, window);
-  event_register(EVENT_APP_QUIT, freya_quit_app_callback, window);
 }
 /// Private functions
 ///---------------------------------------------------------------------------------------------------------------------

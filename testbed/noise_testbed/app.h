@@ -5,15 +5,15 @@
 /// ----------------------------------------------------------------------
 /// App functions 
 
-freya::App* app_init(const freya::Args& args, freya::Window* window);
+bool app_init(const freya::Args& args, freya::Window* window);
 
-void app_shutdown(freya::App* app);
+void app_shutdown();
 
-void app_update(freya::App* app, const freya::f32 delta_time);
+void app_update(freya::f32 dt);
 
-void app_render(freya::App* app);
+void app_render();
 
-void app_render_gui(freya::App* app);
+void app_render_gui();
 
 /// App functions 
 /// ----------------------------------------------------------------------

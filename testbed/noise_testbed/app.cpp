@@ -1,7 +1,7 @@
 #include "app.h"
 
 #include <freya.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 /// ----------------------------------------------------------------------
 /// Consts
@@ -14,7 +14,7 @@ const freya::u32 TEXTURE_HEIGHT = 256;
 
 /// ----------------------------------------------------------------------
 /// App
-struct freya::App {
+struct App {
   freya::Window* window;
   freya::Camera camera;
   freya::AssetGroupID group_id;
@@ -23,22 +23,24 @@ struct freya::App {
   freya::DynamicArray<freya::Color> color_values;
   freya::GfxTexture* noise_texture;
 };
+
+static App s_app;
 /// App
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// Private functions
 
-static void generate_texture(freya::App* app) {
+static void generate_texture() {
   // Setting the color values
 
   for(freya::i32 y = 0; y < TEXTURE_HEIGHT; y++) {
     for(freya::i32 x = 0; x < TEXTURE_WIDTH; x++) {
       freya::Vec2 coords = freya::Vec2((freya::f32)x, (freya::f32)y);
-      freya::noise_generator_domain_warp(app->generator, coords);
+      freya::noise_generator_domain_warp(s_app.generator, coords);
 
-      freya::f32 noise    = (freya::noise_generator_get(app->generator, coords) + 1) * 0.5f; // Changing the range from [-1 1] to [0 1]
-      freya::Color& color = app->color_values[y * TEXTURE_WIDTH + x];
+      freya::f32 noise    = (freya::noise_generator_get(s_app.generator, coords) + 1) * 0.5f; // Changing the range from [-1 1] to [0 1]
+      freya::Color& color = s_app.color_values[y * TEXTURE_WIDTH + x];
 
       color = freya::Color(noise);
     }
@@ -46,13 +48,13 @@ static void generate_texture(freya::App* app) {
   
   // Update the pixels for the color texture
 
-  freya::GfxTextureDesc& tex_desc = freya::gfx_texture_get_desc(app->noise_texture);
+  freya::GfxTextureDesc& tex_desc = freya::gfx_texture_get_desc(s_app.noise_texture);
 
   tex_desc.width  = TEXTURE_WIDTH;
   tex_desc.height = TEXTURE_HEIGHT;
-  tex_desc.data   = (void*)app->color_values.data();
+  tex_desc.data   = (void*)s_app.color_values.data();
 
-  freya::gfx_texture_reload(app->noise_texture, tex_desc);
+  freya::gfx_texture_reload(s_app.noise_texture, tex_desc);
 }
 
 /// Private functions
@@ -61,14 +63,12 @@ static void generate_texture(freya::App* app) {
 /// ----------------------------------------------------------------------
 /// App functions 
 
-freya::App* app_init(const freya::Args& args, freya::Window* window) {
+bool app_init(const freya::Args& args, freya::Window* window) {
   // App init
-  
-  freya::App* app = new freya::App{};
   freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
   // Window init
-  app->window = window;
+  s_app.window = window;
 
   // Editor init
   freya::gui_init(window);
@@ -79,11 +79,11 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     .position = freya::Vec2(-800.0f, -450.0f),
     .zoom     = 0.01f,
   };
-  freya::camera_create(app->camera, cam_desc);
+  freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
 
-  app->group_id = freya::asset_group_create("app_assets");
+  s_app.group_id = freya::asset_group_create("app_assets");
 
   freya::GfxTextureDesc tex_desc = {
     .width  = TEXTURE_WIDTH, 
@@ -94,28 +94,26 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     .filter    = freya::GFX_TEXTURE_FILTER_MIN_MAG_NEAREST,  
     .wrap_mode = freya::GFX_TEXTURE_WRAP_CLAMP,
   };
-  app->noise_texture = freya::asset_group_get_texture(freya::asset_group_push_texture(app->group_id, tex_desc));
+  s_app.noise_texture = freya::asset_group_get_texture(freya::asset_group_push_texture(s_app.group_id, tex_desc));
 
   // Noise generator init
   
-  app->generator = freya::noise_generator_create(freya::NoiseGeneratorDesc{});
-  app->color_values.resize(TEXTURE_WIDTH * TEXTURE_HEIGHT);
+  s_app.generator = freya::noise_generator_create(freya::NoiseGeneratorDesc{});
+  s_app.color_values.resize(TEXTURE_WIDTH * TEXTURE_HEIGHT);
 
-  generate_texture(app);
+  generate_texture();
 
   // Done!
-  return app;
+  return true;
 }
 
-void app_shutdown(freya::App* app) {
-  freya::noise_generator_destroy(app->generator);
-  freya::asset_group_destroy(app->group_id);
+void app_shutdown() {
+  freya::noise_generator_destroy(s_app.generator);
+  freya::asset_group_destroy(s_app.group_id);
   freya::gui_shutdown();
-
-  delete app;
 }
 
-void app_update(freya::App* app, const freya::f32 delta_time) {
+void app_update(freya::f32 dt) {
   // Quit the application when the specified exit key is pressed
   
   if(freya::input_key_pressed(freya::KEY_ESCAPE)) {
@@ -126,20 +124,20 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   // Re-generate the noise texture 
 
   if(freya::input_key_pressed(freya::KEY_SPACE)) {
-    generate_texture(app);
+    generate_texture();
   }
 }
 
-void app_render(freya::App* app) {
+void app_render() {
   // 2D render
 
-  freya::renderer_begin(app->camera);
+  freya::renderer_begin(s_app.camera);
 
   freya::Transform transform = {
     .position = freya::Vec2(0.0f),
     .scale    = freya::Vec2(TEXTURE_WIDTH, TEXTURE_HEIGHT),
   };
-  freya::renderer_queue_texture(app->noise_texture, transform);
+  freya::renderer_queue_texture(s_app.noise_texture, transform);
 
   freya::renderer_end();
 
@@ -149,7 +147,7 @@ void app_render(freya::App* app) {
   freya::ui_renderer_end();
 }
 
-void app_render_gui(freya::App* app) {
+void app_render_gui() {
   freya::gui_begin(); 
  
   // Debug
@@ -159,8 +157,8 @@ void app_render_gui(freya::App* app) {
 
   freya::gui_begin_panel("Editor");
 
-  freya::gui_edit_camera("Camera", &app->camera);
-  freya::gui_edit_noise_generator("Nosie generator", app->generator);
+  freya::gui_edit_camera("Camera", &s_app.camera);
+  freya::gui_edit_noise_generator("Nosie generator", s_app.generator);
   
   freya::gui_end_panel();
 

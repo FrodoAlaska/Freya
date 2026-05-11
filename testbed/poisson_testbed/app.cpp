@@ -1,11 +1,11 @@
 #include "app.h"
 
 #include <freya.h>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 /// ----------------------------------------------------------------------
 /// App
-struct freya::App {
+struct App {
   freya::Window* window;
   freya::Camera camera;
   freya::AssetGroupID group_id;
@@ -13,20 +13,20 @@ struct freya::App {
   freya::PoissonDiskDesc poisson_desc;
   freya::DynamicArray<freya::Vec2> poisson_points;
 };
+
+static App s_app;
 /// App
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
 /// App functions 
 
-freya::App* app_init(const freya::Args& args, freya::Window* window) {
+bool app_init(const freya::Args& args, freya::Window* window) {
   // App init
-  
-  freya::App* app = new freya::App{};
   freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
 
   // Window init
-  app->window = window;
+  s_app.window = window;
 
   // Editor init
   freya::gui_init(window);
@@ -37,23 +37,21 @@ freya::App* app_init(const freya::Args& args, freya::Window* window) {
     .position = freya::Vec2(-90.0f, -40.0f),
     .zoom     = 10.6f,
   };
-  freya::camera_create(app->camera, cam_desc);
+  freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
-  app->group_id = freya::asset_group_create("app_assets");
+  s_app.group_id = freya::asset_group_create("app_assets");
 
   // Done!
-  return app;
+  return true;
 }
 
-void app_shutdown(freya::App* app) {
-  freya::asset_group_destroy(app->group_id);
+void app_shutdown() {
+  freya::asset_group_destroy(s_app.group_id);
   freya::gui_shutdown();
-
-  delete app;
 }
 
-void app_update(freya::App* app, const freya::f32 delta_time) {
+void app_update(freya::f32 dt) {
   // Quit the application when the specified exit key is pressed
   
   if(freya::input_key_pressed(freya::KEY_ESCAPE)) {
@@ -64,18 +62,18 @@ void app_update(freya::App* app, const freya::f32 delta_time) {
   // Calculate the poisson disk
 
   if(!freya::gui_is_active() && freya::input_button_pressed(freya::MOUSE_BUTTON_LEFT)) {
-    freya::poisson_disk_calculate(app->poisson_desc, app->poisson_points);
+    freya::poisson_disk_calculate(s_app.poisson_desc, s_app.poisson_points);
   }
 }
 
-void app_render(freya::App* app) {
+void app_render() {
   // 2D render
 
-  freya::renderer_begin(app->camera);
+  freya::renderer_begin(s_app.camera);
 
   // Render the points
 
-  for(auto& point : app->poisson_points) {
+  for(auto& point : s_app.poisson_points) {
     freya::Transform transform = {
       .position = point, 
       .scale    = freya::Vec2(0.3),
@@ -91,7 +89,7 @@ void app_render(freya::App* app) {
   freya::ui_renderer_end();
 }
 
-void app_render_gui(freya::App* app) {
+void app_render_gui() {
   freya::gui_begin(); 
  
   // Debug
@@ -101,8 +99,8 @@ void app_render_gui(freya::App* app) {
 
   freya::gui_begin_panel("Editor");
  
-  freya::gui_edit_camera("Camera", &app->camera);
-  freya::gui_edit_poisson_disk("Poisson", &app->poisson_desc);
+  freya::gui_edit_camera("Camera", &s_app.camera);
+  freya::gui_edit_poisson_disk("Poisson", &s_app.poisson_desc);
   
   freya::gui_end_panel();
 

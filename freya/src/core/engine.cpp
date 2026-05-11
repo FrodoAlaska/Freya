@@ -12,7 +12,6 @@ namespace freya { // Start of freya
 /// Engine
 struct Engine {
   AppDesc app_desc;
-  App* app;
 
   Window* window;
   GfxContext* gfx_context;
@@ -54,12 +53,12 @@ static bool update_and_render(f64 dt, void* user_data) {
   physics_world_step();
 
   // Update 
-  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, s_engine.app, (f32)clock_get_delta_time());
+  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, (f32)(dt / 1000.0));
 
   // Render
 
-  CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn, s_engine.app);
-  CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn, s_engine.app);
+  CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn);
+  CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn);
 
   // Update the internal systems
 
@@ -79,8 +78,10 @@ static bool update_and_render(f64 dt, void* user_data) {
 /// ----------------------------------------------------------------------
 /// Engine functions
 
-void engine_init(const AppDesc& desc) {
-  FREYA_PROFILE_FUNCTION();
+i32 engine_run(const AppDesc& desc) {
+  //
+  // Init 
+  //
 
   // Engine init
   
@@ -145,25 +146,34 @@ void engine_init(const AppDesc& desc) {
   // App init 
   
   FREYA_DEBUG_ASSERT(s_engine.app_desc.init_fn, "Cannot start the engine with an invalid application initialization callback");
-  s_engine.app = s_engine.app_desc.init_fn(cli_args, s_engine.window);
+  
+  bool app_result = s_engine.app_desc.init_fn(cli_args, s_engine.window);
+  if(!app_result) {
+    FREYA_LOG_ERROR("Application \'%s\' failed to run", desc.window_title.c_str());
+    return -1;
+  }
  
   // Listen to events
   event_register(EVENT_APP_QUIT, on_app_quit);
 
-  // Done!
+  // Some useful info
   FREYA_LOG_INFO("Successfully initialized the application \'%s\'", desc.window_title.c_str());
-}
 
-void engine_run() {
+  //
+  // Loop
+  //
+
 #if FREYA_PLATFORM_WEB == 1
   emscripten_request_animation_frame_loop(update_and_render, nullptr);
 #else
-  while(update_and_render(0.0, nullptr));
+  while(update_and_render(clock_get_delta_time() * 1000.0, nullptr));
 #endif
-}
 
-void engine_shutdown() {
-  CHECK_VALID_CALLBACK(s_engine.app_desc.shutdown_fn, s_engine.app);
+  //
+  // Shutdown
+  //
+  
+  CHECK_VALID_CALLBACK(s_engine.app_desc.shutdown_fn);
 
   physics_world_shutdown();
   audio_device_shutdown();
@@ -173,8 +183,11 @@ void engine_shutdown() {
   window_close(s_engine.window);
   asset_manager_shutdown();
   event_shutdown();
+ 
+  // Done!
   
   FREYA_LOG_INFO("Appication \'%s\' was successfully shutdown", s_engine.app_desc.window_title.c_str());
+  return 0;
 }
 
 /// Engine functions

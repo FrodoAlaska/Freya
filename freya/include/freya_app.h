@@ -10,8 +10,11 @@
   /// with unnecessary crap, this define should disable 
   /// that completely.
   ///
+
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
+#elif FREYA_PLATFORM_WEB == 1
+  #include <emscripten.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////
@@ -22,14 +25,22 @@ namespace freya { // Start of freya
 /// Macros 
 
 #if FREYA_PLATFORM_WINDOWS == 1
-  
+ 
   #define FREYA_MAIN(engine_main)                                                         \
   int WINAPI WinMain(HINSTANCE inst, HINSTANCE prev_inst, LPSTR cmd_line, int cmd_show) { \
     return engine_main(0, &cmd_line);                                                     \
   }                                                                                       \
 
-#elif (FREYA_PLATFORM_LINUX == 1) || (FREYA_PLATFORM_WEB == 1)
- 
+#elif FREYA_PLATFORM_WEB == 1
+
+  #define FREYA_MAIN(engine_main) \
+  int main() {                    \
+    engine_main(0, nullptr);      \
+    return 0;                     \
+  }                               \
+
+#elif FREYA_PLATFORM_LINUX == 1
+
   #define FREYA_MAIN(engine_main)   \
   int main(int argc, char** argv) { \
     return engine_main(argc, argv); \
@@ -41,12 +52,6 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// App
-struct App;
-/// App
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// Args 
 using Args = DynamicArray<String>;  
 /// Args 
@@ -55,17 +60,20 @@ using Args = DynamicArray<String>;
 ///---------------------------------------------------------------------------------------------------------------------
 /// App callbacks
 
-/// A function callback to allocate and initialize a `App` struct.
-using AppInitFn       = App*(*)(const Args& args, Window* window);
+/// A function callback called once upon the application's initialization, returning 
+/// `true` on success, and `false` otherwise.
+using AppInitFn       = std::function<bool(const Args& args, Window* window)>;
 
-/// A function callback to free/reclaim any memory consumed by a `App` struct.
-using AppShutdownFn   = void(*)(App* app);
+/// A function callback called once before the end of the application.
+using AppShutdownFn   = std::function<void()>;
 
-/// A function callback to update a `App` struct, passing in the `delta_time`.
-using AppUpdateFn     = void(*)(App* app, const f32 delta_time);
+/// A function callback called every frame before rendering, passing 
+/// in the delta time `dt` of the application.
+using AppUpdateFn     = std::function<void(f32 dt)>;
 
-/// A function callback to render a `App` struct.
-using AppRenderPassFn = void(*)(App* app);
+/// A function callback called every frame after update, used for 
+/// rendering purposes of the application.
+using AppRenderPassFn = std::function<void()>;
 
 /// App callbacks
 ///---------------------------------------------------------------------------------------------------------------------
@@ -93,18 +101,13 @@ struct AppDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Engine functions
 
-/// Initialize all of the engine sub-systems in order as well as 
-/// allocate and initialize a new `App` struct using the information 
-/// given in `desc`.
-FREYA_API void engine_init(const AppDesc& desc);
-
-/// Run a loop, updating and rendering the `App` struct allocated earlier 
-/// as well as any engine sub-systems.
-FREYA_API void engine_run();
-
-/// Free/reclaim and shutdown any and all engine sub-systems as well 
-/// as the `App` struct.
-FREYA_API void engine_shutdown();
+/// Initiate the run loop of the engine, using the information in the given `desc` 
+/// to initialize the application and all the engine's sub-systems.
+///
+/// This function will also run an infinite loop until the user requests to exit. 
+/// The value returned from the function will determine the application's success or 
+/// failure at running.
+FREYA_API i32 engine_run(const AppDesc& desc);
 
 /// Engine functions
 ///---------------------------------------------------------------------------------------------------------------------

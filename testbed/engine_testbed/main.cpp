@@ -17,12 +17,7 @@ int main(int argc, char* argv[]) {
     .args_values = argv, 
     .args_count  = argc,
   };
-
-  freya::engine_init(app_desc);
-  freya::engine_run();
-  freya::engine_shutdown();
-
-  return 0;
+  return freya::engine_run(app_desc);
 }
 
 // FREYA_MAIN(engine_main);
