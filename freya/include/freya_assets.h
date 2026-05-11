@@ -38,35 +38,6 @@ const i32 ASSET_CACHE_ID      = 0;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Callbacks
-
-/// Called upon the asset's push operation, taking in a template `TAssetDesc`, and 
-/// returning a `TAsset` type.
-template<typename TAsset, typename TAssetDesc>
-using OnCreateFunc    = std::function<TAsset&(const TAssetDesc& desc)>;
-
-/// Called upon the asset's destruction, taking in the asset of `TAsset` type.
-template<typename TAsset>
-using OnDestroyFunc   = std::function<void(TAsset& asset)>;
-
-/// Called upon the asset's build operation, given the `pkg_file` currently being written to, and
-/// the `asset_path`, returning either `true` on success and `false` otherwise.
-using OnAssetBuildFn  = std::function<bool(File& pkg_file, const FilePath& asset_path)>;
-
-/// Called upon the asset's load operation from the package, given the `pkg_file` currently 
-/// being read from, and `out_desc` of type `TAssetDesc` which the function will write to.
-template<typename TAssetDesc>
-using OnAssetLoadFn   = std::function<void(File& pkg_file, TAssetDesc& out_desc)>;
-
-/// Called after loading and pushing the asset, making sure to get rid of any dangling 
-/// data found in `desc`.
-template<typename TAssetDesc>
-using OnAssetUnloadFn = std::function<void(TAssetDesc& desc)>;
-
-/// Callbacks
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// AssetType
 enum AssetType {
   ASSET_TYPE_INVALID = -1,
@@ -78,12 +49,9 @@ enum AssetType {
   ASSET_TYPE_FONT,
   ASSET_TYPE_AUDIO_BUFFER,
   ASSET_TYPE_UI_CONFIG,
-  ASSET_TYPE_CUSTOM,
+  ASSET_TYPE_LUA,
 
-  /// @NOTE: Any custom type is allowed to be between 
-  /// `ASSET_TYPE_CUSTOM` and `ASSET_TYPES_MAX - 1`.
-
-  ASSET_TYPES_MAX = ASSET_TYPE_CUSTOM + 8,
+  ASSET_TYPES_MAX,
 };
 /// AssetType
 ///---------------------------------------------------------------------------------------------------------------------
@@ -202,6 +170,7 @@ struct AssetGroup {
   DynamicArray<ShaderContext*> shader_contexts;
   DynamicArray<Font*> fonts;
   DynamicArray<UIConfig> ui_configs;
+  DynamicArray<lua_State*> lua_states;
 
   HashMap<String, AssetID> named_ids;
 };
@@ -271,6 +240,10 @@ FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, co
 /// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_ui_config(const AssetGroupID& group_id, const String& html_source);
 
+/// Push a new `sol::state` into `group_id`, using the given `lua_source`,
+/// returning a valid `AssetID` to be used later.
+FREYA_API AssetID asset_group_push_lua_state(const AssetGroupID& group_id, const String& lua_source);
+
 /// Load a `FRPKG` file at `frpkg_path` and push all of the assts into the given `group_id`. 
 ///
 /// @NOTE: See `asset_group_create` for more information about internal paths.
@@ -336,7 +309,15 @@ FREYA_API const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id);
 ///   1 - is invalid and was never created before, 
 ///   2 - the internal group ID is invalid,
 ///   3 - or the internal type does not match this asset.
-FREYA_API const UIConfig& asset_group_get_ui_config(const AssetID& id);
+FREYA_API UIConfig& asset_group_get_ui_config(const AssetID& id);
+
+/// Retrieve a `lua_State*`, using `id`.
+///
+/// @NOTE: This function will assert if the given `id` is either: 
+///   1 - is invalid and was never created before, 
+///   2 - the internal group ID is invalid,
+///   3 - or the internal type does not match this asset.
+FREYA_API lua_State* asset_group_get_lua_state(const AssetID& id);
 
 /// AssetGroupID functions
 ///---------------------------------------------------------------------------------------------------------------------

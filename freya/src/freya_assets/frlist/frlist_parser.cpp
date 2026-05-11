@@ -177,6 +177,9 @@ bool list_parser_init(const freya::DynamicArray<ListToken>& tokens, ListContext&
   
   s_parser.asset_remaps["UI"] = freya::ASSET_TYPE_UI_CONFIG;
   s_parser.asset_remaps["ui"] = freya::ASSET_TYPE_UI_CONFIG;
+  
+  s_parser.asset_remaps["LUA"] = freya::ASSET_TYPE_LUA;
+  s_parser.asset_remaps["lua"] = freya::ASSET_TYPE_LUA;
 
   // Parser init
 

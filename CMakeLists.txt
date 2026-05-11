@@ -56,6 +56,13 @@ FetchContent_Declare(
   GIT_TAG        f6875a7c13fddd23e79b378065211eaeef5f9509 
 )
 
+# LUA (fork, because it's CMake-based)
+
+FetchContent_Declare(
+  lua 
+  GIT_REPOSITORY https://github.com/walterschell/Lua.git
+)
+
 # ImGui
 
 FetchContent_Declare(
@@ -71,7 +78,7 @@ FetchContent_Declare(
   URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.13.1.zip
 )
 
-FetchContent_MakeAvailable(glm box2d rmlui imgui tracy)
+FetchContent_MakeAvailable(glm box2d rmlui imgui lua tracy)
 
 if(NOT DEFINED EMSCRIPTEN) # These libraries are not required when building for the web
   # GLFW
@@ -109,19 +116,22 @@ set(FREYA_INCLUDES
   ${glfw-3.4_SOURCE_DIR}/include
   ${glm_SOURCE_DIR}
   ${OpenAL_SOURCE_DIR}/include
-  ${tracy_SOURCE_DIR}/public
   ${box2d_SOURCE_DIR}/public
   ${rmlui_SOURCE_DIR}/Include
+  ${lua_SOURCE_DIR}/lua-5.4.7/include
 
   ${imgui_SOURCE_DIR}
   ${imgui_SOURCE_DIR}/backends
   ${imgui_SOURCE_DIR}/misc/cpp
+
+  ${tracy_SOURCE_DIR}/public
 )
 
 set(FREYA_COMMON_LIBRARIES 
   box2d
   rmlui
   rmlui_debugger
+  lua_static
 )
 
 set(FREYA_LIBRARIES ${FREYA_COMMON_LIBRARIES})

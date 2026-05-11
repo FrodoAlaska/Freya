@@ -55,6 +55,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/freya_assets/loaders/font_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/audio_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/ui_config_loader.cpp
+  ${FREYA_SRC_DIR}/freya_assets/loaders/lua_state_loader.cpp
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp

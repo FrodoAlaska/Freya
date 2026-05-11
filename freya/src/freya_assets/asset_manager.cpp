@@ -25,18 +25,6 @@ static AssetManager s_manager;
 /// ----------------------------------------------------------------------
 /// Macros (Unfortunately)
 
-#define DESTROY_CORE_ASSET_MAP(group, map, clear_func) { \
-  for(auto& asset : group.map) {                         \
-    clear_func(asset);                                   \
-  }                                                      \
-}
-
-#define DESTROY_COMP_ASSET_MAP(group, map) { \
-  for(auto& asset : group.map) {             \
-    delete asset;                            \
-  }                                          \
-}
-
 #define PUSH_ASSET(group, assets, asset, type, asset_id) {            \
   group.assets.push_back(asset);                                      \
   asset_id = AssetID(type, group.id, (i16)(group.assets.size() - 1)); \
@@ -289,6 +277,31 @@ static void build_ui_config(File& pkg_file, const ListSection& section) {
   }
 }
 
+static void build_lua_state(File& pkg_file, const ListSection& section) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Write the number of assets of this type
+
+  u16 asset_count = (u16)section.assets.size(); 
+  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  
+  // Load and write all of the assets
+  
+  for(const auto& path : section.assets) {
+    // Write the name of the asset
+
+    FilePath name = filepath_stem(path);
+    file_write_bytes(pkg_file, name);
+
+    // Load and save the asset
+
+    String src;
+
+    lua_state_loader_load(path, &src);
+    file_write_bytes(pkg_file, src);
+  }
+}
+
 static void read_textures(File& file, AssetGroup& group) {
   FREYA_PROFILE_FUNCTION();
   
@@ -442,6 +455,34 @@ static void read_ui_config(File& file, AssetGroup& group) {
   }
 }
 
+static void read_lua_state(File& file, AssetGroup& group) {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Read the count
+
+  u16 count;
+  file_read_bytes(file, &count, sizeof(count));
+
+  // Read the asset
+
+  for(u16 i = 0; i < count; i++) {
+    // Read the name
+
+    String name;
+    file_read_bytes(file, &name);
+
+    // Read the LUA file
+
+    String src;
+    file_read_bytes(file, &src);
+
+    // Add the LUA state to the group
+    group.named_ids[name] = asset_group_push_lua_state(group.id, src); 
+
+    FREYA_LOG_DEBUG("Loaded LUA state \'%s\' from frpkg ", name.c_str());
+  }
+}
+
 /// Private functions 
 /// ----------------------------------------------------------------------
 
@@ -498,17 +539,54 @@ void asset_group_destroy(const AssetGroupID& group_id) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
-  // Destroy compound assets
-  
-  DESTROY_COMP_ASSET_MAP(group, shader_contexts);
-  DESTROY_COMP_ASSET_MAP(group, fonts);
+  //
+  // Destroy GFX compound assets
+  //
 
-  // Destroy core assets
+  for(auto& asset : group.shader_contexts) {
+    delete asset;
+  }
+  group.shader_contexts.clear();
   
-  DESTROY_CORE_ASSET_MAP(group, buffers, gfx_buffer_destroy);
-  DESTROY_CORE_ASSET_MAP(group, textures, gfx_texture_destroy);
-  DESTROY_CORE_ASSET_MAP(group, shaders, gfx_shader_destroy);
-  DESTROY_CORE_ASSET_MAP(group, audio_buffers, audio_buffer_destroy);
+  for(auto& asset : group.fonts) {
+    delete asset;
+  }
+  group.fonts.clear();
+
+  //
+  // Destroy GFX assets
+  //
+
+  for(auto& asset : group.buffers) {
+    gfx_buffer_destroy(asset);
+  }
+  group.buffers.clear();
+
+  for(auto& asset : group.textures) {
+    gfx_texture_destroy(asset);
+  }
+  group.textures.clear();
+
+  for(auto& asset : group.shaders) {
+    gfx_shader_destroy(asset);
+  }
+  group.shaders.clear();
+
+  // 
+  // Destroy other assets
+  //
+  
+  group.ui_configs.clear();
+
+  for(auto& asset : group.lua_states) {
+    lua_close(asset);
+  }
+  group.lua_states.clear();
+
+  for(auto& asset : group.audio_buffers) {
+    audio_buffer_destroy(asset);
+  }
+  group.audio_buffers.clear();
 
   // Done!
 
@@ -582,6 +660,9 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
         break;
       case ASSET_TYPE_UI_CONFIG:
         build_ui_config(pkg_file, section);
+        break;
+      case ASSET_TYPE_LUA:
+        build_lua_state(pkg_file, section);
         break;
       default:
         break;
@@ -786,6 +867,54 @@ AssetID asset_group_push_ui_config(const AssetGroupID& group_id, const String& h
   return id;
 }
 
+AssetID asset_group_push_lua_state(const AssetGroupID& group_id, const String& lua_source) {
+  GROUP_CHECK(group_id);
+  AssetGroup& group = s_manager.groups[group_id.get_id()];
+ 
+  // @TEMP(LUA): We'll probably have a detected system to handle all of this 
+  // instead of just leaving it inside the asset group.
+
+  // Create a new LUA config
+  
+  lua_State* state = luaL_newstate();
+
+  luaopen_base(state);
+  luaopen_table(state);
+
+  // Load the LUA file
+
+  i32 load_res = luaL_loadstring(state, lua_source.c_str());
+  if(load_res != LUA_OK) {
+    FREYA_LOG_WARN("LUA-ERROR: %s", lua_tostring(state, -1));
+    lua_pop(state, 1);
+
+    return AssetID{};
+  }
+
+  // Run the whole LUA file
+
+  i32 run_res = lua_pcall(state, 0, 0, 0);
+  if(run_res != LUA_OK) {
+    FREYA_LOG_WARN("LUA-ERROR: %s", lua_tostring(state, -1));
+    lua_pop(state, 1);
+
+    return AssetID{};
+  }
+
+  // New LUA state added!
+  
+  AssetID id;
+  PUSH_ASSET(group, lua_states, state, ASSET_TYPE_LUA, id);
+
+  // Some useful debug info
+  
+  FREYA_LOG_DEBUG("Group \'%s\' pushed a new LUA state:", group.name.c_str());
+  FREYA_LOG_DEBUG("     Length = %zu", lua_source.size());
+
+  // Done!
+  return id;
+}
+
 bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpkg_path) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
@@ -845,6 +974,9 @@ bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpk
       case ASSET_TYPE_UI_CONFIG:
         read_ui_config(file, group);
         break;
+      case ASSET_TYPE_LUA:
+        read_lua_state(file, group);
+        break;
       default:
         break;
     }
@@ -901,9 +1033,14 @@ const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id) {
   return get_asset(id, group.audio_buffers, ASSET_TYPE_AUDIO_BUFFER);
 }
 
-const UIConfig& asset_group_get_ui_config(const AssetID& id) {
+UIConfig& asset_group_get_ui_config(const AssetID& id) {
   AssetGroup& group = s_manager.groups[id.get_group_id()];
   return get_asset(id, group.ui_configs, ASSET_TYPE_UI_CONFIG);
+}
+
+lua_State* asset_group_get_lua_state(const AssetID& id) {
+  AssetGroup& group = s_manager.groups[id.get_group_id()];
+  return get_asset(id, group.lua_states, ASSET_TYPE_LUA);
 }
 
 /// AssetGroupID functions

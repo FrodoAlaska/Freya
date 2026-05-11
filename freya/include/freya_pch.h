@@ -40,6 +40,7 @@
 #endif
 
 #include <moodycamel/concurrentqueue.h>
+#include <lua.hpp>
 
 // @TODO(PCH): Please don't add this here. Find a way to hide it so that 
 // we don't have problems in the future. Thanks.

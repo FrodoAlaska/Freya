@@ -1,6 +1,5 @@
 ## TODO
 
-- Add LUA as a configuration file asset usin `sol3`?
 - Find a way to listen to a directory of files, so that we can reload assets without having to exit the application
 
 - Web build testing
@@ -11,8 +10,7 @@
     - Animation controller component
     - Make sure to destroy an audio source if it is attached to a soon-to-be destroyed entity
     - Improve the UI situation to make it more compatibale with the ECS
-    - Search through the world 
-    - Custom component
+    - GUI component to render through the GUI
 
 - Tilemap
     - Tilemap colliders? Maybe using chain shapes?
@@ -22,6 +20,7 @@
     - Dynamic 2D lighting
 
 - Misc.
+    - A more detecated LUA layer
     - Memory arenas and custom allocaters
 
 ## Fixes 

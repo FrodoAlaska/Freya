@@ -4,9 +4,9 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 
 ## Features 
 
-- Cross-platform window creation with OpenGL 4.5+.  
+- Cross-platform window creation with OpenGL and GLES.  
 - Gamepad, keyboard, and mouse input support.  
-- A flexible and configurable 2D renderer, using modern OpenGL (4.5+).
+- A flexible and configurable 2D renderer, using modern OpenGL (4.5+) and GLES3.
 - A fully-fledged audio system with both 2D and 3D spatialized audio.
 - A robust and easy-to-use game UI system, using HTML and CSS to decalre and style widgets.
 - A robust 2D physics engine, using the fantastic Box2D library. 
@@ -29,6 +29,7 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - [Tracy](https://github.com/wolfpld/tracy)
 - [moodycamel](https://github.com/cameron314/concurrentqueue)
 - [FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
+- [LUA (CMake-based)](https://github.com/walterschell/Lua.git)
 
 ## Build Instructions
 
