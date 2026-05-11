@@ -8,7 +8,6 @@
 - ECS 
     - Camera controller component
     - Animation controller component
-    - Make sure to destroy an audio source if it is attached to a soon-to-be destroyed entity
     - Improve the UI situation to make it more compatibale with the ECS
     - GUI component to render through the GUI
 

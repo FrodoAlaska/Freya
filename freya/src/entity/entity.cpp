@@ -193,18 +193,23 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
   // Destroy any components that require it 
 
   if(entity_has_component<DynamicBodyComponent>(world, entt)) {
-    DynamicBodyComponent& body = world.get<DynamicBodyComponent>(entt.get_id());
+    DynamicBodyComponent& body = entity_get_component<DynamicBodyComponent>(world, entt);
     physics_body_destroy(body.body);
   }
 
   if(entity_has_component<StaticBodyComponent>(world, entt)) {
-    StaticBodyComponent& body = world.get<StaticBodyComponent>(entt.get_id());
+    StaticBodyComponent& body = entity_get_component<StaticBodyComponent>(world, entt);
     physics_body_destroy(body.body);
   }
   
   if(entity_has_component<NoiseGenerator*>(world, entt)) {
-    NoiseGenerator* gen = world.get<NoiseGenerator*>(entt.get_id());
+    NoiseGenerator* gen = entity_get_component<NoiseGenerator*>(world, entt);
     noise_generator_destroy(gen);
+  }
+  
+  if(entity_has_component<AudioSourceID>(world, entt)) {
+    AudioSourceID& source_id = entity_get_component<AudioSourceID>(world, entt);
+    audio_source_destroy(source_id);
   }
 
   // Destroy the entity in the world
