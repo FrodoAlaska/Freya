@@ -1,6 +1,5 @@
 ## TODO
 
-- Better README
 - Add LUA as a configuration file asset usin `sol3`?
 - Find a way to listen to a directory of files, so that we can reload assets without having to exit the application
 
