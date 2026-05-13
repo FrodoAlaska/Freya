@@ -36,7 +36,9 @@ static Engine s_engine;
 
 static bool on_app_quit(const Event& event, const void* dispatcher, const void* listener) {
   s_engine.is_running = false;
-  return true;
+  window_set_should_close(s_engine.window, true);
+
+  return false;
 }
 
 /// Callbacks
@@ -69,6 +71,8 @@ static bool update_and_render(f64 dt, void* user_data) {
   gfx_context_present(s_engine.gfx_context); 
 
   // Done!
+  
+  s_engine.is_running = window_is_open(s_engine.window);
   return s_engine.is_running;
 }
 

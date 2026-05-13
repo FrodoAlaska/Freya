@@ -38,6 +38,8 @@ static App s_app;
 
 static void read_config(const freya::AssetID& config_id) {
   // Get the LUA state
+  
+  s_app.spells.clear();
   lua_State* lua = freya::asset_group_get_lua_state(config_id);
 
   // Iterate through all the spells
@@ -100,6 +102,17 @@ static void read_config(const freya::AssetID& config_id) {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// Callbacks
+
+static bool on_asset_reload(const freya::Event& event, const void* dispatcher, const void* listener) {
+  read_config(freya::asset_group_get_id(s_app.group_id, "spells"));
+  return true;
+}
+
+/// Callbacks
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// App functions 
 
 bool app_init(const freya::Args& args, freya::Window* window) {
@@ -133,6 +146,9 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // Config init
   read_config(freya::asset_group_get_id(s_app.group_id, "spells"));
+
+  // Listen to events 
+  freya::event_register(freya::EVENT_ASSET_GROUP_LOADED, on_asset_reload);
 
   // Done!
   return true;

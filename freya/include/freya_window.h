@@ -146,6 +146,10 @@ FREYA_API void window_set_title(Window* window, const String& title);
 /// Set the position of the `window` to `position`.
 FREYA_API void window_set_position(Window* window, const IVec2& position);
 
+/// Inform the given `window` that it might or might not need to be closed, 
+/// depending on the given `close` flag.
+FREYA_API void window_set_should_close(Window* window, const bool close);
+
 /// Window functions
 ///---------------------------------------------------------------------------------------------------------------------
 

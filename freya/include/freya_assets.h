@@ -159,7 +159,9 @@ struct AssetID {
 ///---------------------------------------------------------------------------------------------------------------------
 /// AssetGroup 
 struct AssetGroup {
-  String name; 
+  String name;
+  FilePath frpkg_path;
+
   AssetGroupID id;
 
   DynamicArray<GfxBuffer*> buffers;
@@ -171,8 +173,17 @@ struct AssetGroup {
   DynamicArray<Font*> fonts;
   DynamicArray<UIConfig> ui_configs;
   DynamicArray<lua_State*> lua_states;
-
+  
   HashMap<String, AssetID> named_ids;
+
+  ///
+  /// @NOTE/@TEMP:
+  ///
+  /// We have 6 watchers here for all the assets that are actually 
+  /// read from the disk, as opposed to the assets that are created 
+  /// on the CPU. Currently, the 6 are: textures, fonts, shaders, audio buffers, ui configs, lua files.
+  ///
+  Array<filewatch::FileWatch<FilePath>*, 6> watchers; // on the wall... no? ASOIAF?
 };
 /// AssetGroup 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -199,13 +210,26 @@ FREYA_API AssetGroup& asset_manager_get_group(const AssetGroupID& group_id);
 /// Create a new (and empty) asset group with a `name`.
 FREYA_API AssetGroupID asset_group_create(const String& name);
 
+/// Unload all of the assets in the given `group_id`, but do not 
+/// destroy the `group_id`.
+FREYA_API void asset_group_clear(const AssetGroupID& group_id);
+
 /// Destroy and unload all of the assets in the given `group_id`.
 FREYA_API void asset_group_destroy(const AssetGroupID& group_id);
+
+/// Clear and reload all of the assets of the given `group_id` from 
+/// the `FRPKG` file at the path initally given in `asset_group_load_package`.
+///
+/// @NOTE: It is advised to only use this function in dev-only builds. 
+/// It is very slow, since it needs to unload all the assets and load them again. 
+FREYA_API void asset_group_reload(const AssetGroupID& group_id);
 
 /// Build all of the intermediary formats listed in the `.frlist` file at `list_path` 
 /// into a `FRPKG` file and place it at `output_path`. 
 ///
-/// @NOTE: See `asset_group_create` for more information about internal paths.
+/// @NOTE: It is advised to only use this function in dev-only builds. 
+/// It is very slow, since it needs to convert all the intermediary formats into binary formats 
+/// and then write them on disk. 
 FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
 
 /// Push a new `GfxBuffer` into `group_id`, using all the information found in `buff_desc`,

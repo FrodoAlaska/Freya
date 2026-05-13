@@ -30,6 +30,7 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - [moodycamel](https://github.com/cameron314/concurrentqueue)
 - [FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
 - [LUA (CMake-based)](https://github.com/walterschell/Lua.git)
+- [FileWatch](https://github.com/ThomasMonkman/filewatch)
 
 ## Build Instructions
 

@@ -548,6 +548,10 @@ void window_set_position(Window* window, const IVec2& position) {
   glfwSetWindowPos(window->handle, position.x, position.y);
 }
 
+void window_set_should_close(Window* window, const bool close) {
+  glfwSetWindowShouldClose(window->handle, close);
+}
+
 /// Window functions
 ///---------------------------------------------------------------------------------------------------------------------
 

@@ -47,6 +47,10 @@ enum EventType {
   EVENT_JOYSTICK_CONNECTED, 
   EVENT_JOYSTICK_DISCONNECTED, 
 
+  /// Asset events
+  
+  EVENT_ASSET_GROUP_LOADED,
+
   /// UI events
   
   EVENT_UI_DOCUMENT_LOADED,
@@ -153,6 +157,9 @@ struct Event {
 
   /// The joystick ID given to this event.
   i32 joystick_id; 
+
+  /// The asset group ID sent with the `EVENT_ASSET_GROUP_LOADED` event.
+  AssetGroupID group_id;
   
   /// The UI element given to this event upon any 
   /// UI-related event initiation.

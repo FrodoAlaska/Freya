@@ -70,16 +70,16 @@ const Mat4 mat4_transform(const Transform& transform) {
          mat4_scale(Vec3(transform.scale.x, transform.scale.y, 1.0f));
 }
 
-const Mat4 mat4_perspective(const f32 fov, const f32 aspect_ratio, const f32 near, const f32 far) {
-  return glm::perspective(fov, aspect_ratio, near, far);
+const Mat4 mat4_perspective(const f32 fov, const f32 aspect_ratio, const f32 _near, const f32 _far) {
+  return glm::perspective(fov, aspect_ratio, _near, _far);
 }
 
 const Mat4 mat4_ortho(const f32 left, const f32 right, const f32 bottom, const f32 top) {
   return glm::ortho(left, right, bottom, top);
 }
 
-const Mat4 mat4_ortho(const f32 left, const f32 right, const f32 bottom, const f32 top, const f32 near, const f32 far) {
-  return glm::ortho(left, right, bottom, top, near, far);
+const Mat4 mat4_ortho(const f32 left, const f32 right, const f32 bottom, const f32 top, const f32 _near, const f32 _far) {
+  return glm::ortho(left, right, bottom, top, _near, _far);
 }
 
 const Mat4 mat4_look_at(const Vec3& eye, const Vec3& center, const Vec3& up) {

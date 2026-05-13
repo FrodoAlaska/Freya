@@ -1,7 +1,5 @@
 ## TODO
 
-- Find a way to listen to a directory of files, so that we can reload assets without having to exit the application
-
 - Web build testing
     - Still some errors on the web side. Some exceptions on the JavaScript side
 
@@ -24,4 +22,5 @@
 
 ## Fixes 
 
+- The way file watchers work in the asset group sucks. A bunch of allocations for no reason _at all_. Please fix.
 - Check all `@TEMP` and `@TODO` in the codebase...
