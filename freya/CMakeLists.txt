@@ -40,6 +40,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/filesystem/file.cpp
   ${FREYA_SRC_DIR}/filesystem/filesystem.cpp
   ${FREYA_SRC_DIR}/filesystem/filepath.cpp
+  ${FREYA_SRC_DIR}/filesystem/filewatcher.cpp
 
   # Assets
   ${FREYA_SRC_DIR}/freya_assets/asset_manager.cpp

@@ -181,9 +181,9 @@ struct AssetGroup {
   ///
   /// We have 6 watchers here for all the assets that are actually 
   /// read from the disk, as opposed to the assets that are created 
-  /// on the CPU. Currently, the 6 are: textures, fonts, shaders, audio buffers, ui configs, lua files.
+  /// on the CPU. Currently, the 6 are: textures, fonts, shaders, audio buffers, ui configs, and lua files.
   ///
-  Array<filewatch::FileWatch<FilePath>*, 6> watchers; // on the wall... no? ASOIAF?
+  Array<FileWatcher*, 6> watchers; // on the wall... no? ASOIAF?
 };
 /// AssetGroup 
 ///---------------------------------------------------------------------------------------------------------------------

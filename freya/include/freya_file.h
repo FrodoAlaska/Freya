@@ -39,6 +39,29 @@ enum FileOpenMode {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// FileStatus
+enum FileStatus {
+  /// File status to indicate a new file. 
+  FILE_STATUS_ADDED, 
+  
+  /// File status to indicate a removed file.
+  FILE_STATUS_REMOVED,
+  
+  /// File status to indicate a modified file.
+  FILE_STATUS_MODIFIED,
+  
+  /// File status to indicate a file that was renamed, 
+  /// returning the old name.
+  FILE_STATUS_RENAMED_OLD,
+  
+  /// File status to indicate a file that was renamed, 
+  /// returning the new name.
+  FILE_STATUS_RENAMED_NEW,
+};
+/// FileStatus
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// FilePath
 using FilePath = String;
 /// FilePath
@@ -57,9 +80,25 @@ using FileTimePoint = std::filesystem::file_time_type;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// FileWatcher
+#if FREYA_PLATFORM_WEB != 1
+  using FileWatcher = filewatch::FileWatch<FilePath>;
+#else
+  using FileWatcher = i32;
+#endif
+/// FileWatcher
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// FileIterateFunc
 using FileIterateFunc = std::function<bool(const FilePath& base_dir, const FilePath& current_path, void* user_data)>;
 /// FileIterateFunc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// FileWatchFunc
+using FileWatchFunc = std::function<void(const FilePath& path, const FileStatus status)>;
+/// FileWatchFunc
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -344,6 +383,19 @@ FREYA_API void file_read_bytes(File& file, Timer* timer);
 FREYA_API void file_read_string(File& file, String* str);
 
 /// File functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// FileWatcher functions
+
+/// Create a new `FileWatcher`, marking the `path` to watch, and calling the given `watch_func` 
+/// when any interesting events occur at `path`.
+FREYA_API FileWatcher* filewatcher_create(const FilePath& path, FileWatchFunc watch_func);
+
+/// Destroy/de-allocate the given `watcher` object.
+FREYA_API void filewatcher_destroy(FileWatcher* watcher);
+
+/// FileWatcher functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya

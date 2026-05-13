@@ -21,7 +21,9 @@
 #include <memory>
 #include <chrono>
 
-#include <filewatch/FileWatch.hpp>
+#if !defined(__EMSCRIPTEN__)
+  #include <filewatch/FileWatch.hpp>
+#endif
 
 #if defined(__EMSCRIPTEN__)
   #define GLM_FORCE_PURE

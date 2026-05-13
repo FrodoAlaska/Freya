@@ -17,6 +17,7 @@
     - Dynamic 2D lighting
 
 - Misc.
+    - Replace the `.frlist` format with just a simple LUA file
     - A more detecated LUA layer
     - Memory arenas and custom allocaters
 

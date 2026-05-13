@@ -557,15 +557,6 @@ static bool build_package(const FilePath& list_path, const FilePath& output_path
 /// Private functions 
 /// ----------------------------------------------------------------------
 
-/// ----------------------------------------------------------------------
-/// Callbacks
-
-static void on_file_modify() {
-}
-
-/// Callbacks
-/// ----------------------------------------------------------------------
-
 ///---------------------------------------------------------------------------------------------------------------------
 /// Asset manager functions
 
@@ -683,7 +674,7 @@ void asset_group_destroy(const AssetGroupID& group_id) {
   
   AssetGroup& group = s_manager.groups[group_id.get_id()];
   for(auto& watcher : group.watchers) {
-    delete watcher;
+    filewatcher_destroy(watcher);
   }
   
   // Done!
@@ -726,9 +717,9 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
       FREYA_LOG_DEBUG("Watching directory \'%s\'", dir.c_str());
 
       // group.watchers[i] = new filewatch::FileWatch<FilePath>(dir, on_file_modify);
-      group.watchers[i] = new filewatch::FileWatch<FilePath>(dir, [=](const String& path, const filewatch::Event event) {
-        switch(event) {
-          case filewatch::Event::modified:
+      group.watchers[i] = filewatcher_create(dir, [=](const FilePath& path, const FileStatus status) {
+        switch(status) {
+          case FILE_STATUS_MODIFIED:
             build_package(list_path, output_path);
             asset_group_reload(group_id);
             break;
