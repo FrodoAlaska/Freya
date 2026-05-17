@@ -1,5 +1,10 @@
 ## TODO
 
+- Major systems to rework 
+    - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.
+
+- Update the project template. It's super out of date.
+
 - Web build testing
     - Still some errors on the web side. Some exceptions on the JavaScript side
 
@@ -24,4 +29,5 @@
 ## Fixes 
 
 - The way file watchers work in the asset group sucks. A bunch of allocations for no reason _at all_. Please fix.
+
 - Check all `@TEMP` and `@TODO` in the codebase...

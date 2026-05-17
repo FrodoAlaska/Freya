@@ -95,7 +95,7 @@ if(NOT DEFINED EMSCRIPTEN) # These libraries are not required when building for 
 
   FetchContent_Declare(
     OpenAL 
-    URL https://github.com/kcat/openal-soft/archive/refs/tags/latest.zip
+    URL https://github.com/kcat/openal-soft/archive/refs/tags/1.25.0.zip
   )
 
   FetchContent_MakeAvailable(glfw-3.4 OpenAL)
