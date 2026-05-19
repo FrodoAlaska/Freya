@@ -90,7 +90,12 @@ if(NOT DEFINED EMSCRIPTEN) # These libraries are not required when building for 
 
   # OpenAL-Soft
 
-  set(ALSOFT_EXAMPLES OFF)
+  set(ALSOFT_EXAMPLES        OFF)
+  set(ALSOFT_DLOPEN          OFF)
+  set(ALSOFT_UTILS           OFF)
+  set(ALSOFT_INSTAL_EXAMPLES OFF)
+  set(ALSOFT_INSTAL_UTILS    OFF)
+
   set(LIBTYPE STATIC)
 
   FetchContent_Declare(

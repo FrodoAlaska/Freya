@@ -17,8 +17,8 @@ set(TESTBED_INCLUDES
 )
 
 set(CURRENT_TESTBED 
-  "engine_testbed"
-  # "lua_testbed"
+  # "engine_testbed"
+  "lua_testbed"
   # "noise_testbed"
   # "pathfinding_testbed"
   # "physics_testbed"

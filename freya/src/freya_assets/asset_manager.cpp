@@ -4,7 +4,7 @@
 #include "freya_memory.h"
 #include "freya_render.h"
 
-#include "frlist/frlist.h"
+#include "asset_list/list.h"
 #include "loaders/asset_loaders.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -487,8 +487,8 @@ static bool build_package(const FilePath& list_path, const FilePath& output_path
   // Load the frlist file
 
   ListContext list_ctx;
-  if(!frlist_load(list_ctx, list_path)) {
-    FREYA_LOG_ERROR("Failed to read FRPKG file at \'%s\'", list_path.c_str());
+  if(!list_context_load(list_ctx, list_path)) {
+    FREYA_LOG_ERROR("Failed to read asset list file at \'%s\'", list_path.c_str());
     return false;
   }
 
@@ -516,7 +516,7 @@ static bool build_package(const FilePath& list_path, const FilePath& output_path
 
   for(auto& section : list_ctx.sections) {
     // Write the asset type
-   
+     
     u8 asset_type = (u8)section.type;
     file_write_bytes(pkg_file, &asset_type, sizeof(asset_type));
 
@@ -549,6 +549,8 @@ static bool build_package(const FilePath& list_path, const FilePath& output_path
   // Done!
   
   file_close(pkg_file);
+  list_context_unload(list_ctx);
+
   FREYA_LOG_DEBUG("Successfully built frpkg at \'%s\'!", output_path.c_str());
 
   return true;
@@ -936,7 +938,7 @@ AssetID asset_group_push_lua_state(const AssetGroupID& group_id, const String& l
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
  
-  // @TEMP(LUA): We'll probably have a detected system to handle all of this 
+  // @TEMP(LUA): We'll probably have a dedicated system to handle all of this 
   // instead of just leaving it inside the asset group.
 
   // Create a new LUA config

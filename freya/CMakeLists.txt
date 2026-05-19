@@ -45,10 +45,8 @@ set(FREYA_SOURCES
   # Assets
   ${FREYA_SRC_DIR}/freya_assets/asset_manager.cpp
 
-  # Assets/frlist
-  ${FREYA_SRC_DIR}/freya_assets/frlist/frlist_lexer.cpp
-  ${FREYA_SRC_DIR}/freya_assets/frlist/frlist_parser.cpp
-  ${FREYA_SRC_DIR}/freya_assets/frlist/frlist.cpp
+  # Assets/asset_list
+  ${FREYA_SRC_DIR}/freya_assets/asset_list/list.cpp
   
   # Assets/loaders
   ${FREYA_SRC_DIR}/freya_assets/loaders/texture_loader.cpp
@@ -98,6 +96,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_event.h
   ${FREYA_INCLUDE_DIR}/freya_file.h
   ${FREYA_INCLUDE_DIR}/freya_gfx.h
+  ${FREYA_INCLUDE_DIR}/freya_gui.h
   ${FREYA_INCLUDE_DIR}/freya_input.h
   ${FREYA_INCLUDE_DIR}/freya_logger.h
   ${FREYA_INCLUDE_DIR}/freya_math.h
@@ -106,6 +105,7 @@ set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya_physics.h
   ${FREYA_INCLUDE_DIR}/freya_render.h
   ${FREYA_INCLUDE_DIR}/freya_threads.h
+  ${FREYA_INCLUDE_DIR}/freya_tilemap.h
   ${FREYA_INCLUDE_DIR}/freya_timer.h
   ${FREYA_INCLUDE_DIR}/freya_ui.h
   ${FREYA_INCLUDE_DIR}/freya_window.h
