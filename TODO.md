@@ -9,8 +9,10 @@
     - Still some errors on the web side. Some exceptions on the JavaScript side
 
 - ECS 
-    - Camera controller component
     - Animation controller component
+        - Add in the ECS 
+        - Add in the GUI
+    - Camera controller component
     - Improve the UI situation to make it more compatibale with the ECS
     - GUI component to render through the GUI
 
@@ -28,5 +30,4 @@
 ## Fixes 
 
 - The way file watchers work in the asset group sucks. A bunch of allocations for no reason _at all_. Please fix.
-
 - Check all `@TEMP` and `@TODO` in the codebase...

@@ -235,7 +235,7 @@ struct Animation {
   Vec2 frame_size;
 
   i32 current_frame, frames_count;
-  i32 direction, start_row;
+  i32 direction, start_row, loops;
 
   f32 counter, flip_speed;
   bool is_active, can_loop, can_alternate;
@@ -244,6 +244,23 @@ struct Animation {
 };
 /// Animation
 ///---------------------------------------------------------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// Animator
+struct Animator {
+  DynamicArray<Animation> animations;
+  HashMap<String, i32> remaps;
+
+  i32 current_animation = 0; 
+  i32 next_animation    = 0;
+
+  bool is_immediate = false;
+  bool is_playing   = true; 
+
+  bool is_switching = false;
+};
+/// Animator
+/// ----------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// ParticleEmitterDesc
@@ -467,6 +484,31 @@ FREYA_API void animation_update(Animation& anim, const f32 delta_time);
 FREYA_API void animation_reset(Animation& anim);
 
 /// Animation functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Animator functions
+
+/// Push the given `animation` into `aniamtor` identified by `name`.
+FREYA_API void animator_push_animation(Animator& animator, const String& name, Animation& animation);
+
+/// Switch the current animation of `animator` to the animation identified by `name` or `anim_index`.
+///
+/// @NOTE: If the `is_immediate` flag is turned off, the animator will not switch 
+/// until the current animation is done playing. Otherwise, the switch is immediate.
+FREYA_API void animator_switch(Animator& animator, const i32 anim_index);
+FREYA_API void animator_switch(Animator& animator, const String& name);
+
+/// Update the given `animator` scaled to `delta_time`.
+FREYA_API void animator_update(Animator& animator, const f32 delta_time);
+
+/// Reset the given `animator` to its initial state.
+FREYA_API void animator_reset(Animator& animator);
+
+/// Clear the given `animator` completely, removing any aniamtions.
+FREYA_API void animator_clear(Animator& animator);
+
+/// Animator functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------

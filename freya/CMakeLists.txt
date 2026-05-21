@@ -60,6 +60,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/camera.cpp
   ${FREYA_SRC_DIR}/renderer/shader_context.cpp
   ${FREYA_SRC_DIR}/renderer/animation.cpp
+  ${FREYA_SRC_DIR}/renderer/animator.cpp
   ${FREYA_SRC_DIR}/renderer/particles.cpp
   ${FREYA_SRC_DIR}/renderer/color.cpp
   ${FREYA_SRC_DIR}/renderer/post_process.cpp

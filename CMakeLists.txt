@@ -67,8 +67,7 @@ FetchContent_Declare(
 
 FetchContent_Declare(
   imgui 
-  GIT_REPOSITORY https://github.com/ocornut/imgui.git
-  GIT_TAG        docking
+  URL https://github.com/ocornut/imgui/archive/refs/tags/v1.92.8-docking.zip
 )
 
 # Tracy
