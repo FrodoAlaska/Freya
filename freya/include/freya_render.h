@@ -254,7 +254,9 @@ struct Animator {
   i32 current_animation = 0; 
   i32 next_animation    = 0;
 
-  bool is_immediate = false;
+  f32 speed = 0.1f;
+
+  bool is_immediate = true;
   bool is_playing   = true; 
 
   bool is_switching = false;
@@ -489,8 +491,8 @@ FREYA_API void animation_reset(Animation& anim);
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animator functions
 
-/// Create an animation using the given `anim_desc` and push it into `aniamtor` identified by `name`.
-FREYA_API void animator_push_animation(Animator& animator, const String& name, const AnimationDesc& anim_desc);
+/// Create an animation using the given `anim_id` and `frame_size`, and push it into `aniamtor` identified by `name`.
+FREYA_API void animator_push_animation(Animator& animator, const String& name, const Vec2 frame_size, const AssetID& anim_id);
 
 /// Switch the current animation of `animator` to the animation identified by `name` or `anim_index`.
 ///

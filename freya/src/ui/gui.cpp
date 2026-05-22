@@ -556,6 +556,8 @@ void gui_edit_animator(const char* name, Animator* anim) {
     animator_switch(*anim, current);
   }
 
+  ImGui::DragFloat("Speed", &anim->speed, s_gui.small_step, 0.0f);
+
   ImGui::Checkbox("Immediate", &anim->is_immediate);
   ImGui::Checkbox("Playing", &anim->is_playing);
 

@@ -8,10 +8,16 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animator functions
 
-void animator_push_animation(Animator& animator, const String& name, const AnimationDesc& anim_desc) {
+void animator_push_animation(Animator& animator, const String& name, const Vec2 frame_size, const AssetID& anim_id) {
+  AnimationDesc desc = {
+    .texture_id = anim_id, 
+    .frame_size = frame_size,
+    .flip_speed = animator.speed,
+  };
+
   animator.animations.push_back(Animation{});
   
-  animation_create(animator.animations.back(), anim_desc);
+  animation_create(animator.animations.back(), desc);
   animator.remaps[name] = (i32)(animator.animations.size() - 1);
 }
 
@@ -47,6 +53,8 @@ void animator_update(Animator& animator, const f32 delta_time) {
   }
 
   // Play the current animation 
+ 
+  animation.flip_speed = animator.speed;
   animation_update(animator.animations[animator.current_animation], delta_time);
 }
 

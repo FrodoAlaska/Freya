@@ -57,47 +57,10 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   freya::Animator& anim = freya::entity_add_animator(s_app.ecs, s_app.entt);
   
-  freya::AnimationDesc desc = {
-    .texture_id = asset_group_get_id(s_app.group_id, "soldier_idle"),
-    .frame_size = freya::Vec2(128.0f),
-    .flip_speed = 0.1f,
-  };
-  freya::animator_push_animation(anim, "idle", desc);
-  
-  desc = {
-    .texture_id = asset_group_get_id(s_app.group_id, "soldier_walk"),
-    .frame_size = freya::Vec2(128.0f),
-    .flip_speed = 0.1f,
-  };
-  freya::animator_push_animation(anim, "walk", desc);
-  
-  desc = {
-    .texture_id = asset_group_get_id(s_app.group_id, "soldier_run"),
-    .frame_size = freya::Vec2(128.0f),
-    .flip_speed = 0.1f,
-  };
-  freya::animator_push_animation(anim, "run", desc);
-  
-  desc = {
-    .texture_id = asset_group_get_id(s_app.group_id, "soldier_attack"),
-    .frame_size = freya::Vec2(128.0f),
-    .flip_speed = 0.1f,
-  };
-  freya::animator_push_animation(anim, "attack", desc);
-  
-  desc = {
-    .texture_id = asset_group_get_id(s_app.group_id, "soldier_hurt"),
-    .frame_size = freya::Vec2(128.0f),
-    .flip_speed = 0.1f,
-  };
-  freya::animator_push_animation(anim, "hurt", desc);
-  
-  desc = {
-    .texture_id = asset_group_get_id(s_app.group_id, "soldier_dead"),
-    .frame_size = freya::Vec2(128.0f),
-    .flip_speed = 0.1f,
-  };
-  freya::animator_push_animation(anim, "dead", desc);
+  freya::animator_push_animation(anim, "idle", freya::Vec2(128.0f), freya::asset_group_get_id(s_app.group_id, "soldier_idle"));
+  freya::animator_push_animation(anim, "walk", freya::Vec2(128.0f), freya::asset_group_get_id(s_app.group_id, "soldier_walk"));
+  freya::animator_push_animation(anim, "run", freya::Vec2(128.0f), freya::asset_group_get_id(s_app.group_id, "soldier_run"));
+  freya::animator_push_animation(anim, "attack", freya::Vec2(128.0f), freya::asset_group_get_id(s_app.group_id, "soldier_attack"));
 
   // Done!
   return true;
