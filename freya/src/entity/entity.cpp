@@ -152,7 +152,9 @@ void entity_world_render(const EntityWorld& world) {
       const Transform& transform = view.get<Transform>(entt);
       const Animator& anim       = view.get<Animator>(entt);
 
-      renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
+      if(!anim.animations.empty()) {
+        renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
+      }
     }
   }
 

@@ -489,8 +489,8 @@ FREYA_API void animation_reset(Animation& anim);
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animator functions
 
-/// Push the given `animation` into `aniamtor` identified by `name`.
-FREYA_API void animator_push_animation(Animator& animator, const String& name, Animation& animation);
+/// Create an animation using the given `anim_desc` and push it into `aniamtor` identified by `name`.
+FREYA_API void animator_push_animation(Animator& animator, const String& name, const AnimationDesc& anim_desc);
 
 /// Switch the current animation of `animator` to the animation identified by `name` or `anim_index`.
 ///

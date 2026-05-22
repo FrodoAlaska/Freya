@@ -11,6 +11,7 @@ struct App {
   freya::AssetGroupID group_id;
 
   freya::EntityWorld ecs; 
+  freya::Entity entt;
 };
 
 static App s_app;
@@ -43,7 +44,60 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
+  
   s_app.group_id = freya::asset_group_create("app_assets");
+
+  freya::asset_group_build(s_app.group_id, "../../assets/assets_list.lua", "assets.frpkg");
+  freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
+
+  // Entity init
+  s_app.entt = freya::entity_create(s_app.ecs, freya::Vec2(100.0f));
+ 
+  // Animator init
+
+  freya::Animator& anim = freya::entity_add_animator(s_app.ecs, s_app.entt);
+  
+  freya::AnimationDesc desc = {
+    .texture_id = asset_group_get_id(s_app.group_id, "soldier_idle"),
+    .frame_size = freya::Vec2(128.0f),
+    .flip_speed = 0.1f,
+  };
+  freya::animator_push_animation(anim, "idle", desc);
+  
+  desc = {
+    .texture_id = asset_group_get_id(s_app.group_id, "soldier_walk"),
+    .frame_size = freya::Vec2(128.0f),
+    .flip_speed = 0.1f,
+  };
+  freya::animator_push_animation(anim, "walk", desc);
+  
+  desc = {
+    .texture_id = asset_group_get_id(s_app.group_id, "soldier_run"),
+    .frame_size = freya::Vec2(128.0f),
+    .flip_speed = 0.1f,
+  };
+  freya::animator_push_animation(anim, "run", desc);
+  
+  desc = {
+    .texture_id = asset_group_get_id(s_app.group_id, "soldier_attack"),
+    .frame_size = freya::Vec2(128.0f),
+    .flip_speed = 0.1f,
+  };
+  freya::animator_push_animation(anim, "attack", desc);
+  
+  desc = {
+    .texture_id = asset_group_get_id(s_app.group_id, "soldier_hurt"),
+    .frame_size = freya::Vec2(128.0f),
+    .flip_speed = 0.1f,
+  };
+  freya::animator_push_animation(anim, "hurt", desc);
+  
+  desc = {
+    .texture_id = asset_group_get_id(s_app.group_id, "soldier_dead"),
+    .frame_size = freya::Vec2(128.0f),
+    .flip_speed = 0.1f,
+  };
+  freya::animator_push_animation(anim, "dead", desc);
 
   // Done!
   return true;
@@ -67,6 +121,23 @@ void app_update(freya::f32 dt) {
   if(freya::input_key_pressed(freya::KEY_F1)) {
     freya::gui_toggle_active();
     freya::physics_world_toggle_debug();
+  }
+
+  // Change animator state
+
+  freya::Animator& animator = freya::entity_get_component<freya::Animator>(s_app.ecs, s_app.entt);
+
+  if(freya::input_key_down(freya::KEY_LEFT_SHIFT) && freya::input_key_down(freya::KEY_D)) {
+    freya::animator_switch(animator, "run");
+  }
+  else if(freya::input_key_down(freya::KEY_D)) {
+    freya::animator_switch(animator, "walk");
+  }
+  else if(freya::input_key_down(freya::KEY_SPACE)) {
+    freya::animator_switch(animator, "attack");
+  }
+  else {
+    freya::animator_switch(animator, "idle");
   }
 
   // Update
@@ -100,6 +171,7 @@ void app_render_gui() {
    
   freya::gui_begin_panel("Editor");
   freya::gui_edit_camera("Camera", &s_app.camera);
+  freya::gui_edit_entity("Entity", s_app.ecs, s_app.entt);
   freya::gui_end_panel();
 
   freya::gui_end();

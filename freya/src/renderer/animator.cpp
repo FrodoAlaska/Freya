@@ -8,13 +8,15 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animator functions
 
-void animator_push_animation(Animator& animator, const String& name, Animation& animation) {
-  animator.animations.push_back(animation);
+void animator_push_animation(Animator& animator, const String& name, const AnimationDesc& anim_desc) {
+  animator.animations.push_back(Animation{});
+  
+  animation_create(animator.animations.back(), anim_desc);
   animator.remaps[name] = (i32)(animator.animations.size() - 1);
 }
 
 void animator_switch(Animator& animator, const i32 anim_index) {
-  FREYA_DEBUG_ASSERT((anim_index > animator.animations.size()), "Invalid animation index");
+  FREYA_DEBUG_ASSERT((anim_index < animator.animations.size()), "Invalid animation index");
 
   if(animator.is_immediate) {
     animator.current_animation = anim_index;
@@ -30,7 +32,7 @@ void animator_switch(Animator& animator, const String& name) {
 }
 
 void animator_update(Animator& animator, const f32 delta_time) {
-  if(!animator.is_playing) {
+  if(!animator.is_playing || animator.animations.empty()) {
     return;
   }
 
@@ -40,6 +42,8 @@ void animator_update(Animator& animator, const f32 delta_time) {
   if(animator.is_switching && (animation.loops > 0)) {
     animator.is_switching      = false;
     animator.current_animation = animator.next_animation;
+
+    animation_reset(animation);
   }
 
   // Play the current animation 
