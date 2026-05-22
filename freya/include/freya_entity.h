@@ -271,13 +271,10 @@ FREYA_API TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
                                                       const Rect2D& source, 
                                                       const Vec4& color = Vec4(1.0f));
 
-/// A helper function to add a particle emitter to `entt`, using the information 
-/// in `desc`.
-///
-/// @NOTE: The position of the given `desc` will be set inside the function
-/// using the current position of `entt`.
-/// However, the rest of the memebers of `desc` must be filled by the caller.
-FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, ParticleEmitterDesc& desc);
+/// A helper function to add a particle emitter to `entt` using the information 
+/// in `desc` or in a config file given in `config_id`.
+FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, const ParticleEmitterDesc& desc);
+FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, const AssetID& config_id);
 
 /// A helper function to add a static body to `entt`, using the information 
 /// in `desc`, and `enter_func`, and `exit_func`, to call later on collision events. 

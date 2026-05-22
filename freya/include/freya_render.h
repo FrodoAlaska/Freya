@@ -516,7 +516,7 @@ FREYA_API void animator_clear(Animator& animator);
 FREYA_API void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitterDesc& desc);
 
 /// Create a particle emitter `out_emitter` using the config file given in `config_id`.
-FREYA_API void particle_emitter_create_from_config(ParticleEmitter& out_emitter, const AssetID& config_id);
+FREYA_API void particle_emitter_create(ParticleEmitter& out_emitter, const AssetID& config_id);
 
 /// A physics update of each particle in the given `emitter` using the scale of `delta_time`. 
 FREYA_API void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time); 

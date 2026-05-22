@@ -82,13 +82,125 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitter
   timer_create(out_emitter.lifetime, desc.lifetime, false);
 }
 
-void particle_emitter_create_from_config(ParticleEmitter& out_emitter, const AssetID& config_id) {
+void particle_emitter_create(ParticleEmitter& out_emitter, const AssetID& config_id) {
   // Get the LUA state 
   lua_State* lua = asset_group_get_lua_state(config_id);
 
+  //
   // Fill the desc using the LUA config
+  //
 
   ParticleEmitterDesc desc;
+  lua_getglobal(lua, "particle");
+
+  // Velocity
+  
+  i32 type = lua_getfield(lua, -1, "velocity");
+  if(type != LUA_TNIL) {
+    lua_geti(lua, -1, 1);
+    desc.velocity.x = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+    
+    lua_geti(lua, -1, 2);
+    desc.velocity.y = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+
+    lua_pop(lua, 1);
+  } 
+
+  // Count
+
+  type = lua_getfield(lua, -1, "count");
+  if(type != LUA_TNIL) {
+    desc.count = lua_tonumber(lua, -1);
+    lua_pop(lua, 1);
+  }
+
+  // Scale
+  
+  type = lua_getfield(lua, -1, "scale");
+  if(type != LUA_TNIL) {
+    lua_geti(lua, -1, 1);
+    desc.scale.x = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+    
+    lua_geti(lua, -1, 2);
+    desc.scale.y = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+
+    lua_pop(lua, 1);
+  }
+
+  // Color
+  
+  type = lua_getfield(lua, -1, "color");
+  if(type != LUA_TNIL) {
+    lua_geti(lua, -1, 1);
+    desc.color.r = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+    
+    lua_geti(lua, -1, 2);
+    desc.color.g = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+    
+    lua_geti(lua, -1, 3);
+    desc.color.b = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+    
+    lua_geti(lua, -1, 4);
+    desc.color.a = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+
+    lua_pop(lua, 1);
+  }
+
+  // Lifetime
+
+  type = lua_getfield(lua, -1, "lifetime");
+  if(type != LUA_TNIL) {
+    desc.lifetime = lua_tonumber(lua, -1);
+    lua_pop(lua, 1);
+  }
+  
+  // Gravity factor
+
+  type = lua_getfield(lua, -1, "gravity_factor");
+  if(type != LUA_TNIL) {
+    desc.gravity_factor = lua_tonumber(lua, -1);
+    lua_pop(lua, 1);
+  }
+  
+  // Distribution
+
+  type = lua_getfield(lua, -1, "distribution");
+  if(type != LUA_TNIL) {
+    // @NOTE: Yes, string comparisons. Leave me alone.
+    
+    String type_str = lua_tostring(lua, -1);
+
+    if(type_str == "random") {
+      desc.distribution = DISTRIBUTION_RANDOM;
+    } 
+    else if(type_str == "square") {
+      desc.distribution = DISTRIBUTION_SQUARE;
+    }
+    else if(type_str == "circular") {
+      desc.distribution = DISTRIBUTION_CIRCULAR;
+    }
+
+    lua_pop(lua, 1);
+  }
+  
+  // Radius
+
+  type = lua_getfield(lua, -1, "radius");
+  if(type != LUA_TNIL) {
+    desc.distribution_radius = lua_tonumber(lua, -1);
+    lua_pop(lua, 1);
+  }
+
+  // Done!
+  lua_pop(lua, 1);
 
   // Create the emitter
   particle_emitter_create(out_emitter, desc);

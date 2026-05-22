@@ -293,14 +293,18 @@ TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
   return world.emplace<TileSpriteComponent>(entt.get_id(), texture, source, color);
 }
 
-ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, ParticleEmitterDesc& desc) {
-  Transform& transform = world.get<Transform>(entt.get_id());
-  desc.scale           = transform.scale;
-
-  ParticleEmitter emitter; 
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, const ParticleEmitterDesc& desc) {
+  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt.get_id()); 
   particle_emitter_create(emitter, desc);
+  
+  return emitter;
+}
 
-  return world.emplace<ParticleEmitter>(entt.get_id(), emitter);
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, const AssetID& config_id) {
+  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt.get_id()); 
+  particle_emitter_create(emitter, config_id);
+  
+  return emitter;
 }
 
 StaticBodyComponent& entity_add_static_body(EntityWorld& world, 

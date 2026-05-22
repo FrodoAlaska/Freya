@@ -2,9 +2,6 @@
 
 ### Components
 
-- Particles
-    - Load particle emitter from config file
-
 - Improve art integration into the engine. How? Figure it out.
 
 - Tilemap

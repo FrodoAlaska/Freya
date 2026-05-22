@@ -19,6 +19,19 @@ static App s_app;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// Callbacks
+
+static bool on_asset_group_load(const freya::Event& event, const void* dispatcher, const void* listener) {
+  freya::ParticleEmitter& emitter = freya::entity_get_component<freya::ParticleEmitter>(s_app.ecs, s_app.entt);
+  freya::particle_emitter_create(emitter, freya::asset_group_get_id(s_app.group_id, "particles"));
+
+  return true;
+}
+
+/// Callbacks
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// App functions 
 
 bool app_init(const freya::Args& args, freya::Window* window) {
@@ -54,13 +67,10 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   s_app.entt = freya::entity_create(s_app.ecs, freya::Vec2(100.0f));
  
   // Particles init
-  
-  freya::ParticleEmitterDesc desc = {
-    .velocity = freya::Vec2(150.0f),
-    .count    = 32,
-    .color    = freya::COLOR_WHITE,
-  };
-  freya::entity_add_particle_emitter(s_app.ecs, s_app.entt, desc);
+  freya::entity_add_particle_emitter(s_app.ecs, s_app.entt, freya::asset_group_get_id(s_app.group_id, "particles"));
+
+  // Listen to events
+  freya::event_register(freya::EVENT_ASSET_GROUP_LOADED, on_asset_group_load);
 
   // Done!
   return true;
