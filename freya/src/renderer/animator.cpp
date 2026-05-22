@@ -46,7 +46,7 @@ void animator_update(Animator& animator, const f32 delta_time) {
   animation_update(animator.animations[animator.current_animation], delta_time);
 }
 
-void animatorr_reset(Animator& animator) {
+void animator_reset(Animator& animator) {
   animator.current_animation = 0;
   animator.next_animation    = 0;
   

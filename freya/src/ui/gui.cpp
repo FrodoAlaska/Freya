@@ -520,16 +520,10 @@ void gui_edit_timer(const char* name, Timer* timer) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
 
-  // Limit 
-  {
-    ImGui::DragFloat("Limit", &timer->limit, s_gui.big_step, 0.0f);
-  }
+  ImGui::DragFloat("Limit", &timer->limit, s_gui.big_step, 0.0f);
 
-  // Booleans
-  {
-    ImGui::Checkbox("One shot", &timer->is_one_shot);
-    ImGui::Checkbox("Active", &timer->is_active);
-  }
+  ImGui::Checkbox("One shot", &timer->is_one_shot);
+  ImGui::Checkbox("Active", &timer->is_active);
   
   ImGui::PopID(); 
 }
@@ -538,16 +532,9 @@ void gui_edit_animation(const char* name, Animation* anim) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
   
-  // Current frame
   ImGui::DragInt("Current frame", &anim->current_frame, s_gui.small_step, 0, anim->frames_count);
- 
-  // Direction
   ImGui::DragInt("Direction", &anim->direction, s_gui.small_step, -1, 1);
- 
-  // Speed
   ImGui::DragFloat("Speed", &anim->flip_speed, s_gui.small_step, 0.0f);
-
-  // Booleans
   
   ImGui::Checkbox("Active", &anim->is_active);
   ImGui::Checkbox("Loop", &anim->can_loop);
@@ -559,7 +546,23 @@ void gui_edit_animation(const char* name, Animation* anim) {
 void gui_edit_animator(const char* name, Animator* anim) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
+ 
+  ImGui::Text("Animations: %zu", anim->animations.size()); 
+ 
+  i32 current  = anim->current_animation;
+  bool changed = ImGui::DragInt("Current animation", &current, s_gui.small_step, 0, anim->animations.size());
   
+  if(changed) {
+    animator_switch(*anim, current);
+  }
+
+  ImGui::Checkbox("Immediate", &anim->is_immediate);
+  ImGui::Checkbox("Playing", &anim->is_playing);
+
+  if(ImGui::Button("Reset")) {
+    animator_reset(*anim);
+  }
+
   ImGui::PopID(); 
 }
 

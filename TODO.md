@@ -10,8 +10,6 @@
     - Still some errors on the web side. Some exceptions on the JavaScript side
 
 - ECS 
-    - Animation controller component
-        - Add in the GUI
     - Camera controller component
     - Improve the UI situation to make it more compatibale with the ECS
     - GUI component to render through the GUI
