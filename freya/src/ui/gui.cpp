@@ -576,7 +576,6 @@ void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter) {
   // Physics
   //
 
-  ImGui::DragFloat2("Position", &emitter->initial_position[0], s_gui.big_step);
   ImGui::DragFloat2("Velocity", &emitter->initial_velocity[0], s_gui.big_step);
   
   ImGui::DragFloat("Lifetime", &emitter->lifetime.limit, s_gui.big_step, 0.0f, 512.0f);
@@ -598,14 +597,8 @@ void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter) {
     emitter->distribution = (ParticleDistributionType)current_dist;
   }
 
-  //
   // Particles count
-  // 
-
-  i32 count = (i32)emitter->particles_count;
-  if(ImGui::SliderInt("Count", &count, 1, (i32)(PARTICLES_MAX - 1))) {
-    emitter->particles_count = (sizei)count;
-  }
+  ImGui::SliderInt("Count", &emitter->particles_count, 1, (i32)(PARTICLES_MAX - 1));
   
   ImGui::PopID(); 
 }

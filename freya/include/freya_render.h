@@ -267,14 +267,6 @@ struct Animator {
 ///---------------------------------------------------------------------------------------------------------------------
 /// ParticleEmitterDesc
 struct ParticleEmitterDesc {
-  /// The starting position of the particles.
-  Vec2 position; 
-
-  /// The unit scale of each particle in the system. 
-  ///
-  /// @NOTE: The default scale is set to `Vec2(1.0f, 1.0f)`.
-  Vec2 scale;
-
   /// The velocity of each particle that will be applied 
   /// in the update loop. 
   Vec2 velocity;
@@ -282,7 +274,12 @@ struct ParticleEmitterDesc {
   /// The amount of particles to emit. 
   ///
   /// @NOTE: This variable CANNOT exceed `PARTICLES_CPU_MAX`.
-  sizei count; 
+  i32 count; 
+
+  /// The unit scale of each particle in the system. 
+  ///
+  /// @NOTE: The default scale is set to `Vec2(1.0f, 1.0f)`.
+  Vec2 scale                            = Vec2(1.0f);
 
   /// The texture ID to be used when rendering the particles. 
   ///
@@ -328,7 +325,6 @@ struct ParticleEmitterDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// ParticleEmitter 
 struct ParticleEmitter {
-  Vec2 initial_position = Vec2(0.0f);
   Vec2 initial_scale    = Vec2(0.0f);
   Vec2 initial_velocity = Vec2(0.0f);
 
@@ -336,7 +332,7 @@ struct ParticleEmitter {
   Vec2 forces[PARTICLES_MAX];
   Vec2 velocities[PARTICLES_MAX];
 
-  sizei particles_count = 0;
+  i32 particles_count = 0;
   Timer lifetime; 
 
   GfxTexture* texture; 
@@ -516,17 +512,20 @@ FREYA_API void animator_clear(Animator& animator);
 ///---------------------------------------------------------------------------------------------------------------------
 /// ParticleEmitter functions
 
-/// Create a particle emitter `out_emitter`, using the information in `desc`.
+/// Create a particle emitter `out_emitter` using the information in `desc`.
 FREYA_API void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitterDesc& desc);
+
+/// Create a particle emitter `out_emitter` using the config file given in `config_id`.
+FREYA_API void particle_emitter_create_from_config(ParticleEmitter& out_emitter, const AssetID& config_id);
 
 /// A physics update of each particle in the given `emitter` using the scale of `delta_time`. 
 FREYA_API void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time); 
 
-/// Emit the particles of `emitter`.
-FREYA_API void particle_emitter_emit(ParticleEmitter& emitter);
+/// Emit the particles of `emitter` at `position`.
+FREYA_API void particle_emitter_emit(ParticleEmitter& emitter, const Vec2& position);
 
-/// Reset the given `emitter` to its initial state.
-FREYA_API void particle_emitter_reset(ParticleEmitter& emitter);
+/// Reset the given `emitter` to its initial state, with all particles being positioned at `position`.
+FREYA_API void particle_emitter_reset(ParticleEmitter& emitter, const Vec2& position);
 
 /// ParticleEmitter functions
 ///---------------------------------------------------------------------------------------------------------------------

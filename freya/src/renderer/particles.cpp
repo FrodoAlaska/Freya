@@ -9,7 +9,7 @@ namespace freya { // Start of freya
 /// Private functions
 
 static void apply_random_distribution(ParticleEmitter& emitter) {
-  for(sizei i = 0; i < emitter.particles_count; i++) {
+  for(i32 i = 0; i < emitter.particles_count; i++) {
     Vec2 direction         = Vec2(random_f32(-1.0f, 1.0f), 
                                   random_f32(-1.0f, 1.0f));
     emitter.velocities[i] *= direction;
@@ -20,7 +20,7 @@ static void apply_square_distribution(ParticleEmitter& emitter) {
   f32 min = -emitter.distribution_radius;
   f32 max = emitter.distribution_radius;
 
-  for(sizei i = 0; i < emitter.particles_count; i++) {
+  for(i32 i = 0; i < emitter.particles_count; i++) {
     Vec2 direction         = Vec2(random_f32(min, max), 
                                   random_f32(min, max));
     emitter.velocities[i] *= direction;
@@ -28,7 +28,7 @@ static void apply_square_distribution(ParticleEmitter& emitter) {
 }
 
 static void apply_circular_distribution(ParticleEmitter& emitter) {
-  for(sizei i = 0; i < emitter.particles_count; i++) {
+  for(i32 i = 0; i < emitter.particles_count; i++) {
     f32 theta_angle = random_f32(0.0f, 2.0f * PI);
     f32 radius      = random_f32(0.0f, 1.0f) * emitter.distribution_radius;
 
@@ -51,14 +51,13 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitter
   
   // Positional variables init 
   
-  out_emitter.initial_position = desc.position;
   out_emitter.initial_scale    = desc.scale;
   out_emitter.initial_velocity = desc.velocity;
 
   for(sizei i = 0; i < desc.count; i++) {
     Transform& transform = out_emitter.transforms[i];
 
-    transform.position = desc.position; 
+    transform.position = Vec2(-1000.0f); 
     transform.scale    = desc.scale;
   }
 
@@ -83,6 +82,18 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitter
   timer_create(out_emitter.lifetime, desc.lifetime, false);
 }
 
+void particle_emitter_create_from_config(ParticleEmitter& out_emitter, const AssetID& config_id) {
+  // Get the LUA state 
+  lua_State* lua = asset_group_get_lua_state(config_id);
+
+  // Fill the desc using the LUA config
+
+  ParticleEmitterDesc desc;
+
+  // Create the emitter
+  particle_emitter_create(out_emitter, desc);
+}
+
 void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time) {
   if(!emitter.is_active) {
     return;
@@ -90,7 +101,7 @@ void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time) {
 
   // Apply the numarical integrator for each particle 
 
-  for(sizei i = 0; i < emitter.particles_count; i++) {
+  for(i32 i = 0; i < emitter.particles_count; i++) {
     Vec2 acceleration = emitter.forces[i] * -1.0f; // -1.0f = inverse mass
     acceleration.y   += emitter.gravity_factor;
 
@@ -111,8 +122,8 @@ void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time) {
   emitter.is_active = false; 
 }
 
-void particle_emitter_emit(ParticleEmitter& emitter) {
-  particle_emitter_reset(emitter);
+void particle_emitter_emit(ParticleEmitter& emitter, const Vec2& position) {
+  particle_emitter_reset(emitter, position);
   emitter.is_active = true;
 
   // Applying the distribution
@@ -132,20 +143,20 @@ void particle_emitter_emit(ParticleEmitter& emitter) {
   }
 }
 
-void particle_emitter_reset(ParticleEmitter& emitter) {
+void particle_emitter_reset(ParticleEmitter& emitter, const Vec2& position) {
   emitter.is_active = false;
   timer_reset(emitter.lifetime);
   
-  for(sizei i = 0; i < emitter.particles_count; i++) {
-    emitter.transforms[i].position = emitter.initial_position;
+  for(i32 i = 0; i < emitter.particles_count; i++) {
+    emitter.transforms[i].position = position;
     emitter.transforms[i].scale    = emitter.initial_scale;
   }
   
-  for(sizei i = 0; i < emitter.particles_count; i++) {
+  for(i32 i = 0; i < emitter.particles_count; i++) {
     emitter.forces[i] = Vec2(0.0f);
   }
   
-  for(sizei i = 0; i < emitter.particles_count; i++) {
+  for(i32 i = 0; i < emitter.particles_count; i++) {
     emitter.velocities[i] = emitter.initial_velocity;
   }
 }
