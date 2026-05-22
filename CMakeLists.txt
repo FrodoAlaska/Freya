@@ -33,7 +33,7 @@ endif()
 # GLM
 
 if(NOT DEFINED EMSCRIPTEN)
-  set(GLM_ENABLE_SIMD_AVX ON)
+  set(GLM_ENABLE_SIMD_AVX ON CACHE BOOL "" FORCE)
 endif()
 
 FetchContent_Declare(
@@ -89,11 +89,11 @@ if(NOT DEFINED EMSCRIPTEN) # These libraries are not required when building for 
 
   # OpenAL-Soft
 
-  set(ALSOFT_EXAMPLES        OFF)
-  set(ALSOFT_DLOPEN          OFF)
-  set(ALSOFT_UTILS           OFF)
-  set(ALSOFT_INSTAL_EXAMPLES OFF)
-  set(ALSOFT_INSTAL_UTILS    OFF)
+  set(ALSOFT_EXAMPLES        OFF CACHE BOOL "" FORCE)
+  set(ALSOFT_DLOPEN          OFF CACHE BOOL "" FORCE)
+  set(ALSOFT_UTILS           OFF CACHE BOOL "" FORCE)
+  set(ALSOFT_INSTAL_EXAMPLES OFF CACHE BOOL "" FORCE)
+  set(ALSOFT_INSTAL_UTILS    OFF CACHE BOOL "" FORCE)
 
   set(LIBTYPE STATIC)
 
