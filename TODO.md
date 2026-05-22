@@ -4,13 +4,13 @@
     - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.
 
 - Update the project template. It's super out of date.
+- Load particle emitter from config file
 
 - Web build testing
     - Still some errors on the web side. Some exceptions on the JavaScript side
 
 - ECS 
     - Animation controller component
-        - Add in the ECS 
         - Add in the GUI
     - Camera controller component
     - Improve the UI situation to make it more compatibale with the ECS

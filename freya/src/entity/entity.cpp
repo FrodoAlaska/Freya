@@ -40,14 +40,25 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
     }
   }
 
+  // Animations
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(AnimationComponent)");
+
+    auto view = world.view<AnimationComponent>();
+    for(auto entt : view) {
+      AnimationComponent& anim = view.get<AnimationComponent>(entt);
+      animation_update(anim.animation, delta_time);
+    }
+  }
+
   // Animators
   {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(AnimatorComponent)");
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(Animator)");
 
-    auto view = world.view<AnimatorComponent>();
+    auto view = world.view<Animator>();
     for(auto entt : view) {
-      AnimatorComponent& anim = view.get<AnimatorComponent>(entt);
-      animation_update(anim.animation, delta_time);
+      Animator& anim = view.get<Animator>(entt);
+      animator_update(anim, delta_time);
     }
   }
 
@@ -119,16 +130,29 @@ void entity_world_render(const EntityWorld& world) {
     }
   }
   
-  // Animators
+  // Animations
   {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(AnimatorComponent)");
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(AnimationComponent)");
 
-    auto view = world.view<AnimatorComponent, Transform>();
+    auto view = world.view<AnimationComponent, Transform>();
     for(auto entt : view) {
-      const Transform& transform    = view.get<Transform>(entt);
-      const AnimatorComponent& anim = view.get<AnimatorComponent>(entt);
+      const Transform& transform     = view.get<Transform>(entt);
+      const AnimationComponent& anim = view.get<AnimationComponent>(entt);
 
       renderer_queue_animation(anim.animation, transform, anim.tint);
+    }
+  }
+  
+  // Animators
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(Animator)");
+
+    auto view = world.view<Animator, Transform>();
+    for(auto entt : view) {
+      const Transform& transform = view.get<Transform>(entt);
+      const Animator& anim       = view.get<Animator>(entt);
+
+      renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
     }
   }
 
@@ -207,9 +231,9 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
     noise_generator_destroy(gen);
   }
   
-  if(entity_has_component<AudioSourceID>(world, entt)) {
-    AudioSourceID& source_id = entity_get_component<AudioSourceID>(world, entt);
-    audio_source_destroy(source_id);
+  if(entity_has_component<Animator>(world, entt)) {
+    Animator& anim = entity_get_component<Animator>(world, entt);
+    animator_clear(anim);
   }
 
   // Destroy the entity in the world
@@ -242,11 +266,15 @@ Timer& entity_add_timer(EntityWorld& world,
   return world.emplace<Timer>(entt.get_id(), timer);
 }
 
-AnimatorComponent& entity_add_animation(EntityWorld& world, Entity& entt, const AnimationDesc& desc, const Vec4& tint) {
+AnimationComponent& entity_add_animation(EntityWorld& world, Entity& entt, const AnimationDesc& desc, const Vec4& tint) {
   Animation anim; 
   animation_create(anim, desc);
 
-  return world.emplace<AnimatorComponent>(entt.get_id(), anim, tint);
+  return world.emplace<AnimationComponent>(entt.get_id(), anim, tint);
+}
+
+Animator& entity_add_animator(EntityWorld& world, Entity& entt) {
+  return world.emplace<Animator>(entt.get_id());
 }
 
 SpriteComponent& entity_add_sprite(EntityWorld& world, Entity& entt, const AssetID& texture_id, const Vec4& color) {

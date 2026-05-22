@@ -33,7 +33,6 @@ void animator_update(Animator& animator, const f32 delta_time) {
   if(!animator.is_playing) {
     return;
   }
-  
 
   // Switch the animation if it needs to 
   

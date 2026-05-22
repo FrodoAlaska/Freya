@@ -174,8 +174,8 @@ struct DynamicBodyComponent {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// AnimatorComponent
-struct AnimatorComponent {
+/// AnimationComponent
+struct AnimationComponent {
   /// Animation itself that will be 
   /// updated and rendered.
   Animation animation; 
@@ -184,7 +184,7 @@ struct AnimatorComponent {
   /// in the render command. 
   Vec4 tint;
 };
-/// AnimatorComponent
+/// AnimationComponent
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -251,7 +251,13 @@ FREYA_API Timer& entity_add_timer(EntityWorld& world,
 
 /// A helper function to add an animation component to `entt`, using the given 
 /// `desc` and `tint`.
-FREYA_API AnimatorComponent& entity_add_animation(EntityWorld& world, Entity& entt, const AnimationDesc& desc, const Vec4& tint = Vec4(1.0f));
+FREYA_API AnimationComponent& entity_add_animation(EntityWorld& world, 
+                                                   Entity& entt, 
+                                                   const AnimationDesc& desc, 
+                                                   const Vec4& tint = Vec4(1.0f));
+
+/// A helper function to add an animator component to `entt`.
+FREYA_API Animator& entity_add_animator(EntityWorld& world, Entity& entt);
 
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id` and `color` to give to the render command.

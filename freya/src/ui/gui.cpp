@@ -556,6 +556,13 @@ void gui_edit_animation(const char* name, Animation* anim) {
   ImGui::PopID(); 
 }
 
+void gui_edit_animator(const char* name, Animator* anim) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  ImGui::PopID(); 
+}
+
 void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
@@ -909,10 +916,21 @@ void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
   
   // Animation
 
-  if(entity_has_component<AnimatorComponent>(world, entt)) {
+  if(entity_has_component<AnimationComponent>(world, entt)) {
     if(ImGui::TreeNode("Animation")) {
-      AnimatorComponent& anim = entity_get_component<AnimatorComponent>(world, entt);
+      AnimationComponent& anim = entity_get_component<AnimationComponent>(world, entt);
       gui_edit_animation("", &anim.animation);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // Animator
+
+  if(entity_has_component<Animator>(world, entt)) {
+    if(ImGui::TreeNode("Animator")) {
+      Animator& anim = entity_get_component<Animator>(world, entt);
+      gui_edit_animator("", &anim);
 
       ImGui::TreePop();
     }
