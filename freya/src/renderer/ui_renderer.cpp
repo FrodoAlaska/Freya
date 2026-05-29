@@ -214,14 +214,14 @@ public:
     gfx_context_set_state(renderer.gfx, GFX_STATE_SCISSOR, enable);
   }
 
-  void SetScissorRegion(Rml::Rectanglei region) {
+  void SetScissorRegion(Rml::Rectanglei region) override {
     Rml::Vector2i position = region.Position();
     Rml::Vector2i size     = region.Size();
 
     gfx_context_set_scissor_rect(renderer.gfx, position.x, position.y, size.x, size.y);
   }
 
-  void SetTransform(const Rml::Matrix4f* transform) {
+  void SetTransform(const Rml::Matrix4f* transform) override {
     if(!transform) {
       renderer.transform = Mat4(1.0f);
       return;
@@ -238,7 +238,7 @@ public:
     renderer.transform[3] = Vec4(colomn4.x, colomn4.y, colomn4.z, colomn4.w);
   }
 
-  Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) {
+  Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override {
     // @TODO (UI)
     return 0;
   }
@@ -246,11 +246,11 @@ public:
   void RenderShader(Rml::CompiledShaderHandle shader,
                     Rml::CompiledGeometryHandle geometry,
                     Rml::Vector2f translation,
-                    Rml::TextureHandle texture) {
+                    Rml::TextureHandle texture) override {
     // @TODO (UI)
   }
 
-  void ReleaseShader(Rml::CompiledShaderHandle shader) {
+  void ReleaseShader(Rml::CompiledShaderHandle shader) override {
     // @TODO (UI)
   }
 

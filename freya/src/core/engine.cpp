@@ -98,9 +98,6 @@ i32 engine_run(const AppDesc& desc) {
   // Input init
   input_init();
 
-  // Asset manager init
-  asset_manager_init();
- 
   // Window init 
   
   s_engine.window = window_open(desc.window_title, desc.window_width, desc.window_height, desc.window_flags);
@@ -126,6 +123,9 @@ i32 engine_run(const AppDesc& desc) {
     .gamepad_bind = GAMEPAD_BUTTON_DPAD_UP,
   };
   input_action_bind("ui-nav-up", action_desc);
+  
+  // Asset manager init
+  asset_manager_init();
 
   // Renderers init 
   
@@ -181,11 +181,12 @@ i32 engine_run(const AppDesc& desc) {
 
   physics_world_shutdown();
   audio_device_shutdown();
+  asset_manager_shutdown();
+  
   ui_renderer_shutdown();
   renderer_shutdown();
 
   window_close(s_engine.window);
-  asset_manager_shutdown();
   event_shutdown();
  
   // Done!

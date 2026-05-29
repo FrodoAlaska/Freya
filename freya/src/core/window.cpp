@@ -243,8 +243,8 @@ static void set_window_hints(Window* window) {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
   glfwWindowHint(GLFW_CONTEXT_CREATION_API, GLFW_EGL_CONTEXT_API);
   
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 #endif
 
   // Error callback
@@ -282,10 +282,12 @@ static void set_window_hints(Window* window) {
   if(IS_BIT_SET(window->flags, WINDOW_FLAGS_DISABLE_DECORATIONS)) {
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   }
-  
+ 
+#if FREYA_PLATFORM_WEB != 1
   if(IS_BIT_SET(window->flags, WINDOW_FLAGS_CENTER_MOUSE)) {
     glfwWindowHint(GLFW_CENTER_CURSOR, GLFW_TRUE);
   }
+#endif
   
   if(IS_BIT_SET(window->flags, WINDOW_FLAGS_HIDE_CURSOR)) {
     window->is_cursor_shown = false;
@@ -300,11 +302,14 @@ static void set_window_callbacks(Window* window) {
   // Window callbacks
   
   glfwSetWindowPosCallback(window->handle, window_pos_callback);
-  glfwSetWindowMaximizeCallback(window->handle, window_maxmize_callback);
   glfwSetWindowFocusCallback(window->handle, window_focus_callback);
   glfwSetFramebufferSizeCallback(window->handle, window_framebuffer_resize_callback);
   glfwSetWindowSizeCallback(window->handle, window_resize_callback);
+  
+#if FREYA_PLATFORM_WEB != 1
+  glfwSetWindowMaximizeCallback(window->handle, window_maxmize_callback);
   glfwSetWindowCloseCallback(window->handle, window_close_callback);
+#endif
 
   // Key callbacks 
   glfwSetKeyCallback(window->handle, key_callback);
@@ -337,7 +342,7 @@ Window* window_open(const String& title, const i32 width, const i32 height, i32 
   window->flags    = (WindowFlags)flags;
 
   // GLFW init and setup 
-  
+ 
   glfwInit();
   set_window_hints(window);
 

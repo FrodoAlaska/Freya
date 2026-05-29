@@ -39,10 +39,14 @@ void logger_log(const LogLevel lvl, const char* msg, ...) {
   /// @NOTE: This weirdly works on some Windows terminals but not others. 
   /// But, since I'm lazy, I'm keeping it...
   ///
-  
+ 
+#if FREYA_PLATFORM_WEB != 1
   FILE* console = lvl == LOG_LEVEL_ERROR || lvl == LOG_LEVEL_FATAL ? stderr : stdout; 
   const char* colors[] = {"1;94", "1;96", "1;92", "1;93", "1;91", "1;2;31;40"};
   fprintf(console, "\033[%sm%s%s\033[0m\n", colors[lvl], log_prefix[lvl], out_msg);
+#else // @NOTE/@TODO (Logger/web): Sadly, we need to be plain as shit when on the web...
+  printf("%s%s\n", log_prefix[lvl], out_msg);
+#endif
 
   // Can't keep going with a log level of `FATAL`
   

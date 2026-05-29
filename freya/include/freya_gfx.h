@@ -61,7 +61,7 @@ namespace freya { // Start of freya
 
 #if (FREYA_GFX_GL == 1)
   const sizei TEXTURES_MAX = 32;
-#elif (FREYA_GFX_GLES)
+#else
   const sizei TEXTURES_MAX = 16;
 #endif
 
@@ -884,24 +884,24 @@ struct GfxContextDesc {
   /// A reference to the window.
   /// 
   /// @NOTE: This _must_ be set to a valid value.
-  Window* window              = nullptr;
+  Window* window   = nullptr;
 
   /// A bitwise ORed value from `GfxStates` determining the 
   /// states to create/enable.
   /// 
   /// @NOTE: By default, no states are set. 
-  u32 states                  = 0;
+  u32 states       = 0;
 
   /// When set to `true`, the context will enable vsync. 
   /// Otherwise, vsync will be turned off.
   ///
   /// @NOTE: By default, this value is set to `false`.
-  bool has_vsync              = false;
+  bool has_vsync   = false;
 
   /// The subsamples of the MSAA buffer. 
   /// 
   /// @NOTE: By default, this is set to `1`.
-  u32 msaa_samples            = 1;
+  u32 msaa_samples = 1;
 
   /// The description of the depth state. 
   /// 
@@ -926,6 +926,16 @@ struct GfxContextDesc {
   /// @NOTE: Check `GfxCullDesc` to know the default values
   /// of each member.
   GfxCullDesc cull_desc       = {};
+
+  /// Allocation function used when allocating graphics resources. 
+  ///
+  /// @NOTE: By default, this is set to `memory_allocate` (check `freya_memory.h`). 
+  AllocateMemoryFn allocate_func = nullptr;
+
+  /// The free function used when de-allocating graphics resources. 
+  ///
+  /// @NOTE: By default, this is set to `memory_free` (check `freya_memory.h`). 
+  FreeMemoryFn free_func         = nullptr;
 };
 /// GfxContextDesc 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -1346,6 +1356,9 @@ FREYA_API void gfx_context_set_cull_state(GfxContext* gfx, const GfxCullDesc& cu
 /// @NOTE: The new changes will only take effect if the blend state is enabled.
 FREYA_API void gfx_context_set_blend_state(GfxContext* gfx, const GfxBlendDesc& blend_desc);
 
+/// Set the memory functions for the given `gfx` context.
+FREYA_API void gfx_context_set_memory_funcs(GfxContext* gfx, const AllocateMemoryFn& alloc_func, const FreeMemoryFn& free_func);
+
 /// Set the scissor rectangle of `gfx` to the given `x`, `y`, `width`, `height`
 /// 
 /// @NOTE: The new changes will only take effect if the scissor state is enabled.
@@ -1421,15 +1434,11 @@ FREYA_API void gfx_context_present(GfxContext* gfx);
 ///---------------------------------------------------------------------------------------------------------------------
 /// Framebuffer functions
 
-/// Allocate using the `alloc_fn` callback and return a `GfxFramebuffer` object, using the information in `desc`. 
-///
-/// @NOTE: The `alloc_fn` uses the default memory allocater.
-FREYA_API GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc& desc, const AllocateMemoryFn& alloc_fn = memory_allocate);
+/// Allocate and return a `GfxFramebuffer` object, using the information in `desc`. 
+FREYA_API GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc& desc);
 
-/// Free/reclaim any memory taken by `framebuffer` using the `free_fn` callback.
-///
-/// @NOTE: The `free_fn` uses the default memory allocater.
-FREYA_API void gfx_framebuffer_destroy(GfxFramebuffer* framebuffer, const FreeMemoryFn& free_fn = memory_free);
+/// Free/reclaim any memory taken by `framebuffer`.
+FREYA_API void gfx_framebuffer_destroy(GfxFramebuffer* framebuffer);
 
 /// Copy the contents of the buffer associated with `buffer_mask` (which is an ORable flag from the `GfxClearFlags` enum) 
 /// of the `src_frame` (confined by `src_x`, `src_y`, `src_width`, and `src_height`) framebuffer into the `dest_frame` 
@@ -1460,10 +1469,8 @@ FREYA_API void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFram
 ///---------------------------------------------------------------------------------------------------------------------
 /// Buffer functions 
 
-/// Allocate using the `alloc_fn` callback and return a `GfxBuffer` object.
-///
-/// @NOTE: The `alloc_fn` uses the default memory allocater.
-FREYA_API GfxBuffer* gfx_buffer_create(GfxContext* gfx, const AllocateMemoryFn& alloc_fn = memory_allocate);
+/// Allocate and return a `GfxBuffer` object.
+FREYA_API GfxBuffer* gfx_buffer_create(GfxContext* gfx);
 
 /// Load data into the given `buffer` object, usin the information provided in `desc`.
 ///
@@ -1471,10 +1478,8 @@ FREYA_API GfxBuffer* gfx_buffer_create(GfxContext* gfx, const AllocateMemoryFn& 
 /// the function will return `true`.
 FREYA_API const bool gfx_buffer_load(GfxBuffer* buffer, const GfxBufferDesc& desc);
 
-/// Free/reclaim any memory taken by `buff` using the `free_fn` callback.
-///
-/// @NOTE: The `free_fn` uses the default memory allocater.
-FREYA_API void gfx_buffer_destroy(GfxBuffer* buff, const FreeMemoryFn& free_fn = memory_free);
+/// Free/reclaim any memory taken by `buff`.
+FREYA_API void gfx_buffer_destroy(GfxBuffer* buff);
 
 /// Bind the given `buffer` to bind point `bind_point` for shaders to reference it.
 ///
@@ -1498,10 +1503,8 @@ FREYA_API void gfx_buffer_upload_data(GfxBuffer* buff, const sizei offset, const
 ///---------------------------------------------------------------------------------------------------------------------
 /// Shader functions 
 
-/// Allocate using the `alloc_fn` callback and return a `GfxShader` object.
-///
-/// @NOTE: The `alloc_fn` uses the default memory allocater.
-FREYA_API GfxShader* gfx_shader_create(GfxContext* gfx, const AllocateMemoryFn& alloc_fn = memory_allocate);
+/// Allocate and return a `GfxShader` object.
+FREYA_API GfxShader* gfx_shader_create(GfxContext* gfx);
 
 /// Load data into the given `shader` object, usin the information provided in `desc`.
 ///
@@ -1509,10 +1512,8 @@ FREYA_API GfxShader* gfx_shader_create(GfxContext* gfx, const AllocateMemoryFn& 
 /// the function will return `true`.
 FREYA_API const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc);
 
-/// Free/reclaim any memory taken by `shader` using the `free_fn` callback.
-///
-/// @NOTE: The `free_fn` uses the default memory allocater.
-FREYA_API void gfx_shader_destroy(GfxShader* shader, const FreeMemoryFn& free_fn = memory_free);
+/// Free/reclaim any memory taken by `shader`.
+FREYA_API void gfx_shader_destroy(GfxShader* shader);
 
 /// Retrieve the internal `GfxShaderDesc` of `shader`.
 FREYA_API GfxShaderDesc& gfx_shader_get_source(GfxShader* shader);
@@ -1543,10 +1544,8 @@ FREYA_API void gfx_shader_upload_uniform(GfxShader* shader, const i32 location, 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Texture functions 
 
-/// Allocate using the `alloc_fn` callback and return a `GfxTexture` object of type `tex_type`.
-///
-/// @NOTE: The `alloc_fn` uses the default memory allocater.
-FREYA_API GfxTexture* gfx_texture_create(GfxContext* gfx, const GfxTextureType tex_type, const AllocateMemoryFn& alloc_fn = memory_allocate);
+/// Allocate and return a `GfxTexture` object of type `tex_type`.
+FREYA_API GfxTexture* gfx_texture_create(GfxContext* gfx, const GfxTextureType tex_type);
 
 /// Load data into the given `texture` object, usin the information provided in `desc`.
 ///
@@ -1554,10 +1553,8 @@ FREYA_API GfxTexture* gfx_texture_create(GfxContext* gfx, const GfxTextureType t
 /// the function will return `true`.
 FREYA_API const bool gfx_texture_load(GfxTexture* texture, const GfxTextureDesc& desc);
 
-/// Free/reclaim any memory taken by `texture` using the `free_fn` callback.
-///
-/// @NOTE: The `free_fn` uses the default memory allocater.
-FREYA_API void gfx_texture_destroy(GfxTexture* texture, const FreeMemoryFn& free_fn = memory_free);
+/// Free/reclaim any memory taken by `texture`.
+FREYA_API void gfx_texture_destroy(GfxTexture* texture);
 
 /// Retrieve the internal `GfxTextureDesc` of `texture`
 FREYA_API GfxTextureDesc& gfx_texture_get_desc(GfxTexture* texture);
@@ -1590,10 +1587,8 @@ FREYA_API void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, con
 ///---------------------------------------------------------------------------------------------------------------------
 /// Cubemap functions 
 
-/// Allocate using the `alloc_fn` callback and return a `GfxCubemap` object.
-///
-/// @NOTE: The `alloc_fn` uses the default memory allocater.
-FREYA_API GfxCubemap* gfx_cubemap_create(GfxContext* gfx, const AllocateMemoryFn& alloc_fn = memory_allocate);
+/// Allocate and return a `GfxCubemap` object.
+FREYA_API GfxCubemap* gfx_cubemap_create(GfxContext* gfx);
 
 /// Load data into the given `cubemap` object, usin the information provided in `desc`.
 ///
@@ -1601,10 +1596,8 @@ FREYA_API GfxCubemap* gfx_cubemap_create(GfxContext* gfx, const AllocateMemoryFn
 /// the function will return `true`.
 FREYA_API const bool gfx_cubemap_load(GfxCubemap* cubemap, const GfxCubemapDesc& desc);
 
-/// Free/reclaim any memory taken by `cubemap` using the `free_fn` callback.
-///
-/// @NOTE: The `free_fn` uses the default memory allocater.
-FREYA_API void gfx_cubemap_destroy(GfxCubemap* cubemap, const FreeMemoryFn& free_fn = memory_free);
+/// Free/reclaim any memory taken by `cubemap`.
+FREYA_API void gfx_cubemap_destroy(GfxCubemap* cubemap);
 
 /// Retrieve the internal `GfxCubemapDesc` of `cubemap`
 FREYA_API GfxCubemapDesc& gfx_cubemap_get_desc(GfxCubemap* cubemap);
@@ -1630,15 +1623,11 @@ FREYA_API void gfx_cubemap_upload_data(GfxCubemap* cubemap,
 ///---------------------------------------------------------------------------------------------------------------------
 /// Pipeline functions 
 
-/// Allocate using the `alloc_fn` callback and return a `GfxPipeline` object, using the information in `desc`. 
-///
-/// @NOTE: The `alloc_fn` uses the default memory allocater.
-FREYA_API GfxPipeline* gfx_pipeline_create(GfxContext* gfx, const GfxPipelineDesc& desc, const AllocateMemoryFn& alloc_fn = memory_allocate);
+/// Allocate and return a `GfxPipeline` object, using the information in `desc`. 
+FREYA_API GfxPipeline* gfx_pipeline_create(GfxContext* gfx, const GfxPipelineDesc& desc);
 
-/// Free/reclaim any memory taken by `pipeline` using the `free_fn` callback.
-///
-/// @NOTE: The `free_fn` uses the default memory allocater.
-FREYA_API void gfx_pipeline_destroy(GfxPipeline* pipeline, const FreeMemoryFn& free_fn = memory_free);
+/// Free/reclaim any memory taken by `pipeline`.
+FREYA_API void gfx_pipeline_destroy(GfxPipeline* pipeline);
 
 /// Update the `pipeline`'s information from the given `desc`.
 FREYA_API void gfx_pipeline_update(GfxPipeline* pipeline, const GfxPipelineDesc& desc);

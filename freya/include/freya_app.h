@@ -13,8 +13,6 @@
 
   #define WIN32_LEAN_AND_MEAN
   #include <windows.h>
-#elif FREYA_PLATFORM_WEB == 1
-  #include <emscripten.h>
 #endif
 
 //////////////////////////////////////////////////////////////////////////

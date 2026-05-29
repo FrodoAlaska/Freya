@@ -22,6 +22,9 @@ struct GfxContext {
   u32 default_clear_flags = 0;
   u32 current_clear_flags = 0;
 
+  AllocateMemoryFn alloc_func = nullptr;
+  FreeMemoryFn free_func      = nullptr;
+
   GfxPipeline* bound_pipeline = nullptr;
   DynamicArray<String> extensions;
 };
@@ -297,6 +300,19 @@ GfxContext* gfx_context_init(const GfxContextDesc& desc) {
   gfx->states = (GfxStates)desc.states;
   set_gfx_states(gfx);
 
+  // Setting the memory functions
+  
+  gfx->alloc_func = desc.allocate_func;
+  gfx->free_func  = desc.free_func;
+
+  if(!gfx->alloc_func) {
+    gfx->alloc_func = memory_allocate;
+  }
+  
+  if(!gfx->free_func) {
+    gfx->free_func = memory_free;
+  }
+
   // Getting the version number
   
   i32 major_ver, minor_ver;
@@ -397,6 +413,11 @@ void gfx_context_set_blend_state(GfxContext* gfx, const GfxBlendDesc& blend_desc
   gfx->desc.blend_desc = blend_desc; 
   gl_set_blend_state(blend_desc);
 } 
+
+void gfx_context_set_memory_funcs(GfxContext* gfx, const AllocateMemoryFn& alloc_func, const FreeMemoryFn& free_func) {
+  gfx->alloc_func = alloc_func;
+  gfx->free_func  = free_func;
+}
 
 void gfx_context_set_scissor_rect(GfxContext* gfx, const i32 x, const i32 y, const i32 width, const i32 height) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
@@ -621,13 +642,13 @@ void gfx_context_present(GfxContext* gfx) {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Framebuffer functions
 
-GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc& desc, const AllocateMemoryFn& alloc_fn) {
+GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc& desc) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
 
   bool is_count_valid = (desc.attachments_count >= 0) && (desc.attachments_count < FRAMEBUFFER_ATTACHMENTS_MAX);
   FREYA_DEBUG_ASSERT(is_count_valid, "Attachments count in GfxFramebuffer cannot exceed FRAMEBUFFER_ATTACHMENTS_MAX");
 
-  GfxFramebuffer* buff = (GfxFramebuffer*)alloc_fn(sizeof(GfxFramebuffer));
+  GfxFramebuffer* buff = (GfxFramebuffer*)gfx->alloc_func(sizeof(GfxFramebuffer));
 
   buff->gfx         = gfx;
   buff->desc        = desc; 
@@ -712,13 +733,11 @@ GfxFramebuffer* gfx_framebuffer_create(GfxContext* gfx, const GfxFramebufferDesc
   return buff;
 }
 
-void gfx_framebuffer_destroy(GfxFramebuffer* framebuffer, const FreeMemoryFn& free_fn) {
-  if(!framebuffer) {
-    return;
-  }
+void gfx_framebuffer_destroy(GfxFramebuffer* framebuffer) {
+  FREYA_DEBUG_ASSERT(framebuffer, "Attempting to free an invalid GfxFramebuffer");
 
   glDeleteFramebuffers(1, &framebuffer->id);
-  free_fn(framebuffer);
+  framebuffer->gfx->free_func(framebuffer);
 }
 
 void gfx_framebuffer_copy(const GfxFramebuffer* src_frame, 
@@ -839,10 +858,10 @@ void gfx_framebuffer_update(GfxFramebuffer* framebuffer, const GfxFramebufferDes
 ///---------------------------------------------------------------------------------------------------------------------
 /// Buffer functions 
 
-GfxBuffer* gfx_buffer_create(GfxContext* gfx, const AllocateMemoryFn& alloc_fn) {
+GfxBuffer* gfx_buffer_create(GfxContext* gfx) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
 
-  GfxBuffer* buff = (GfxBuffer*)alloc_fn(sizeof(GfxBuffer));
+  GfxBuffer* buff = (GfxBuffer*)gfx->alloc_func(sizeof(GfxBuffer));
   
   buff->desc = {};
   buff->gfx  = gfx; 
@@ -862,13 +881,11 @@ const bool gfx_buffer_load(GfxBuffer* buffer, const GfxBufferDesc& desc) {
   return true;
 }
 
-void gfx_buffer_destroy(GfxBuffer* buff, const FreeMemoryFn& free_fn) {
-  if(!buff) {
-    return;
-  }
+void gfx_buffer_destroy(GfxBuffer* buff) {
+  FREYA_DEBUG_ASSERT(buff, "Attempting to free an invalid GfxBuffer");
 
   glDeleteBuffers(1, &buff->id);
-  free_fn(buff);
+  buff->gfx->free_func(buff);
 }
 
 GfxBufferDesc& gfx_buffer_get_desc(GfxBuffer* buffer) {
@@ -907,10 +924,10 @@ void gfx_buffer_upload_data(GfxBuffer* buff, const sizei offset, const sizei siz
 ///---------------------------------------------------------------------------------------------------------------------
 /// Shader functions 
 
-GfxShader* gfx_shader_create(GfxContext* gfx, const AllocateMemoryFn& alloc_fn) {
+GfxShader* gfx_shader_create(GfxContext* gfx) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
 
-  GfxShader* shader = (GfxShader*)alloc_fn(sizeof(GfxShader));
+  GfxShader* shader = (GfxShader*)gfx->alloc_func(sizeof(GfxShader));
 
   shader->desc = {};
   shader->gfx  = gfx;
@@ -987,13 +1004,11 @@ const bool gfx_shader_load(GfxShader* shader, const GfxShaderDesc& desc) {
   return true;
 }
 
-void gfx_shader_destroy(GfxShader* shader, const FreeMemoryFn& free_fn) {
-  if(!shader) {
-    return;
-  }
+void gfx_shader_destroy(GfxShader* shader) {
+  FREYA_DEBUG_ASSERT(shader, "Attempting to free an invalid GfxShader");
 
   glDeleteProgram(shader->id);
-  free_fn(shader);
+  shader->gfx->free_func(shader);
 }
 
 GfxShaderDesc& gfx_shader_get_source(GfxShader* shader) {
@@ -1244,10 +1259,10 @@ void gfx_shader_upload_uniform(GfxShader* shader, const i32 location, const GfxL
 ///---------------------------------------------------------------------------------------------------------------------
 /// Texture functions 
 
-GfxTexture* gfx_texture_create(GfxContext* gfx, const GfxTextureType tex_type, const AllocateMemoryFn& alloc_fn) {
+GfxTexture* gfx_texture_create(GfxContext* gfx, const GfxTextureType tex_type) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
 
-  GfxTexture* texture = (GfxTexture*)alloc_fn(sizeof(GfxTexture));
+  GfxTexture* texture = (GfxTexture*)gfx->alloc_func(sizeof(GfxTexture));
 
   texture->desc.type   = tex_type; 
   texture->desc        = {};
@@ -1349,17 +1364,15 @@ const bool gfx_texture_load(GfxTexture* texture, const GfxTextureDesc& desc) {
   return true;
 }
 
-void gfx_texture_destroy(GfxTexture* texture, const FreeMemoryFn& free_fn) {
-  if(!texture) {
-    return;
-  }
+void gfx_texture_destroy(GfxTexture* texture) {
+  FREYA_DEBUG_ASSERT(texture, "Attempting to free an invalid GfxTexture");
  
   if(texture->desc.is_bindless) {
     glMakeTextureHandleNonResidentARB(texture->bindless_id);
   }
   
   glDeleteTextures(1, &texture->id);
-  free_fn(texture);
+  texture->gfx->free_func(texture);
 }
 
 GfxTextureDesc& gfx_texture_get_desc(GfxTexture* texture) {
@@ -1465,10 +1478,10 @@ void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, const void* d
 ///---------------------------------------------------------------------------------------------------------------------
 /// Cubemap functions 
 
-GfxCubemap* gfx_cubemap_create(GfxContext* gfx, const AllocateMemoryFn& alloc_fn) {
+GfxCubemap* gfx_cubemap_create(GfxContext* gfx) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
 
-  GfxCubemap* cubemap = (GfxCubemap*)alloc_fn(sizeof(GfxCubemap));
+  GfxCubemap* cubemap = (GfxCubemap*)gfx->alloc_func(sizeof(GfxCubemap));
 
   cubemap->desc = {};
   cubemap->gfx  = gfx;
@@ -1517,13 +1530,11 @@ const bool gfx_cubemap_load(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
   return true;
 }
 
-void gfx_cubemap_destroy(GfxCubemap* cubemap, const FreeMemoryFn& free_fn) {
-  if(!cubemap) {
-    return;
-  }
+void gfx_cubemap_destroy(GfxCubemap* cubemap) {
+  FREYA_DEBUG_ASSERT(cubemap, "Attempting to free an invalid GfxCubemap");
   
   glDeleteTextures(1, &cubemap->id);
-  free_fn(cubemap);
+  cubemap->gfx->free_func(cubemap);
 }
 
 GfxCubemapDesc& gfx_cubemap_get_desc(GfxCubemap* cubemap) {
@@ -1597,11 +1608,11 @@ void gfx_cubemap_upload_data(GfxCubemap* cubemap,
 ///---------------------------------------------------------------------------------------------------------------------
 /// Pipeline functions 
 
-GfxPipeline* gfx_pipeline_create(GfxContext* gfx, const GfxPipelineDesc& desc, const AllocateMemoryFn& alloc_fn) {
+GfxPipeline* gfx_pipeline_create(GfxContext* gfx, const GfxPipelineDesc& desc) {
   FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
   FREYA_DEBUG_ASSERT(desc.vertex_buffer, "Must have a vertex buffer to create a GfxPipeline struct");
 
-  GfxPipeline* pipe = (GfxPipeline*)alloc_fn(sizeof(GfxPipeline));
+  GfxPipeline* pipe = (GfxPipeline*)gfx->alloc_func(sizeof(GfxPipeline));
 
   pipe->desc = desc;
   pipe->gfx  = gfx;
@@ -1653,11 +1664,11 @@ GfxPipeline* gfx_pipeline_create(GfxContext* gfx, const GfxPipelineDesc& desc, c
   return pipe;
 }
 
-void gfx_pipeline_destroy(GfxPipeline* pipeline, const FreeMemoryFn& free_fn) {
+void gfx_pipeline_destroy(GfxPipeline* pipeline) {
   FREYA_DEBUG_ASSERT(pipeline, "Attempting to free an invalid GfxPipeline");
 
   glDeleteVertexArrays(1, &pipeline->vertex_array);
-  free_fn(pipeline);
+  pipeline->gfx->free_func(pipeline);
 }
 
 void gfx_pipeline_update(GfxPipeline* pipeline, const GfxPipelineDesc& desc) {

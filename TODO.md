@@ -2,8 +2,6 @@
 
 ### Components
 
-- Improve art integration into the engine. How? Figure it out.
-
 - Tilemap
     - Tilemap colliders? Maybe using chain shapes?
     - Optimize the tilemap
@@ -15,11 +13,11 @@
 
 ### Major Systems
 
-- Major systems to rework 
-    - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.
-
 - Web build testing
     - Still some errors on the web side. Some exceptions on the JavaScript side
+
+- Audio
+    - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.
 
 - Renderer
     - Dynamic 2D lighting

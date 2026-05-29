@@ -129,6 +129,9 @@ elseif(DEFINED EMSCRIPTEN)
     "-sFORCE_FILESYSTEM=1"
     "-sFULL_ES3=1"
     "-sWASM=1"
+    "-sMAX_WEBGL_VERSION=2"
+    "-g"
+    "-gsource-map"
   )
   ###############################
 endif()
