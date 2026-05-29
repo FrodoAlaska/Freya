@@ -88,7 +88,9 @@ struct AppDesc {
  
   String window_title;
   i32 window_width, window_height;
-  i32 window_flags;
+
+  i32 window_flags  = 0;
+  i32 samples_count = 4;
 
   char** args_values = nullptr; 
   i32 args_count     = 0;

@@ -20,6 +20,7 @@ struct Window {
 
   IVec2 size, old_size; 
   WindowFlags flags;
+  i32 samples;
 
   f32 refresh_rate = 0.0f;
 
@@ -228,8 +229,7 @@ static bool freya_cursor_show_callback(const Event& event, const void* dispatche
 
 static void set_window_hints(Window* window) {
   // Setting the this for the MSAA down the line
-  // @TODO (Window): This should probably be configurable
-  glfwWindowHint(GLFW_SAMPLES, 4); 
+  glfwWindowHint(GLFW_SAMPLES, window->samples); 
  
   // Setting the graphics context configurations based on the currently used API
   
@@ -333,13 +333,14 @@ static void set_window_callbacks(Window* window) {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Window functions
 
-Window* window_open(const String& title, const i32 width, const i32 height, i32 flags) {
+Window* window_open(const WindowDesc& desc) {
   Window* window = new Window{};
 
-  window->title    = title;
-  window->size     = IVec2(width, height);
+  window->title    = desc.title;
+  window->size     = desc.size;
   window->old_size = window->size;
-  window->flags    = (WindowFlags)flags;
+  window->samples  = desc.samples_count;
+  window->flags    = (WindowFlags)desc.flags;
 
   // GLFW init and setup 
  
@@ -362,7 +363,7 @@ Window* window_open(const String& title, const i32 width, const i32 height, i32 
   }
 
   // Creating the window
-  window->handle = glfwCreateWindow(width, height, window->title.c_str(), monitor, nullptr);
+  window->handle = glfwCreateWindow(window->size.x, window->size.y, window->title.c_str(), monitor, nullptr);
 
   // Setting the new refresh rate
   window->refresh_rate = glfwGetVideoMode(glfwGetPrimaryMonitor())->refreshRate;
@@ -401,7 +402,10 @@ Window* window_open(const String& title, const i32 width, const i32 height, i32 
   i32 mode = (window->is_cursor_shown ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
   glfwSetInputMode(window->handle, GLFW_CURSOR, mode);
   
-  FREYA_LOG_INFO("Window: {t = \"%s\", w = %i, h = %i} was successfully opened", window->title.c_str(), width, height);
+  FREYA_LOG_INFO("Window: {title = \"%s\", width = %i, height = %i} was successfully opened", 
+                  window->title.c_str(), 
+                  window->size.x, 
+                  window->size.y);
   return window;
 }
 
@@ -459,6 +463,10 @@ void* window_get_handle(const Window* window) {
 
 const String& window_get_title(const Window* window) {
   return window->title;
+}
+
+const i32 window_get_samples_count(const Window* window) {
+  return window->samples;
 }
 
 const IVec2 window_get_monitor_size(const Window* window) {

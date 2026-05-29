@@ -51,28 +51,35 @@ enum WindowFlags {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// WindowDesc
+struct WindowDesc {
+  /// The title of the window.
+  String title;
+
+  /// The complete size of the window.
+  IVec2 size;
+
+  /// The flags for window configuration that can be OR'd together.
+  ///
+  /// @NOTE: Consult the `WindowFlags` enum for more information about 
+  /// individual flags.
+  i32 flags = WINDOW_FLAGS_NONE;
+
+  /// The amount of samples the window will have.
+  ///
+  /// @NOTE: By default, this is set to `4`.
+  i32 samples_count = 4;
+};
+/// WindowDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Window functions
 
 /// 
-/// Creates a new window context and return the result. 
+/// Creates a new window context and return the result using the information given in `desc`. 
 /// Returns a `nullptr` if the window was failed to be opened. 
-///
-/// `title`: The title of the new window. 
-/// `width`: The width of the new window.
-/// `height`: The height of the new window.
-/// `flags`:
-///   - `WINDOW_FLAGS_NONE`                = No flags will be set when the window gets created.
-///   - `WINDOW_FLAGS_RESIZABLE`           = Set the window to be resizable.
-///   - `WINDOW_FLAGS_FOCUS_ON_CREATE`     = The window will gain focus on creation.  
-///   - `WINDOW_FLAGS_FOCUS_ON_SHOW`       = The window will always gain focus when shown. 
-///   - `WINDOW_FLAGS_MINIMIZE`            = Minimize the window on creation. 
-///   - `WINDOW_FLAGS_MAXIMIZE`            = Maximize the window on creation. 
-///   - `WINDOW_FLAGS_DISABLE_DECORATIONS` = Disable window decoration such as borders, widgets, etc. Decorations will be enabled by default.
-///   - `WINDOW_FLAGS_CENTER_MOUSE`        = Center the mouse position relative to the screen on startup.
-///   - `WINDOW_FLAGS_HIDE_CURSOR`         = Hide the cursor at creation. The cursor will be shown by default.
-///   - `WINDOW_FLAGS_FULLSCREEN`          = Set the window to be fullscreen on creation. 
-/// 
-FREYA_API Window* window_open(const String& title, const i32 width, const i32 height, i32 flags);
+FREYA_API Window* window_open(const WindowDesc& desc);
 
 /// Closes the `window` context and clears up any memory.
 FREYA_API void window_close(Window* window);
@@ -112,6 +119,9 @@ FREYA_API void* window_get_handle(const Window* window);
 
 /// Retrieve the current title of the `window` context.
 FREYA_API const String& window_get_title(const Window* window);
+
+/// Retrieve the number of samples count of the given `window`.
+FREYA_API const i32 window_get_samples_count(const Window* window);
 
 /// Retrieve the current size of the monitor.
 FREYA_API const IVec2 window_get_monitor_size(const Window* window);

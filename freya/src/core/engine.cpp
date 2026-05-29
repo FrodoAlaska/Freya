@@ -145,8 +145,15 @@ i32 engine_run(const AppDesc& desc) {
   input_init();
 
   // Window init 
-  
-  s_engine.window = window_open(desc.window_title, desc.window_width, desc.window_height, desc.window_flags);
+ 
+  WindowDesc window_desc = {
+    .title         = desc.window_title, 
+    .size          = IVec2(desc.window_width, desc.window_height),
+    .flags         = desc.window_flags, 
+    .samples_count = desc.samples_count,
+  };
+
+  s_engine.window = window_open(window_desc);
   FREYA_ASSERT(s_engine.window);
 
   // Useful input actions init
