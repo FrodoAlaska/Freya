@@ -47,7 +47,26 @@ static bool on_app_quit(const Event& event, const void* dispatcher, const void* 
 /// ----------------------------------------------------------------------
 /// Private functions
 
-static bool update_and_render(f64 dt, void* user_data) {
+static void start_shutdown() {
+  CHECK_VALID_CALLBACK(s_engine.app_desc.shutdown_fn);
+
+  physics_world_shutdown();
+  audio_device_shutdown();
+  asset_manager_shutdown();
+  
+  ui_renderer_shutdown();
+  renderer_shutdown();
+
+  window_close(s_engine.window);
+  event_shutdown();
+}
+
+static bool web_update_and_render(f64 dt, void* user_data) {
+  if(!s_engine.is_running) {
+    start_shutdown();
+    return false;
+  }
+
   // Poll for input events
   window_poll_events(s_engine.window);
 
@@ -55,7 +74,34 @@ static bool update_and_render(f64 dt, void* user_data) {
   physics_world_step();
 
   // Update 
-  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, (f32)(dt / 1000.0));
+  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, dt);
+
+  // Render
+
+  CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn);
+  CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn);
+
+  // Update the internal systems
+
+  input_update();
+  clock_update();
+
+  // Present
+  gfx_context_present(s_engine.gfx_context); 
+
+  // Done!
+  return s_engine.is_running;
+}
+
+static bool desktop_update_and_render(f32 dt) {
+  // Poll for input events
+  window_poll_events(s_engine.window);
+
+  // Physics world update
+  physics_world_step();
+
+  // Update 
+  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, dt);
 
   // Render
 
@@ -168,27 +214,12 @@ i32 engine_run(const AppDesc& desc) {
   //
 
 #if FREYA_PLATFORM_WEB == 1
-  emscripten_request_animation_frame_loop(update_and_render, nullptr);
+  emscripten_request_animation_frame_loop(web_update_and_render, nullptr);
 #else
-  while(update_and_render(clock_get_delta_time() * 1000.0, nullptr));
+  while(desktop_update_and_render(clock_get_delta_time()));
+  start_shutdown(); // Called after the loop terminates
 #endif
 
-  //
-  // Shutdown
-  //
-  
-  CHECK_VALID_CALLBACK(s_engine.app_desc.shutdown_fn);
-
-  physics_world_shutdown();
-  audio_device_shutdown();
-  asset_manager_shutdown();
-  
-  ui_renderer_shutdown();
-  renderer_shutdown();
-
-  window_close(s_engine.window);
-  event_shutdown();
- 
   // Done!
   
   FREYA_LOG_INFO("Appication \'%s\' was successfully shutdown", s_engine.app_desc.window_title.c_str());
