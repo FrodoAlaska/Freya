@@ -13,8 +13,8 @@
 
 ### Major Systems
 
-- Web build testing
-    - Still some errors on the web side. Some exceptions on the JavaScript side
+- Web build
+    - Yep. We need to either overhaul the graphics backend completely or just switch to SOKOL. It's a mess, dude...
 
 - Audio
     - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.

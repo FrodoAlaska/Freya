@@ -89,17 +89,6 @@ struct GfxTexture {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// GfxCubemap
-struct GfxCubemap {
-  GfxCubemapDesc desc = {};
-  GfxContext* gfx     = nullptr;
-  
-  u32 id;
-};
-/// GfxCubemap
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// GfxPipeline
 struct GfxPipeline {
   GfxPipelineDesc desc = {};
@@ -164,10 +153,17 @@ static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
     FREYA_DEBUG_ASSERT((pipe->desc.layouts[i].attributes_count >= 0) && (pipe->desc.layouts[i].attributes_count < VERTEX_ATTRIBUTES_MAX), 
                        "Attributes count cannot exceed VERTEX_ATTRIBUTES_MAX");
 
-    // Set the attributes of the buffer
+    // Get the full stride of the layout
 
-    sizei start  = pipe->desc.layouts[i].start_index;
     sizei stride = 0; 
+    for(sizei j = 0; j < pipe->desc.layouts[i].attributes_count; j++) {
+      stride += gl_get_layout_size(pipe->desc.layouts[i].attributes[j]);
+    }
+
+    // Set the attributes of the buffer
+    
+    sizei start  = pipe->desc.layouts[i].start_index;
+    sizei offset = 0; 
 
     for(sizei j = 0; j < pipe->desc.layouts[i].attributes_count; j++) {
       GfxLayoutType attribute = pipe->desc.layouts[i].attributes[j];
@@ -193,15 +189,14 @@ static void init_pipeline_layout(GfxPipeline* pipe, sizei* strides) {
       bool is_normalized = (gl_comp_type != GL_FLOAT);
 
       glEnableVertexAttribArray(start + j);
-      glVertexAttribFormat(start + j, comp_count, gl_comp_type, is_normalized, stride);
-      glVertexAttribBinding(start + j, i);
+      glVertexAttribPointer(start + j, comp_count, gl_comp_type, is_normalized, stride, (void*)(offset));
       
-      // Increase the stride for the next round
+      // Increase the offset for the next round
       stride += size;
     }
 
-    strides[i] = stride;
-    glVertexBindingDivisor(i, pipe->desc.layouts[i].instance_rate);
+    strides[i] = offset;
+    glVertexAttribDivisor(i, pipe->desc.layouts[i].instance_rate);
   }
 }
 
@@ -440,19 +435,6 @@ void gfx_context_use_bindings(GfxContext* gfx, const GfxBindingDesc& binding_des
     
     FREYA_DEBUG_ASSERT(binding_desc.buffers[i], "An invalid buffer found in buffers array");
     glBindBuffer(buffer->gl_buff_type, buffer->id);
-  }
-
-  // Bind the cubemaps
-  
-  FREYA_DEBUG_ASSERT(((binding_desc.cubemaps_count >= 0) && (binding_desc.cubemaps_count < CUBEMAPS_MAX)), 
-                "Cubemaps count in gfx_context_use_bindings exceeding CUBEMAPS_MAX");
-
-  for(sizei i = 0; i < binding_desc.cubemaps_count; i++) {
-    GfxCubemap* cubemap = binding_desc.cubemaps[i];
-
-    FREYA_DEBUG_ASSERT(cubemap, "An invalid cubemap found in cubemaps array");
-    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->id);
-    glActiveTexture(GL_TEXTURE0 + i);
   }
 }
 
@@ -1245,7 +1227,7 @@ GfxTexture* gfx_texture_create(GfxContext* gfx, const GfxTextureType tex_type) {
       break;
     default:
       glGenTextures(1, &texture->id);
-      return nullptr;
+      break;
   } 
 
   return texture;
@@ -1280,29 +1262,75 @@ const bool gfx_texture_load(GfxTexture* texture, const GfxTextureDesc& desc) {
 
     glTexParameteri(texture->gl_type, GL_TEXTURE_COMPARE_MODE, compare_func);
     glTexParameteri(texture->gl_type, GL_TEXTURE_COMPARE_FUNC, gl_get_compare_func(desc.compare_func));
-    glTexParameterfv(texture->gl_type, GL_TEXTURE_BORDER_COLOR, desc.border_color);
+  }
+ 
+  // Setting the pixel alignment
+  gl_set_texture_pixel_align(desc.format);
+
+  // Setting the storage
+  
+  switch(desc.type) {
+    case GFX_TEXTURE_1D: 
+    case GFX_TEXTURE_IMAGE_1D:
+      // @TODO (GLES/texture 1D)
+      break;
+    case GFX_TEXTURE_2D:
+    case GFX_TEXTURE_2D_PROXY:
+    case GFX_TEXTURE_IMAGE_2D:
+    case GFX_TEXTURE_1D_ARRAY_PROXY:
+      glTexStorage2D(texture->gl_type, desc.mips, in_format, desc.width, desc.height);
+      break;
+    case GFX_TEXTURE_3D:
+    case GFX_TEXTURE_IMAGE_3D:
+    case GFX_TEXTURE_2D_ARRAY:
+      glTexStorage3D(texture->gl_type, desc.mips, in_format, desc.width, desc.height, desc.depth);
+      break;
+    case GFX_TEXTURE_DEPTH_TARGET:
+    case GFX_TEXTURE_STENCIL_TARGET:
+    case GFX_TEXTURE_DEPTH_STENCIL_TARGET:
+      // @TODO (GLES/renderbuffer)
+      break;
+    default:
+      break;
   }
 
-  // Filling the texture with the data based on its type
- 
-  gl_set_texture_pixel_align(desc.format);
-  gl_update_texture_storage(texture->id, desc, in_format);
-  gl_update_texture_pixels(texture->id, desc, gl_format, gl_pixel_type);
+  // Setting the texture pixels
+
+  switch(desc.type) {
+    case GFX_TEXTURE_1D: 
+    case GFX_TEXTURE_IMAGE_1D:
+      // @TODO (GLES/texture 1D)
+      break;
+    case GFX_TEXTURE_2D:
+    case GFX_TEXTURE_2D_PROXY:
+    case GFX_TEXTURE_IMAGE_2D:
+    case GFX_TEXTURE_1D_ARRAY:
+    case GFX_TEXTURE_1D_ARRAY_PROXY:
+      glTexSubImage2D(texture->gl_type, 
+                      0, 
+                      0, 0,
+                      desc.width, desc.height,
+                      gl_format, 
+                      gl_pixel_type, 
+                      desc.data);
+      break;
+    case GFX_TEXTURE_3D:
+    case GFX_TEXTURE_IMAGE_3D:
+    case GFX_TEXTURE_2D_ARRAY:
+      glTexSubImage3D(texture->gl_type, 
+                      0, 
+                      0, 0, 0,
+                      desc.width, desc.height, desc.depth,
+                      gl_format, 
+                      gl_pixel_type, 
+                      desc.data);
+      break;
+    default:
+      break;
+  }
 
   // Generating some mipmaps
   glGenerateMipmap(texture->gl_type);
-
-  // Create the bindless texture handle, and make it 
-  // resident in GPU memory, ready to be used. 
-  //
-  // @TODO (GFX): Perhaps having the texture resident _as soon_ as it 
-  // is created is not the best idea.
-  //
-  
-  if(desc.is_bindless) {
-    texture->bindless_id = glGetTextureHandleARB(texture->id);
-    glMakeTextureHandleResidentARB(texture->bindless_id);
-  }
 
   // Done!
   return true;
@@ -1336,12 +1364,6 @@ const bool gfx_texture_reload(GfxTexture* texture, const GfxTextureDesc& desc) {
   FREYA_DEBUG_ASSERT(texture->gfx, "Invalid GfxContext struct passed to gfx_texture_reload");
   FREYA_DEBUG_ASSERT(texture, "Invalid GfxTexture struct passed to gfx_texture_reload");
 
-  // Get rid of the texture in the GPU 
-
-  if(desc.is_bindless) {
-    glMakeTextureHandleNonResidentARB(texture->bindless_id);
-  }
-  
   // Creating the new texutre ID based on its type
   
   switch(desc.type) {
@@ -1376,8 +1398,40 @@ void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, const void* d
   texture->desc.data  = (void*)data; 
   glBindTexture(texture->gl_type, texture->id);
 
-  // Updating the internal texture pixels
-  gl_update_texture_pixels(texture->id, texture->desc, gl_format, gl_pixel_type);
+  // Update the texture pixels
+
+  switch(texture->desc.type) {
+    case GFX_TEXTURE_1D: 
+    case GFX_TEXTURE_IMAGE_1D:
+      // @TODO (GLES/texture 1D)
+      break;
+    case GFX_TEXTURE_2D:
+    case GFX_TEXTURE_2D_PROXY:
+    case GFX_TEXTURE_IMAGE_2D:
+    case GFX_TEXTURE_1D_ARRAY:
+    case GFX_TEXTURE_1D_ARRAY_PROXY:
+      glTexSubImage2D(texture->gl_type, 
+                      0, 
+                      0, 0,
+                      texture->desc.width, texture->desc.height,
+                      gl_format, 
+                      gl_pixel_type, 
+                      data);
+      break;
+    case GFX_TEXTURE_3D:
+    case GFX_TEXTURE_IMAGE_3D:
+    case GFX_TEXTURE_2D_ARRAY:
+      glTexSubImage3D(texture->gl_type, 
+                      0, 
+                      0, 0, 0,
+                      texture->desc.width, texture->desc.height, texture->desc.depth,
+                      gl_format, 
+                      gl_pixel_type, 
+                      data);
+      break;
+    default:
+      break;
+  }
 
   // Re-generate some mipmaps
   glGenerateMipmap(texture->gl_type);
@@ -1385,141 +1439,6 @@ void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, const void* d
 
 /// Texture functions 
 ///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Cubemap functions 
-
-GfxCubemap* gfx_cubemap_create(GfxContext* gfx) {
-  FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
-
-  GfxCubemap* cubemap = (GfxCubemap*)gfx->alloc_func(sizeof(GfxCubemap));
-
-  cubemap->desc = {};
-  cubemap->gfx  = gfx;
-
-  glGenTextures(1, &cubemap->id);
-  return cubemap;
-}
-
-const bool gfx_cubemap_load(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
-  FREYA_DEBUG_ASSERT(cubemap, "Trying to load data into an invalid resource");
- 
-  cubemap->desc = desc;
-
-  // Convert the GFX types into valid GL ones.
-
-  GLenum in_format, gl_format, gl_pixel_type;
-  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
-
-  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
-  
-  GLenum min_filter, mag_filter;
-  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
- 
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->id);
-
-  // Setting some parameters
-  
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, min_filter);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, mag_filter);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, gl_wrap_format);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, gl_wrap_format);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, gl_wrap_format);
-   
-  glTexStorage2D(GL_TEXTURE_CUBE_MAP, desc.mips, in_format, desc.width, desc.height);
-
-  // Set the texture for each face in the cubemap
-  
-  for(sizei i = 0; i < desc.faces_count; i++) {
-    glTexSubImage3D(GL_TEXTURE_3D,               // Texture
-                    0,                           // Levels
-                    0, 0, i,                     // Offset (x, y, z)
-                    desc.width, desc.height, 1,  // Size (width, height, depth)
-                    gl_format,                   // Format
-                    gl_pixel_type,               // Type
-                    desc.data[i]);               // Pixels
-  }
-  
-  return true;
-}
-
-void gfx_cubemap_destroy(GfxCubemap* cubemap) {
-  FREYA_DEBUG_ASSERT(cubemap, "Attempting to free an invalid GfxCubemap");
-  
-  glDeleteTextures(1, &cubemap->id);
-  cubemap->gfx->free_func(cubemap);
-}
-
-GfxCubemapDesc& gfx_cubemap_get_desc(GfxCubemap* cubemap) {
-  FREYA_DEBUG_ASSERT(cubemap, "Invalid GfxCubemap struct passed");
-  return cubemap->desc;
-}
-
-void gfx_cubemap_update(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
-  FREYA_DEBUG_ASSERT(cubemap->gfx, "Invalid GfxContext struct passed");
-  FREYA_DEBUG_ASSERT(cubemap, "Invalid GfxCubemap struct passed");
-  
-  cubemap->desc = desc;
-  
-  // Updating the format
-  
-  GLenum in_format, gl_format, gl_pixel_type;
-  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
-
-  // Updating the addressing mode
-  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
-  
-  // Updating the filters
-  
-  GLenum min_filter, mag_filter;
-  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
- 
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->id);
-
-  // Re-setting the parameters
-  
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, min_filter);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, mag_filter);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, gl_wrap_format);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, gl_wrap_format);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, gl_wrap_format);
-}
-
-void gfx_cubemap_upload_data(GfxCubemap* cubemap, 
-                             const i32 width, const i32 height,
-                             const void** faces, const sizei count) {
-  FREYA_DEBUG_ASSERT(cubemap->gfx, "Invalid GfxContext struct passed in gfx_cubemap_upload_data");
-  FREYA_DEBUG_ASSERT(cubemap, "Invalid GfxCubemap struct passed in gfx_cubemap_upload_data");
-  FREYA_DEBUG_ASSERT(((count >= 0) && (count <= CUBEMAPS_MAX)), "The count parametar in gfx_cubemap_upload_data is invalid");
-  FREYA_DEBUG_ASSERT(faces, "Invalid cubemap faces passed to gfx_cubemap_upload_data");
-  
-  // Updating the format
-  
-  GLenum in_format, gl_format, gl_pixel_type;
-  gl_get_texture_format(cubemap->desc.format, &in_format, &gl_format, &gl_pixel_type);
-
-  // Updating the information
-  
-  cubemap->desc.faces_count = count;
-  cubemap->desc.width       = width;
-  cubemap->desc.height      = height;
-
-  // Updating the faces
- 
-  glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap->id);
-  glTexStorage2D(GL_TEXTURE_CUBE_MAP, cubemap->desc.mips, in_format, width, height);
-
-  for(sizei i = 0; i < count; i++) {
-    cubemap->desc.data[i] = (void*)faces[i];
-    glTexSubImage3D(GL_TEXTURE_3D,                                 // Texture
-                    0,                                             // Levels 
-                    0, 0, i,                                       // Offset (x, y, z)
-                    cubemap->desc.width, cubemap->desc.height, 1,  // Size (width, height, depth)
-                    gl_format,                                     // Format
-                    gl_pixel_type,                                 // Type
-                    faces[i]);                                     // Pixels
-  }
-}
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Pipeline functions 

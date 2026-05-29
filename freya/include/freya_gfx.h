@@ -767,12 +767,6 @@ struct GfxTexture;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// GfxCubemap
-struct GfxCubemap;
-/// GfxCubemap
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// GfxPipeline
 struct GfxPipeline;
 /// GfxPipeline
@@ -1134,39 +1128,6 @@ struct GfxTextureDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// GfxCubemapDesc
-struct GfxCubemapDesc {
-  /// The overall size of the cubemap.
-  u32 width, height; 
-
-  /// The mipmap level of the cubemap. 
-  ///
-  /// @NOTE: Leave this as `0` if the depth is not important.
-  u32 mips; 
-
-  /// The pixel format of the cubemap.
-  GfxTextureFormat format;
-
-  /// The filter to be used on the cubemap when magnified or minified.
-  ///
-  /// @NOTE: The default filter is set to `GFX_TEXTURE_FILTER_MIN_MAG_LINEAR`.
-  GfxTextureFilter filter  = GFX_TEXTURE_FILTER_MIN_MAG_LINEAR;
-
-  /// The addressing mode of the cubemap.
-  ///
-  /// @NOTE: The default wrap mode is set to `GFX_TEXTURE_WRAP_REPEAT`.
-  GfxTextureWrap wrap_mode = GFX_TEXTURE_WRAP_REPEAT;
-  
-  /// An array of pixels (up to `CUBEMAP_FACES_MAX`) of each face of the cubemap.
-  void* data[CUBEMAP_FACES_MAX]; 
-
-  /// The amount of faces of the cubemap to use in `data`.
-  sizei faces_count = 0;
-};
-/// GfxCubemapDesc
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// GfxBindingDesc
 struct GfxBindingDesc {
   /// The shader to bind during the binding operation.
@@ -1190,13 +1151,6 @@ struct GfxBindingDesc {
   
   GfxBuffer** buffers = nullptr;
   sizei buffers_count = 0;
-
-  /// An array of cubemaps of `cubemaps_count`.
-  ///
-  /// @NOTE: The `cubemaps_count` member MUST be < `CUBEMAPS_MAX`.
-  
-  GfxCubemap** cubemaps = nullptr;
-  sizei cubemaps_count  = 0;
 };
 /// GfxBindingDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -1582,42 +1536,6 @@ FREYA_API const bool gfx_texture_reload(GfxTexture* texture, const GfxTextureDes
 FREYA_API void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, const void* data);
 
 /// Texture functions 
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Cubemap functions 
-
-/// Allocate and return a `GfxCubemap` object.
-FREYA_API GfxCubemap* gfx_cubemap_create(GfxContext* gfx);
-
-/// Load data into the given `cubemap` object, usin the information provided in `desc`.
-///
-/// If the function fails for whatever reason, `false` will be returned. Otherwise, 
-/// the function will return `true`.
-FREYA_API const bool gfx_cubemap_load(GfxCubemap* cubemap, const GfxCubemapDesc& desc);
-
-/// Free/reclaim any memory taken by `cubemap`.
-FREYA_API void gfx_cubemap_destroy(GfxCubemap* cubemap);
-
-/// Retrieve the internal `GfxCubemapDesc` of `cubemap`
-FREYA_API GfxCubemapDesc& gfx_cubemap_get_desc(GfxCubemap* cubemap);
-
-/// Update the `cubemap`'s information from the given `desc`.
-///
-/// @NOTE: This functions will NOT resend the pixels in `desc`.
-FREYA_API void gfx_cubemap_update(GfxCubemap* cubemap, const GfxCubemapDesc& desc);
-
-/// Reupload `count` amount of of `cubemap`, using the given `width`, `height`, and `faces`.
-///
-/// @NOTE: The internal `GfxCubemapDesc` of `cubemap` will be used to supply information 
-/// about the `data`.
-///
-/// @NOTE: The given `count` CANNOT exceed `CUBEMAPS_MAX`.
-FREYA_API void gfx_cubemap_upload_data(GfxCubemap* cubemap, 
-                                        const i32 width, const i32 height,
-                                        const void** faces, const sizei count);
-
-/// Cubemap functions 
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------

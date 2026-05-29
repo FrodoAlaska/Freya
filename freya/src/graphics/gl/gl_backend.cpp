@@ -86,17 +86,6 @@ struct GfxTexture {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// GfxCubemap
-struct GfxCubemap {
-  GfxCubemapDesc desc = {};
-  GfxContext* gfx     = nullptr;
-  
-  u32 id;
-};
-/// GfxCubemap
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// GfxPipeline
 struct GfxPipeline {
   GfxPipelineDesc desc = {};
@@ -498,15 +487,6 @@ void gfx_context_use_bindings(GfxContext* gfx, const GfxBindingDesc& binding_des
 
     GfxBuffer* buffer = binding_desc.buffers[i];
     glBindBuffer(buffer->gl_buff_type, buffer->id);
-  }
-
-  // Bind the cubemaps
-  
-  FREYA_DEBUG_ASSERT(((binding_desc.cubemaps_count >= 0) && (binding_desc.cubemaps_count < CUBEMAPS_MAX)), 
-                "Cubemaps count in gfx_context_use_bindings exceeding CUBEMAPS_MAX");
-
-  for(sizei i = 0; i < binding_desc.cubemaps_count; i++) {
-    glBindTextureUnit(i, binding_desc.cubemaps[i]->id);
   }
 }
 
@@ -1473,136 +1453,6 @@ void gfx_texture_upload_data(GfxTexture* texture, const i32 depth, const void* d
 }
 
 /// Texture functions 
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Cubemap functions 
-
-GfxCubemap* gfx_cubemap_create(GfxContext* gfx) {
-  FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext struct passed");
-
-  GfxCubemap* cubemap = (GfxCubemap*)gfx->alloc_func(sizeof(GfxCubemap));
-
-  cubemap->desc = {};
-  cubemap->gfx  = gfx;
-
-  glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &cubemap->id);
-  return cubemap;
-}
-
-const bool gfx_cubemap_load(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
-  FREYA_DEBUG_ASSERT(cubemap, "Trying to load data into an invalid resource");
- 
-  cubemap->desc = desc;
-
-  // Convert the GFX types into valid GL ones.
-
-  GLenum in_format, gl_format, gl_pixel_type;
-  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
-
-  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
-  
-  GLenum min_filter, mag_filter;
-  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
-  
-  // Setting some parameters
-  
-  glTextureParameteri(cubemap->id, GL_TEXTURE_MIN_FILTER, min_filter);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_MAG_FILTER, mag_filter);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_S, gl_wrap_format);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_T, gl_wrap_format);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_R, gl_wrap_format);
-   
-  glTextureStorage2D(cubemap->id, desc.mips, in_format, desc.width, desc.height);
-
-  // Set the texture for each face in the cubemap
-  
-  for(sizei i = 0; i < desc.faces_count; i++) {
-    glTextureSubImage3D(cubemap->id,                 // Texture
-                        0,                           // Levels
-                        0, 0, i,                     // Offset (x, y, z)
-                        desc.width, desc.height, 1,  // Size (width, height, depth)
-                        gl_format,                   // Format
-                        gl_pixel_type,               // Type
-                        desc.data[i]);               // Pixels
-  }
-  
-  return true;
-}
-
-void gfx_cubemap_destroy(GfxCubemap* cubemap) {
-  FREYA_DEBUG_ASSERT(cubemap, "Attempting to free an invalid GfxCubemap");
-  
-  glDeleteTextures(1, &cubemap->id);
-  cubemap->gfx->free_func(cubemap);
-}
-
-GfxCubemapDesc& gfx_cubemap_get_desc(GfxCubemap* cubemap) {
-  FREYA_DEBUG_ASSERT(cubemap, "Invalid GfxCubemap struct passed");
-
-  return cubemap->desc;
-}
-
-void gfx_cubemap_update(GfxCubemap* cubemap, const GfxCubemapDesc& desc) {
-  FREYA_DEBUG_ASSERT(cubemap->gfx, "Invalid GfxContext struct passed");
-  FREYA_DEBUG_ASSERT(cubemap, "Invalid GfxCubemap struct passed");
-  
-  cubemap->desc = desc;
-  
-  // Updating the format
-  
-  GLenum in_format, gl_format, gl_pixel_type;
-  gl_get_texture_format(desc.format, &in_format, &gl_format, &gl_pixel_type);
-
-  // Updating the addressing mode
-  GLenum gl_wrap_format = gl_get_texture_wrap(desc.wrap_mode);
-  
-  // Updating the filters
-  
-  GLenum min_filter, mag_filter;
-  gl_get_texture_filter(desc.filter, &min_filter, &mag_filter); 
-  
-  // Re-setting the parameters
-  
-  glTextureParameteri(cubemap->id, GL_TEXTURE_MIN_FILTER, min_filter);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_MAG_FILTER, mag_filter);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_S, gl_wrap_format);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_T, gl_wrap_format);
-  glTextureParameteri(cubemap->id, GL_TEXTURE_WRAP_R, gl_wrap_format);
-}
-
-void gfx_cubemap_upload_data(GfxCubemap* cubemap, 
-                             const i32 width, const i32 height,
-                             const void** faces, const sizei count) {
-  FREYA_DEBUG_ASSERT(cubemap->gfx, "Invalid GfxContext struct passed in gfx_cubemap_upload_data");
-  FREYA_DEBUG_ASSERT(cubemap, "Invalid GfxCubemap struct passed in gfx_cubemap_upload_data");
-  FREYA_DEBUG_ASSERT(((count >= 0) && (count <= CUBEMAPS_MAX)), "The count parametar in gfx_cubemap_upload_data is invalid");
-  FREYA_DEBUG_ASSERT(faces, "Invalid cubemap faces passed to gfx_cubemap_upload_data");
-  
-  // Updating the format
-  GLenum in_format, gl_format, gl_pixel_type;
-  gl_get_texture_format(cubemap->desc.format, &in_format, &gl_format, &gl_pixel_type);
-
-  // Updating the information
-  cubemap->desc.faces_count = count;
-  cubemap->desc.width       = width;
-  cubemap->desc.height      = height;
-
-  // Updating the faces
-  glTextureStorage2D(cubemap->id, cubemap->desc.mips, in_format, width, height);
-  for(sizei i = 0; i < count; i++) {
-    cubemap->desc.data[i] = (void*)faces[i];
-    glTextureSubImage3D(cubemap->id,                                   // Texture
-                        0,                                             // Levels 
-                        0, 0, i,                                       // Offset (x, y, z)
-                        cubemap->desc.width, cubemap->desc.height, 1,  // Size (width, height, depth)
-                        gl_format,                                     // Format
-                        gl_pixel_type,                                 // Type
-                        faces[i]);                                     // Pixels
-  }
-}
-
-/// Cubemap functions 
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
