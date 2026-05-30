@@ -263,8 +263,7 @@ public:
 ///---------------------------------------------------------------------------------------------------------------------
 /// UI renderer functions
 
-bool ui_renderer_init(GfxContext* gfx) {
-  FREYA_DEBUG_ASSERT(gfx, "Invalid GfxContext given to ui_renderer_init");
+bool ui_renderer_init() {
   FREYA_PROFILE_FUNCTION();
 
   s_renderer.gfx    = gfx;

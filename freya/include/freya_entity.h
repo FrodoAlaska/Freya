@@ -112,7 +112,7 @@ struct SpriteComponent {
   ///
   /// @NOTE: If this texture is left as a 
   /// `nullptr`, the default texture will be used.
-  GfxTexture* texture = nullptr; 
+  Texture texture = {}; 
 
   /// The color/tint that will be used 
   /// in the render command. 
@@ -126,11 +126,11 @@ struct SpriteComponent {
 struct TileSpriteComponent {
   /// The texture atlas that will be used 
   /// to source from while rendering.
-  GfxTexture* texture_atlas = nullptr; 
+  Texture texture_atlas = {}; 
 
   /// The source rect that will be used 
   /// with the texture atlas while rendering. 
-  Rect2D source_rect        = {};
+  Rect2D source_rect    = {};
 
   /// The color/tint that will be used 
   /// in the render command. 

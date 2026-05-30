@@ -21,11 +21,6 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/math/transform.cpp
   ${FREYA_SRC_DIR}/math/poisson_disk.cpp
 
-  # Graphics
-  ${FREYA_SRC_DIR}/graphics/gl/gl_common.cpp
-  ${FREYA_SRC_DIR}/graphics/gl/gl_backend.cpp
-  ${FREYA_SRC_DIR}/graphics/gl/gles_backend.cpp
-
   # Threads
   ${FREYA_SRC_DIR}/threads/thread_pool.cpp
 
@@ -63,7 +58,7 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/color.cpp
   # @TEMP: ${FREYA_SRC_DIR}/renderer/post_process.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
-  ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
+  # @TEMP: ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
   
   # Renderer/post-process effects
   # @TEMP: ${FREYA_SRC_DIR}/renderer/post_process_effects/blur_pass.cpp

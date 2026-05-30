@@ -85,13 +85,13 @@ static bool can_build_frpkg(const FilePath& assets_path, const FilePath& output_
   return false;
 }
 
-static void build_textures(File& pkg_file, const ListSection& section) {
+static void build_textures(File& file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
   // Write the number of assets of this type
 
   u16 asset_count = (u16)section.assets.size(); 
-  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  file_write_bytes(file, &asset_count, sizeof(asset_count));
 
   // Load and write all of the assets
 
@@ -99,7 +99,7 @@ static void build_textures(File& pkg_file, const ListSection& section) {
     // Write the name of the asset
 
     FilePath name = filepath_stem(path);
-    file_write_bytes(pkg_file, name);
+    file_write_bytes(file, name);
 
     // Load the asset
 
@@ -142,9 +142,6 @@ static void build_textures(File& pkg_file, const ListSection& section) {
     u32 data_size  = (width * height) * 4 * pixel_size; // 4 = color components
 
     file_write_bytes(file, image_desc.data.mip_levels[0].ptr, data_size);
-
-    // Unload the data
-    texture_loader_unload(image_desc); 
   }
 }
 
@@ -178,13 +175,13 @@ static void build_fonts(File& pkg_file, const ListSection& section) {
   }
 }
 
-static void build_audio_buffers(File& pkg_file, const ListSection& section) {
+static void build_audio_buffers(File& file, const ListSection& section) {
   FREYA_PROFILE_FUNCTION();
 
   // Write the number of assets of this type
 
   u16 asset_count = (u16)section.assets.size(); 
-  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+  file_write_bytes(file, &asset_count, sizeof(asset_count));
   
   // Load and write all of the assets
   
@@ -192,7 +189,7 @@ static void build_audio_buffers(File& pkg_file, const ListSection& section) {
     // Write the name of the asset
 
     FilePath name = filepath_stem(path);
-    file_write_bytes(pkg_file, name);
+    file_write_bytes(file, name);
 
     // Load the asset
 
@@ -332,13 +329,10 @@ static void read_textures(File& file, AssetGroup& group) {
     image_desc.data.mip_levels[0].ptr  = memory_allocate(data_size);
     image_desc.data.mip_levels[0].size = data_size;
 
-    file_read_bytes(file, image_desc.data.mip_levels[0].ptr, data_size);
+    file_read_bytes(file, (void*)image_desc.data.mip_levels[0].ptr, data_size);
 
     // Add the texture to the group
     group.named_ids[name] = asset_group_push_texture(group.id, image_desc, sampler_desc); 
-
-    // Get rid of the texture data on the CPU-side
-    memory_free(image_desc.data.mip_levels[0].ptr); 
     
     // Done!
     FREYA_LOG_DEBUG("Loaded texture \'%s\' from frpkg ", name.c_str());
@@ -405,27 +399,27 @@ static void read_audio_buffers(File& file, AssetGroup& group) {
     u8 format;
     file_read_bytes(file, &format, sizeof(format));
 
-    out_desc->format = (AudioBufferFormat)format;
+    desc.format = (AudioBufferFormat)format;
 
     // Read the channels
 
     u8 channels;
     file_read_bytes(file, &channels, sizeof(channels));
 
-    out_desc->channels = (u32)channels;
+    desc.channels = (u32)channels;
 
     // Read the sample rate
-    file_read_bytes(file, &out_desc->sample_rate, sizeof(out_desc->sample_rate));
+    file_read_bytes(file, &desc.sample_rate, sizeof(desc.sample_rate));
 
     // Read the samples
 
     u32 size;
     file_read_bytes(file, &size, sizeof(size));
 
-    out_desc->size = (sizei)size;
-    out_desc->data = memory_allocate(out_desc->size);
+    desc.size = (sizei)size;
+    desc.data = memory_allocate(desc.size);
 
-    file_read_bytes(file, out_desc->data, out_desc->size);
+    file_read_bytes(file, desc.data, desc.size);
 
     // Add the audio buffer to the group
     group.named_ids[name] = asset_group_push_audio_buffer(group.id, desc); 
@@ -627,11 +621,6 @@ void asset_group_clear(const AssetGroupID& group_id) {
   // Destroy GFX compound assets
   //
 
-  for(auto& asset : group.shader_contexts) {
-    delete asset;
-  }
-  group.shader_contexts.clear();
-  
   for(auto& asset : group.fonts) {
     delete asset;
   }
@@ -641,19 +630,8 @@ void asset_group_clear(const AssetGroupID& group_id) {
   // Destroy GFX assets
   //
 
-  for(auto& asset : group.buffers) {
-    gfx_buffer_destroy(asset);
-  }
   group.buffers.clear();
-
-  for(auto& asset : group.textures) {
-    gfx_texture_destroy(asset);
-  }
   group.textures.clear();
-
-  for(auto& asset : group.shaders) {
-    gfx_shader_destroy(asset);
-  }
   group.shaders.clear();
 
   // 
@@ -822,7 +800,7 @@ AssetID asset_group_push_shader(const AssetGroupID& group_id, const sg_shader_de
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed shader:", group.name.c_str());
-  if(!shader_desc.compute_source.empty()) {
+  if(!shader_desc.compute_func.source) {
     FREYA_LOG_DEBUG("     Compute source length = %zu", strlen(shader_desc.compute_func.source));
   }
   else {
@@ -870,7 +848,6 @@ AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioB
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed an audio buffer:", group.name.c_str());
-  FREYA_LOG_DEBUG("     Format      = %s", audio_format_str(audio_desc.format));
   FREYA_LOG_DEBUG("     Channels    = %i", audio_desc.channels);
   FREYA_LOG_DEBUG("     Size        = %zu", audio_desc.size);
   FREYA_LOG_DEBUG("     Sample Rate = %zu", audio_desc.sample_rate);

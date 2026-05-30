@@ -1,6 +1,8 @@
 #pragma once
 
-#include "freya_file.h"
+#include "freya_ui.h"
+#include "freya_audio.h"
+#include "freya_gfx.h"
 
 //////////////////////////////////////////////////////////////////////////
 

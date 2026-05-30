@@ -1,11 +1,6 @@
 #pragma once
 
-#include "freya_base.h"
-#include "freya_containers.h"
 #include "freya_math.h"
-#include "freya_audio.h"
-#include "freya_timer.h"
-#include "freya_gfx.h"
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -126,58 +126,56 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 b2normal, f32 fract
 }
 
 static void b2draw_circle(b2Transform b2transform, f32 radius, b2HexColor b2color, void* context) {
-  Transform transform = {
-    .position = b2vec_to_vec(b2transform.p),
-    .scale    = Vec2(radius) * 75.0f,
-    .rotation = b2Rot_GetAngle(b2transform.q),
-  };
-  renderer_queue_debug_polygon(transform, 12, s_world.debug_color);
+  // @TODO (Box2D/debug draw)
+  // Transform transform = {
+  //   .position = b2vec_to_vec(b2transform.p),
+  //   .scale    = Vec2(radius) * 75.0f,
+  //   .rotation = b2Rot_GetAngle(b2transform.q),
+  // };
+  // renderer_queue_debug_polygon(transform, 12, s_world.debug_color);
 }
 
 static void b2draw_polygon(b2Transform b2transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
-  if(vertex_count != 4) { // Not a perfect quad
-    Vec2 size = Vec2(radius) * 75.0f;
-
-    // Queue the polygon
-
-    Transform transform = {
-      .position = b2vec_to_vec(b2transform.p),
-      .scale    = size,
-      .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
-    };
-    renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
-
-    return;
-  }
- 
-  // Queue a perfect quad
-
-  Vec2 max = b2vec_to_vec(vertices[0]);
-  for(i32 i = 0; i < vertex_count; i++) {
-    max = vec2_max(max, b2vec_to_vec(vertices[i]));
-  }
-  
-  Transform transform = {
-    .position = b2vec_to_vec(b2transform.p),
-    .scale    = (max * 2.0f),
-    .rotation = b2Rot_GetAngle(b2transform.q), 
-  };
-  renderer_queue_debug_quad(transform, s_world.debug_color);
+  // @TODO (Box2D/debug draw)
+  //  if(vertex_count != 4) { // Not a perfect quad
+  //    Vec2 size = Vec2(radius) * 75.0f;
+  //
+  //    // Queue the polygon
+  //
+  //    Transform transform = {
+  //      .position = b2vec_to_vec(b2transform.p),
+  //      .scale    = size,
+  //      .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
+  //    };
+  //    renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
+  //
+  //    return;
+  //  }
+  // 
+  //  // Queue a perfect quad
+  //
+  //  Vec2 max = b2vec_to_vec(vertices[0]);
+  //  for(i32 i = 0; i < vertex_count; i++) {
+  //    max = vec2_max(max, b2vec_to_vec(vertices[i]));
+  //  }
+  //  
+  //  Transform transform = {
+  //    .position = b2vec_to_vec(b2transform.p),
+  //    .scale    = (max * 2.0f),
+  //    .rotation = b2Rot_GetAngle(b2transform.q), 
+  //  };
+  //  renderer_queue_quad(transform, s_world.debug_color);
 }
 
 static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
-  Transform transform = {
-    .position = b2vec_to_vec(p),
-    .scale    = Vec2(size) * 100.0f,
-  };
-  renderer_queue_debug_quad(transform, s_world.debug_color);
+  renderer_queue_point(b2vec_to_vec(p), size * 100.0f, s_world.debug_color);
 }
 
 static void b2draw_line(b2Vec2 p1, b2Vec2 p2, b2HexColor b2color, void* context) {
   Vec2 start = b2vec_to_vec(p1);
   Vec2 end   = b2vec_to_vec(p2);
 
-  renderer_queue_debug_line(start, end, s_world.debug_color);
+  renderer_queue_line(start, end, s_world.debug_color);
 }
 
 /// Callbacks

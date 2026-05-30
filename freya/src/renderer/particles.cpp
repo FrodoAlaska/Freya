@@ -74,8 +74,11 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitter
   out_emitter.gravity_factor = desc.gravity_factor; 
 
   // Render variables init
-  
-  out_emitter.texture = (desc.texture_id.get_id() != ASSET_ID_INVALID) ? asset_group_get_texture(desc.texture_id) : {};
+ 
+  if(desc.texture_id.get_id() != ASSET_ID_INVALID) {
+    out_emitter.texture = asset_group_get_texture(desc.texture_id);
+  }
+
   out_emitter.color   = desc.color;
 
   // Timer init

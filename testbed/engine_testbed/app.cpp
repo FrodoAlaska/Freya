@@ -77,7 +77,13 @@ void app_render() {
   // 2D render
 
   freya::renderer_begin(s_app.camera);
-  freya::entity_world_render(s_app.ecs);
+
+  freya::Transform transform = {
+    .position = freya::Vec2(10.0f),
+    .scale    = freya::Vec2(32.0f),
+  };
+  freya::renderer_queue_quad(transform, freya::COLOR_WHITE);
+
   freya::renderer_end();
 
   // UI render

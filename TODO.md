@@ -14,12 +14,9 @@
 ### Major Systems
 
 - Graphics 
-    - Test with a simple quad and textured quad
+    - Remove any extra files
     - Propogate the changes to other systems 
-        - Particles 
-        - Animations 
         - Physics debug draw 
-        - ECS
         - Post-process 
     - Add a useful logger func to `sokol_gfx`
     - Change the UI renderer as well

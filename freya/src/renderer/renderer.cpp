@@ -96,9 +96,9 @@ void renderer_init(Window* window) {
 void renderer_shutdown() {
   // Destroy the framebuffers
 
-  post_process_destroy(s_renderer.default_pass);
+  // post_process_destroy(s_renderer.default_pass);
   for(PostProcessPass* pass : s_renderer.passes) {
-    post_process_destroy(pass);
+    // post_process_destroy(pass);
   }
   s_renderer.passes.clear();
 
@@ -206,7 +206,7 @@ PostProcessPass* renderer_pop_post_process() {
   return pass;
 }
 
-void renderer_queue_texture(Texture& texture, 
+void renderer_queue_texture(const Texture& texture, 
                             const Rect2D& src, 
                             const Rect2D& dest, 
                             const f32 rotation,
@@ -225,14 +225,14 @@ void renderer_queue_texture(Texture& texture,
                          {src_pos.x, src_pos.y, src_size.x, src_size.y}); 
 }
 
-void renderer_queue_texture(Texture& texture, const Transform& transform, const Color& tint) {
+void renderer_queue_texture(const Texture& texture, const Transform& transform, const Color& tint) {
   Rect2D src = {
     .size     = texture.size,
     .position = Vec2(0.0f),
   };
   
   Rect2D dest = {
-    .size     = texture.size * transform.scale,
+    .size     = (Vec2)(texture.size) * transform.scale,
     .position = transform.position, 
   };
 
@@ -251,8 +251,10 @@ void renderer_queue_line(const Vec2& start, const Vec2& end, const Color& color)
   sgp_draw_line(start.x, start.y, end.x, end.y);
 }
 
-void renderer_queue_point(const Vec2& position, const Color& color) {
+void renderer_queue_point(const Vec2& position, f32 size, const Color& color) {
   sgp_set_color(color.r, color.g, color.b, color.a);
+  sgp_scale(size, size);
+
   sgp_draw_point(position.x, position.y);
 }
 

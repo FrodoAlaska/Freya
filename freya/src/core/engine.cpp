@@ -84,9 +84,6 @@ static bool web_update_and_render(f64 dt, void* user_data) {
   input_update();
   clock_update();
 
-  // Present
-  gfx_context_present(s_engine.gfx_context); 
-
   // Done!
   return s_engine.is_running;
 }

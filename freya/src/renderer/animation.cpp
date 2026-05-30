@@ -15,9 +15,9 @@ void animation_create(Animation& out_anim, const AnimationDesc& desc) {
 
   // Frames init
 
-  GfxTextureDesc& tex_desc = gfx_texture_get_desc(out_anim.texture);
+  IVec2 tex_size = out_anim.texture.size;
 
-  out_anim.frames_count  = (tex_desc.width / out_anim.frame_size.x) - 1;
+  out_anim.frames_count  = (tex_size.x / out_anim.frame_size.x) - 1;
   out_anim.current_frame = desc.is_reversed ? out_anim.frames_count : 0;
   out_anim.direction     = desc.is_reversed ? -1 : 1;
   out_anim.start_row     = desc.start_row;

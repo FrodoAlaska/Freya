@@ -66,13 +66,5 @@ bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img) {
   return true;
 }
 
-void texture_loader_unload(sg_image_desc& image_desc) {
-  if(!image_desc.data.mip_levels[0].ptr) {
-    return;
-  }
-  
-  stbi_image_free(image_desc.data.mip_levels[0].ptr);
-}
-
 /// Texture loader functions
 /// ----------------------------------------------------------------------

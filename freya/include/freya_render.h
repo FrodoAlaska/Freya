@@ -1,6 +1,7 @@
 #pragma once
 
 #include "freya_assets.h"
+#include "freya_timer.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -51,7 +52,7 @@ struct PostProcessPass {
   // GfxFramebufferDesc frame_desc;
   // GfxFramebuffer* frame;
 
-  Array<Texture, RENDER_TARGETS_MAX> outputs;
+  Array<Texture, 8> outputs;
   sizei outputs_count = 0;
 
   PostProcessPass* previous = nullptr;
@@ -444,7 +445,7 @@ FREYA_API PostProcessPass* renderer_pop_post_process();
 /// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.
-FREYA_API void renderer_queue_texture(Texture& texture, 
+FREYA_API void renderer_queue_texture(const Texture& texture, 
                                       const Rect2D& src, 
                                       const Rect2D& dest, 
                                       const f32 rotation = 0.0f,
@@ -454,7 +455,7 @@ FREYA_API void renderer_queue_texture(Texture& texture,
 /// the given `texture`, and transform, with `tint` color.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.
-FREYA_API void renderer_queue_texture(Texture& texture, const Transform& transform, const Color& tint = Color(1.0f));
+FREYA_API void renderer_queue_texture(const Texture& texture, const Transform& transform, const Color& tint = Color(1.0f));
 
 /// Queue a quad using `transform` with a `color`.
 FREYA_API void renderer_queue_quad(const Transform& transform, const Color& color);
@@ -462,8 +463,8 @@ FREYA_API void renderer_queue_quad(const Transform& transform, const Color& colo
 /// Queue a simple line starting from `start` till `end` with a `color`.
 FREYA_API void renderer_queue_line(const Vec2& start, const Vec2& end, const Color& color);
 
-/// Queue a simple point at `position` with a `color`.
-FREYA_API void renderer_queue_point(const Vec2& position, const Color& color);
+/// Queue a simple point at `position` with size `size` with a `color`.
+FREYA_API void renderer_queue_point(const Vec2& position, f32 size, const Color& color);
 
 /// Queue a three-point triangle with points `p1`, `p2`, and `p3` with a `color`.
 FREYA_API void renderer_queue_triangle(const Vec2& p1, const Vec2& p2, const Vec2& p3, const Color& color);
@@ -483,7 +484,7 @@ FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 /// UI renderer functions
 
 /// Initialize the UI renderer.
-FREYA_API bool ui_renderer_init(GfxContext* gfx);
+FREYA_API bool ui_renderer_init();
 
 /// Shutdown and reclaim all the memory allocated by the UI renderer.
 FREYA_API void ui_renderer_shutdown();

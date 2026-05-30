@@ -120,7 +120,7 @@ void entity_world_render(const EntityWorld& world) {
 
       // Render a texture (if it's a valid)
 
-      if(sprite.texture) {
+      if(sprite.texture.size.x == -1) {
         renderer_queue_texture(sprite.texture, transform, sprite.color);
         continue;
       }
@@ -280,7 +280,11 @@ Animator& entity_add_animator(EntityWorld& world, Entity& entt) {
 }
 
 SpriteComponent& entity_add_sprite(EntityWorld& world, Entity& entt, const AssetID& texture_id, const Vec4& color) {
-  GfxTexture* texture = (texture_id.get_id() != ASSET_ID_INVALID) ? asset_group_get_texture(texture_id) : nullptr;
+  Texture texture = {};
+  if(texture_id.get_id() != ASSET_ID_INVALID) {
+    texture = asset_group_get_texture(texture_id);
+  }
+
   return world.emplace<SpriteComponent>(entt.get_id(), texture, color);
 }
 
@@ -289,7 +293,7 @@ TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
                                             const AssetID& texture_id,
                                             const Rect2D& source, 
                                             const Vec4& color) {
-  GfxTexture* texture = asset_group_get_texture(texture_id);
+  Texture texture = asset_group_get_texture(texture_id);
   return world.emplace<TileSpriteComponent>(entt.get_id(), texture, source, color);
 }
 
