@@ -42,18 +42,16 @@ using OnPassResizeFn  = std::function<void(PostProcessPass* pass, const IVec2& n
 ///---------------------------------------------------------------------------------------------------------------------
 /// PostProcessPass
 struct PostProcessPass {
-  GfxContext* gfx; 
-
   OnPassPrepareFn prepare_func = nullptr;
   OnPassResizeFn resize_func   = nullptr;
 
   IVec2 frame_size;
   Color clear_color;
 
-  GfxFramebufferDesc frame_desc;
-  GfxFramebuffer* frame;
+  // GfxFramebufferDesc frame_desc;
+  // GfxFramebuffer* frame;
 
-  Array<GfxTexture*, RENDER_TARGETS_MAX> outputs;
+  Array<Texture, RENDER_TARGETS_MAX> outputs;
   sizei outputs_count = 0;
 
   PostProcessPass* previous = nullptr;
@@ -74,7 +72,7 @@ struct PostProcessPassDesc {
   AssetGroupID asset_group  = {};
 
   u32 clear_flags;
-  DynamicArray<GfxTextureFormat> attachments;
+  DynamicArray<sg_pixel_format> attachments;
 
   String debug_name = "DEBUG";
 };
@@ -173,7 +171,7 @@ struct AnimationDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Animation
 struct Animation {
-  GfxTexture* texture; 
+  Texture texture; 
   Vec2 frame_size;
 
   i32 current_frame, frames_count;
@@ -277,7 +275,7 @@ struct ParticleEmitter {
   i32 particles_count = 0;
   Timer lifetime; 
 
-  GfxTexture* texture; 
+  Texture texture; 
   Vec4 color;
   
   f32 distribution_radius               = 1.0f;
@@ -294,9 +292,6 @@ struct ParticleEmitter {
 
 /// Allocate and initialize a `PostProcessPass`, using the information given from `desc`.
 FREYA_API PostProcessPass* post_process_create(const PostProcessPassDesc& desc);
-
-/// Create a pre-defined HDR pass, using the given `window` and `camera`.
-FREYA_API PostProcessPass* post_process_define_hdr(Window* window, Camera* camera);
 
 /// Create a pre-defined blur pass, using the given `window`.
 FREYA_API PostProcessPass* post_process_define_blur(Window* window);
@@ -436,9 +431,6 @@ FREYA_API void renderer_set_clear_color(const Color& color);
 /// Retrieve the renderer's current clear color.
 FREYA_API const Color& renderer_get_clear_color();
 
-/// Retrieve the internal `GfxContext` of the global renderer.
-FREYA_API GfxContext* renderer_get_context();
-
 /// Push the given `pass` to the back of the current post-process chain.
 FREYA_API void renderer_push_post_process(PostProcessPass* pass);
 
@@ -452,7 +444,7 @@ FREYA_API PostProcessPass* renderer_pop_post_process();
 /// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.
-FREYA_API void renderer_queue_texture(GfxTexture* texture, 
+FREYA_API void renderer_queue_texture(Texture& texture, 
                                       const Rect2D& src, 
                                       const Rect2D& dest, 
                                       const f32 rotation = 0.0f,
@@ -462,10 +454,19 @@ FREYA_API void renderer_queue_texture(GfxTexture* texture,
 /// the given `texture`, and transform, with `tint` color.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.
-FREYA_API void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint = Color(1.0f));
+FREYA_API void renderer_queue_texture(Texture& texture, const Transform& transform, const Color& tint = Color(1.0f));
 
 /// Queue a quad using `transform` with a `color`.
 FREYA_API void renderer_queue_quad(const Transform& transform, const Color& color);
+
+/// Queue a simple line starting from `start` till `end` with a `color`.
+FREYA_API void renderer_queue_line(const Vec2& start, const Vec2& end, const Color& color);
+
+/// Queue a simple point at `position` with a `color`.
+FREYA_API void renderer_queue_point(const Vec2& position, const Color& color);
+
+/// Queue a three-point triangle with points `p1`, `p2`, and `p3` with a `color`.
+FREYA_API void renderer_queue_triangle(const Vec2& p1, const Vec2& p2, const Vec2& p3, const Color& color);
 
 /// Queue an animation using the given `animation`, transformed with `transform` with a `tint`.
 ///
@@ -474,33 +475,6 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
-
-/// Queue a debug quad using the given information.
-///
-/// @NOTE: This function is only intended for debug uses. 
-/// It is extremely slow since it draws the geometry immediately. Do not 
-/// use it other than for simple debug purposes.
-FREYA_API void renderer_queue_debug_quad(const Transform& transform, const Color& color);
-
-/// Queue a debug polygon at `position`, with a `radius` size, and with `color`. 
-///
-/// @NOTE: This function is only intended for debug uses. 
-/// It is extremely slow since it draws the geometry immediately. Do not 
-/// use it other than for simple debug purposes.
-
-/// Queue a debug polygon using `transform`, with `sides` of the polygon, and color.
-///
-/// @NOTE: This function is only intended for debug uses. 
-/// It is extremely slow since it draws the geometry immediately. Do not 
-/// use it other than for simple debug purposes.
-FREYA_API void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, const Color& color);
-
-/// Queue a debug line starting from `start` till `end`, tinted with `color`.
-///
-/// @NOTE: This function is only intended for debug uses. 
-/// It is extremely slow since it draws the geometry immediately. Do not 
-/// use it other than for simple debug purposes.
-FREYA_API void renderer_queue_debug_line(const Vec2& start, const Vec2& end, const Color& color);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

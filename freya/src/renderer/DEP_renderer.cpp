@@ -731,8 +731,6 @@ void renderer_queue_quad(const Transform& transform, const Color& color) {
 }
 
 void renderer_queue_animation(const Animation& anim, const Transform& transform, const Color& tint) {
-  GfxTextureDesc& tex_desc = gfx_texture_get_desc(anim.texture);
-  
   Rect2D dest = {
     .size     = anim.frame_size * transform.scale,
     .position = transform.position, 

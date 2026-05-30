@@ -783,6 +783,8 @@ AssetID asset_group_push_texture(const AssetGroupID& group_id,
   // Create the texture
   
   Texture texture;
+
+  texture.size  = Vec2(image_desc.width, image_desc.height);
   texture.image = sg_make_image(image_desc);
 
   sg_view_desc view_desc  = {};

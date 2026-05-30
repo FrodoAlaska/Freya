@@ -20,6 +20,8 @@ struct Renderer {
   
   PostProcessPass* default_pass = nullptr;
   DynamicArray<PostProcessPass*> passes;
+
+  i32 textures_count = 0;
 };
 
 static Renderer s_renderer;
@@ -112,6 +114,10 @@ void renderer_shutdown() {
 void renderer_begin(Camera& camera) {
   FREYA_PROFILE_FUNCTION();
 
+  // Reset the renderer's state 
+
+  s_renderer.textures_count = 0;
+
   IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
   IVec2 size       = window_get_size(s_renderer.window);
 
@@ -172,10 +178,6 @@ const Color& renderer_get_clear_color() {
   return s_renderer.color;
 }
 
-GfxContext* renderer_get_context() {
-  return nullptr;
-}
-
 void renderer_push_post_process(PostProcessPass* pass) {
   FREYA_DEBUG_ASSERT(pass, "");
 
@@ -204,40 +206,82 @@ PostProcessPass* renderer_pop_post_process() {
   return pass;
 }
 
-void renderer_queue_texture(GfxTexture* texture, 
+void renderer_queue_texture(Texture& texture, 
                             const Rect2D& src, 
                             const Rect2D& dest, 
                             const f32 rotation,
                             const Color& tint) {
-  // @TODO
+  sgp_set_color(tint.r, tint.g, tint.b, tint.a);
+  sgp_rotate(rotation);
+
+  Vec2 src_pos  = src.position;
+  Vec2 src_size = src.size;
+
+  Vec2 dest_pos  = dest.position;
+  Vec2 dest_size = dest.size; 
+
+  sgp_draw_textured_rect(s_renderer.textures_count, 
+                         {dest_pos.x, dest_pos.y, dest_size.x, dest_size.y},
+                         {src_pos.x, src_pos.y, src_size.x, src_size.y}); 
 }
 
-void renderer_queue_texture(GfxTexture* texture, const Transform& transform, const Color& tint) {
-  // @TODO
+void renderer_queue_texture(Texture& texture, const Transform& transform, const Color& tint) {
+  Rect2D src = {
+    .size     = texture.size,
+    .position = Vec2(0.0f),
+  };
+  
+  Rect2D dest = {
+    .size     = texture.size * transform.scale,
+    .position = transform.position, 
+  };
+
+  renderer_queue_texture(texture, src, dest, transform.rotation, tint);
 }
 
 void renderer_queue_quad(const Transform& transform, const Color& color) {
-  // @TODO
+  sgp_set_color(color.r, color.g, color.b, color.a);
+
+  sgp_rotate(transform.rotation);
+  sgp_draw_filled_rect(transform.position.x, transform.position.y, transform.scale.x, transform.scale.y);
+}
+
+void renderer_queue_line(const Vec2& start, const Vec2& end, const Color& color) {
+  sgp_set_color(color.r, color.g, color.b, color.a);
+  sgp_draw_line(start.x, start.y, end.x, end.y);
+}
+
+void renderer_queue_point(const Vec2& position, const Color& color) {
+  sgp_set_color(color.r, color.g, color.b, color.a);
+  sgp_draw_point(position.x, position.y);
+}
+
+void renderer_queue_triangle(const Vec2& p1, const Vec2& p2, const Vec2& p3, const Color& color) {
+  sgp_set_color(color.r, color.g, color.b, color.a);
+  sgp_draw_filled_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
 }
 
 void renderer_queue_animation(const Animation& anim, const Transform& transform, const Color& tint) {
-  // @TODO
+  Rect2D dest = {
+    .size     = anim.frame_size * transform.scale,
+    .position = transform.position, 
+  };
+  renderer_queue_texture(anim.texture, anim.src_rect, dest, transform.rotation, tint);
 }
 
 void renderer_queue_particles(const ParticleEmitter& emitter) {
-  // @TODO
-}
+  if(!emitter.is_active) {
+    return;
+  }
 
-void renderer_queue_debug_quad(const Transform& transform, const Color& color) {
-  // @TODO
-}
+  for(sizei i = 0; i < emitter.particles_count; i++) {
+    if(emitter.texture.size.x == -1) {
+      renderer_queue_texture(emitter.texture, emitter.transforms[i], emitter.color);
+      continue;
+    }
 
-void renderer_queue_debug_polygon(const Transform& transform, const i32 sides, const Color& color) {
-  // @TODO
-}
-
-void renderer_queue_debug_line(const Vec2& start, const Vec2& end, const Color& color) {
-  // @TODO
+    renderer_queue_quad(emitter.transforms[i], emitter.color);
+  }
 }
 
 /// Renderer functions

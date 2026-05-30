@@ -61,15 +61,14 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/animator.cpp
   ${FREYA_SRC_DIR}/renderer/particles.cpp
   ${FREYA_SRC_DIR}/renderer/color.cpp
-  ${FREYA_SRC_DIR}/renderer/post_process.cpp
+  # @TEMP: ${FREYA_SRC_DIR}/renderer/post_process.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
   ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
   
   # Renderer/post-process effects
-  ${FREYA_SRC_DIR}/renderer/post_process_effects/hdr_pass.cpp
-  ${FREYA_SRC_DIR}/renderer/post_process_effects/blur_pass.cpp
-  ${FREYA_SRC_DIR}/renderer/post_process_effects/greyscale_pass.cpp
-  ${FREYA_SRC_DIR}/renderer/post_process_effects/vignette_pass.cpp
+  # @TEMP: ${FREYA_SRC_DIR}/renderer/post_process_effects/blur_pass.cpp
+  # @TEMP: ${FREYA_SRC_DIR}/renderer/post_process_effects/greyscale_pass.cpp
+  # @TEMP: ${FREYA_SRC_DIR}/renderer/post_process_effects/vignette_pass.cpp
   
   # Entity
   ${FREYA_SRC_DIR}/entity/entity.cpp

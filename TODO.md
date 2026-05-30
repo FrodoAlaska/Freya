@@ -14,7 +14,6 @@
 ### Major Systems
 
 - Graphics 
-    - Add the new asset types to the renderer with all the new `renderer_queue_*` functions 
     - Test with a simple quad and textured quad
     - Propogate the changes to other systems 
         - Particles 

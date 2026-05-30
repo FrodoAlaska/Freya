@@ -12,9 +12,7 @@ namespace freya { // Start of freya
 /// Engine
 struct Engine {
   AppDesc app_desc;
-
   Window* window;
-  GfxContext* gfx_context;
 
   bool is_running;
 };
@@ -183,8 +181,6 @@ i32 engine_run(const AppDesc& desc) {
   // Renderers init 
   
   renderer_init(s_engine.window);
-  s_engine.gfx_context = renderer_get_context();
-  
   // ui_renderer_init(s_engine.gfx_context);
 
   // Audio init
