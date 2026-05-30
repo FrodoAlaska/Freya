@@ -28,7 +28,7 @@ static bool check_valid_extension(const freya::FilePath& ext) {
 /// ----------------------------------------------------------------------
 /// Texture loader functions
 
-bool texture_loader_load(const freya::FilePath& path, freya::GfxTextureDesc* tex_desc) {
+bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img) {
   // Sanity check
 
   if(!check_valid_extension(freya::filepath_extension(path))) {
@@ -40,25 +40,25 @@ bool texture_loader_load(const freya::FilePath& path, freya::GfxTextureDesc* tex
 
   freya::i32 width, height; 
   if(stbi_is_hdr(path.c_str())) {
-    tex_desc->format = freya::GFX_TEXTURE_FORMAT_RGBA16F;
-    tex_desc->data   = stbi_loadf(path.c_str(), &width, &height, NULL, 4);
+    out_img.pixel_format           = SG_PIXELFORMAT_RGBA32F;
+    out_img.data.mip_levels[0].ptr = stbi_loadf(path.c_str(), &width, &height, NULL, 4);
   }
   else {
-    tex_desc->format = freya::GFX_TEXTURE_FORMAT_RGBA8;
-    tex_desc->data   = stbi_load(path.c_str(), &width, &height, NULL, 4);
+    out_img.pixel_format           = SG_PIXELFORMAT_RGBA8;
+    out_img.data.mip_levels[0].ptr = stbi_load(path.c_str(), &width, &height, NULL, 4);
   }
 
   // Fuck!
 
-  if(!tex_desc->data) {
+  if(!out_img.data.mip_levels[0].ptr) {
     FREYA_LOG_ERROR("Could not load texture at \'%s'\, %s", path.c_str(), stbi_failure_reason());
     return false;
   }
 
   // Filling the rest of the desc
 
-  tex_desc->width  = (freya::u32)width;
-  tex_desc->height = (freya::u32)height;
+  out_img.width  = width;
+  out_img.height = height;
 
   // Done!
  
@@ -66,12 +66,12 @@ bool texture_loader_load(const freya::FilePath& path, freya::GfxTextureDesc* tex
   return true;
 }
 
-void texture_loader_unload(freya::GfxTextureDesc& tex_desc) {
-  if(!tex_desc.data) {
+void texture_loader_unload(sg_image_desc& image_desc) {
+  if(!image_desc.data.mip_levels[0].ptr) {
     return;
   }
   
-  stbi_image_free(tex_desc.data);
+  stbi_image_free(image_desc.data.mip_levels[0].ptr);
 }
 
 /// Texture loader functions

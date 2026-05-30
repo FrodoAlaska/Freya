@@ -7,6 +7,8 @@
 #include "asset_list/list.h"
 #include "loaders/asset_loaders.h"
 
+#include <cstring>
+
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
@@ -37,69 +39,6 @@ static AssetManager s_manager;
 
 /// ----------------------------------------------------------------------
 /// Private functions 
-
-static const char* buffer_type_str(const GfxBufferType type) {
-  switch(type) {
-    case GFX_BUFFER_VERTEX: 
-      return "GFX_BUFFER_VERTEX";
-    case GFX_BUFFER_INDEX: 
-      return "GFX_BUFFER_INDEX";
-    case GFX_BUFFER_UNIFORM: 
-      return "GFX_BUFFER_UNIFORM";
-    case GFX_BUFFER_SHADER_STORAGE: 
-      return "GFX_BUFFER_SHADER_STORAGE";
-    case GFX_BUFFER_DRAW_INDIRECT: 
-      return "GFX_BUFFER_DRAW_INDIRECT";
-    default:
-      return "INVALID BUFFER TYPE";
-  }
-}
-
-static const char* texture_type_str(const GfxTextureType type) {
-  switch(type) {
-    case GFX_TEXTURE_1D:
-      return "GFX_TEXTURE_1D";
-    case GFX_TEXTURE_2D:
-      return "GFX_TEXTURE_2D";
-    case GFX_TEXTURE_2D_PROXY:
-      return "GFX_TEXTURE_2D_PROXY";
-    case GFX_TEXTURE_3D:
-      return "GFX_TEXTURE_3D";
-    case GFX_TEXTURE_1D_ARRAY:
-      return "GFX_TEXTURE_1D_ARRAY";
-    case GFX_TEXTURE_1D_ARRAY_PROXY:
-      return "GFX_TEXTURE_1D_ARRAY_PROXY";
-    case GFX_TEXTURE_2D_ARRAY:
-      return "GFX_TEXTURE_2D_ARRAY";
-    case GFX_TEXTURE_IMAGE_1D:
-      return "GFX_TEXTURE_IMAGE_1D";
-    case GFX_TEXTURE_IMAGE_2D:
-      return "GFX_TEXTURE_IMAGE_2D";
-    case GFX_TEXTURE_IMAGE_3D:
-      return "GFX_TEXTURE_IMAGE_3D";
-    case GFX_TEXTURE_DEPTH_TARGET:
-      return "GFX_TEXTURE_DEPTH_TARGET";
-    case GFX_TEXTURE_STENCIL_TARGET:
-      return "GFX_TEXTURE_STENCIL_TARGET";
-    case GFX_TEXTURE_DEPTH_STENCIL_TARGET:
-      return "GFX_TEXTURE_DEPTH_STENCIL_TARGET";
-    default:
-      return "INVALID TEXTURE TYPE";
-  }
-}
-
-static const char* audio_format_str(const AudioBufferFormat format) {
-  switch(format) {
-    case AUDIO_BUFFER_FORMAT_U8:
-      return "AUDIO_BUFFER_FORMAT_U8";
-    case AUDIO_BUFFER_FORMAT_I16:
-      return "AUDIO_BUFFER_FORMAT_I16";
-    case AUDIO_BUFFER_FORMAT_F32:
-      return "AUDIO_BUFFER_FORMAT_F32";
-    default:
-      return "INVALID AUDIO BUFFER FORMAT";
-  }
-}
 
 template<typename T> 
 static T& get_asset(const AssetID& id, DynamicArray<T>& asset, const AssetType type) {
@@ -162,38 +101,50 @@ static void build_textures(File& pkg_file, const ListSection& section) {
     FilePath name = filepath_stem(path);
     file_write_bytes(pkg_file, name);
 
-    // Load and save the asset
+    // Load the asset
 
-    GfxTextureDesc tex_desc{};
+     
+    sg_sampler_desc sampler_desc = {};
+    sampler_desc.min_filter      = SG_FILTER_NEAREST;
+    sampler_desc.mag_filter      = SG_FILTER_NEAREST;
 
-    texture_loader_load(path, &tex_desc);
-    file_write_bytes(pkg_file, tex_desc);
-    texture_loader_unload(tex_desc);
-  }
-}
-
-static void build_shaders(File& pkg_file, const ListSection& section) {
-  FREYA_PROFILE_FUNCTION();
-
-  // Write the number of assets of this type
-
-  u16 asset_count = (u16)section.assets.size(); 
-  file_write_bytes(pkg_file, &asset_count, sizeof(asset_count));
+    sg_image_desc image_desc = {};
+    texture_loader_load(path, image_desc);
+     
+    // 
+    // Write the asset 
+    //
   
-  // Load and write all of the assets
+    // Write the texture's size
 
-  for(const auto& path : section.assets) {
-    // Write the name of the asset
+    u16 width  = (u16)image_desc.width;
+    u16 height = (u16)image_desc.height;
 
-    FilePath name = filepath_stem(path);
-    file_write_bytes(pkg_file, name);
+    file_write_bytes(file, &width, sizeof(width));
+    file_write_bytes(file, &height, sizeof(height));
 
-    // Load and save the asset
+    // Write the format
 
-    GfxShaderDesc shader_desc{};
+    u8 format = (u8)image_desc.pixel_format;
+    file_write_bytes(file, &format, sizeof(format));
 
-    shader_loader_load(path, &shader_desc);
-    file_write_bytes(pkg_file, shader_desc);
+    // Write the filters 
+
+    u8 min_filter = (u8)sampler_desc.min_filter;
+    u8 mag_filter = (u8)sampler_desc.mag_filter;
+
+    file_write_bytes(file, &min_filter, sizeof(min_filter));
+    file_write_bytes(file, &mag_filter, sizeof(mag_filter));
+
+    // Write the data
+
+    u32 pixel_size = (format == SG_PIXELFORMAT_RGBA16F) ? 4 : 1; 
+    u32 data_size  = (width * height) * 4 * pixel_size; // 4 = color components
+
+    file_write_bytes(file, image_desc.data.mip_levels[0].ptr, data_size);
+
+    // Unload the data
+    texture_loader_unload(image_desc); 
   }
 }
 
@@ -243,12 +194,34 @@ static void build_audio_buffers(File& pkg_file, const ListSection& section) {
     FilePath name = filepath_stem(path);
     file_write_bytes(pkg_file, name);
 
-    // Load and save the asset
+    // Load the asset
 
     AudioBufferDesc audio_desc{};
-
     audio_loader_load(path, &audio_desc);
-    file_write_bytes(pkg_file, audio_desc);
+
+    //
+    // Write the asset
+    //
+  
+    // Write the format
+
+    u8 format = (u8)audio_desc.format;
+    file_write_bytes(file, &format, sizeof(format));
+
+    // Write the channels
+
+    u8 channels = (u8)audio_desc.channels;
+    file_write_bytes(file, &channels, sizeof(channels));
+
+    // Write the sample rate
+    file_write_bytes(file, &audio_desc.sample_rate, sizeof(audio_desc.sample_rate));
+
+    // Write the samples
+
+    u32 size = (u32)audio_desc.size;
+
+    file_write_bytes(file, &size, sizeof(size));
+    file_write_bytes(file, audio_desc.data, size);
   }
 }
 
@@ -318,48 +291,57 @@ static void read_textures(File& file, AssetGroup& group) {
     String name;
     file_read_bytes(file, &name);
 
+    //
     // Read the texture desc
+    //
 
-    GfxTextureDesc desc;
-    desc.type = GFX_TEXTURE_2D;
+    sg_image_desc image_desc     = {};
+    sg_sampler_desc sampler_desc = {};
 
-    file_read_bytes(file, &desc);
+    // Read the texture's size
+
+    u16 width, height;
+    file_read_bytes(file, &width, sizeof(width));  
+    file_read_bytes(file, &height, sizeof(height));  
+
+    image_desc.width  = width;
+    image_desc.height = height;
+
+    // Read the format
+
+    u8 format;
+    file_read_bytes(file, &format, sizeof(format));
+
+    image_desc.pixel_format = (sg_pixel_format)format;
+
+    // Read the filters
+
+    u8 min_filter, mag_filter;
+
+    file_read_bytes(file, &min_filter, sizeof(min_filter));
+    file_read_bytes(file, &mag_filter, sizeof(mag_filter));
+
+    sampler_desc.min_filter = (sg_filter)min_filter;
+    sampler_desc.mag_filter = (sg_filter)mag_filter;
+
+    // Read the data
+
+    u32 pixel_size = (format == SG_PIXELFORMAT_RGBA16F) ? 4 : 1; 
+    u32 data_size  = (width * height) * 4 * pixel_size; // 4 = color components
+
+    image_desc.data.mip_levels[0].ptr  = memory_allocate(data_size);
+    image_desc.data.mip_levels[0].size = data_size;
+
+    file_read_bytes(file, image_desc.data.mip_levels[0].ptr, data_size);
 
     // Add the texture to the group
-    group.named_ids[name] = asset_group_push_texture(group.id, desc); 
+    group.named_ids[name] = asset_group_push_texture(group.id, image_desc, sampler_desc); 
 
     // Get rid of the texture data on the CPU-side
-    memory_free(desc.data); 
-
+    memory_free(image_desc.data.mip_levels[0].ptr); 
+    
+    // Done!
     FREYA_LOG_DEBUG("Loaded texture \'%s\' from frpkg ", name.c_str());
-  }
-}
-
-static void read_shaders(File& file, AssetGroup& group) {
-  FREYA_PROFILE_FUNCTION();
-  
-  // Read the count
-
-  u16 count;
-  file_read_bytes(file, &count, sizeof(count));
-
-  // Read the asset
-
-  for(u16 i = 0; i < count; i++) {
-    // Read the name
-
-    String name;
-    file_read_bytes(file, &name);
-
-    // Read the shader desc
-
-    GfxShaderDesc desc;
-    file_read_bytes(file, &desc);
-
-    // Add the shader to the group
-    group.named_ids[name] = asset_group_push_shader(group.id, desc); 
-
-    FREYA_LOG_DEBUG("Loaded shader \'%s\' from frpkg ", name.c_str());
   }
 }
 
@@ -411,11 +393,39 @@ static void read_audio_buffers(File& file, AssetGroup& group) {
 
     String name;
     file_read_bytes(file, &name);
-
+    
+    //
     // Read the audio desc
+    //
 
     AudioBufferDesc desc;
-    file_read_bytes(file, &desc);
+  
+    // Read the format
+ 
+    u8 format;
+    file_read_bytes(file, &format, sizeof(format));
+
+    out_desc->format = (AudioBufferFormat)format;
+
+    // Read the channels
+
+    u8 channels;
+    file_read_bytes(file, &channels, sizeof(channels));
+
+    out_desc->channels = (u32)channels;
+
+    // Read the sample rate
+    file_read_bytes(file, &out_desc->sample_rate, sizeof(out_desc->sample_rate));
+
+    // Read the samples
+
+    u32 size;
+    file_read_bytes(file, &size, sizeof(size));
+
+    out_desc->size = (sizei)size;
+    out_desc->data = memory_allocate(out_desc->size);
+
+    file_read_bytes(file, out_desc->data, out_desc->size);
 
     // Add the audio buffer to the group
     group.named_ids[name] = asset_group_push_audio_buffer(group.id, desc); 
@@ -423,6 +433,7 @@ static void read_audio_buffers(File& file, AssetGroup& group) {
     // Get rid of the audio data on the CPU-side
     memory_free(desc.data); 
 
+    // Done!
     FREYA_LOG_DEBUG("Loaded audio buffer \'%s\' from frpkg ", name.c_str());
   }
 }
@@ -527,7 +538,7 @@ static bool build_package(const FilePath& list_path, const FilePath& output_path
         build_textures(pkg_file, section);
         break;
       case ASSET_TYPE_SHADER:
-        build_shaders(pkg_file, section);
+        // @TODO (Assets/shaders): Do we even need to build shaders???
         break;
       case ASSET_TYPE_FONT:
         build_fonts(pkg_file, section);
@@ -718,7 +729,6 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
       FilePath dir = filepath_append(assets_path, paths[i]);
       FREYA_LOG_DEBUG("Watching directory \'%s\'", dir.c_str());
 
-      // group.watchers[i] = new filewatch::FileWatch<FilePath>(dir, on_file_modify);
       group.watchers[i] = filewatcher_create(dir, [=](const FilePath& path, const FileStatus status) {
         switch(status) {
           case FILE_STATUS_MODIFIED:
@@ -744,62 +754,63 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
   return build_package(list_path, output_path);
 }
 
-AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDesc& buff_desc) {
+AssetID asset_group_push_buffer(const AssetGroupID& group_id, const sg_buffer_desc& buff_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
 
   // Create and push the buffer
 
-  GfxBuffer* buffer = gfx_buffer_create(renderer_get_context()); 
+  sg_buffer buffer = sg_make_buffer(buff_desc); 
 
   AssetID id;
   PUSH_ASSET(group, buffers, buffer, ASSET_TYPE_BUFFER, id);
 
-  // Load the buffer's data
-  gfx_buffer_load(buffer, buff_desc);
-
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed buffer:", group.name.c_str());
-  FREYA_LOG_DEBUG("     Size = %zu", buff_desc.size);
-  FREYA_LOG_DEBUG("     Type = %s", buffer_type_str(buff_desc.type));
+  FREYA_LOG_DEBUG("     Size = %zu", buff_desc.data.size);
 
   // Done!
   return id;
 }
 
-AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureDesc& tex_desc) {
+AssetID asset_group_push_texture(const AssetGroupID& group_id, 
+                                 const sg_image_desc& image_desc, 
+                                 const sg_sampler_desc& sampler_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
   
-  // Create and push the texture
+  // Create the texture
   
-  GfxTexture* texture = gfx_texture_create(renderer_get_context(), tex_desc.type);
+  Texture texture;
+  texture.image = sg_make_image(image_desc);
+
+  sg_view_desc view_desc  = {};
+  view_desc.texture.image = texture.image; 
+
+  texture.view    = sg_make_view(view_desc);
+  texture.sampler = sg_make_sampler(sampler_desc); 
+
+  // Push the texture
 
   AssetID id; 
   PUSH_ASSET(group, textures, texture, ASSET_TYPE_TEXTURE, id);
  
-  // Load the texture's data
-  gfx_texture_load(texture, tex_desc);
- 
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed texture:", group.name.c_str());
-  FREYA_LOG_DEBUG("     Size = %i X %i", tex_desc.width, tex_desc.height);
-  FREYA_LOG_DEBUG("     Type = %s", texture_type_str(tex_desc.type));
+  FREYA_LOG_DEBUG("     Size = %i X %i", image_desc.width, image_desc.height);
  
   // Done!
   return id;
 }
 
-AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc) {
+AssetID asset_group_push_shader(const AssetGroupID& group_id, const sg_shader_desc& shader_desc) {
   GROUP_CHECK(group_id);
   AssetGroup& group = s_manager.groups[group_id.get_id()];
   
   // Create and load the shader
-  
-  GfxShader* shader = gfx_shader_create(renderer_get_context());
-  gfx_shader_load(shader, shader_desc); 
+  sg_shader shader = sg_make_shader(shader_desc);
 
   // New shader ID
 
@@ -810,62 +821,15 @@ AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDes
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed shader:", group.name.c_str());
   if(!shader_desc.compute_source.empty()) {
-    FREYA_LOG_DEBUG("     Compute source length = %zu", shader_desc.compute_source.size());
+    FREYA_LOG_DEBUG("     Compute source length = %zu", strlen(shader_desc.compute_func.source));
   }
   else {
-    FREYA_LOG_DEBUG("     Vertex source length = %zu", shader_desc.vertex_source.size());
-    FREYA_LOG_DEBUG("     Pixel source length  = %zu", shader_desc.pixel_source.size());
+    FREYA_LOG_DEBUG("     Vertex source length = %zu", strlen(shader_desc.vertex_func.source));
+    FREYA_LOG_DEBUG("     Pixel source length  = %zu", strlen(shader_desc.fragment_func.source));
   }
 
   // Done!
   return id;
-}
-
-AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const AssetID& shader_id) {
-  GROUP_CHECK(group_id);
-  AssetGroup& group = s_manager.groups[group_id.get_id()];
-  
-  // Allocate the context
-  
-  ShaderContext* ctx = new ShaderContext{};
-  ctx->shader        = asset_group_get_shader(shader_id);
-
-  // Create the context
-  
-  AssetID id; 
-  PUSH_ASSET(group, shader_contexts, ctx, ASSET_TYPE_SHADER_CONTEXT, id);
-
-  // Query the shader for uniform information
-
-  GfxShaderQueryDesc query_desc = {};
-  gfx_shader_query(ctx->shader, &query_desc);
-
-  for(sizei i = 0; i < query_desc.uniforms_count; i++) {
-    GfxUniformDesc* uniform = &query_desc.active_uniforms[i];
-    if(uniform->location == -1) { // Invalid uniform. Why??
-      continue;
-    }
-    
-    ctx->uniforms_cache[uniform->name] = uniform->location;
-  }
-
-  // Some useful debug info
-  
-  FREYA_LOG_DEBUG("Group \'%s\' pushed shader context:", group.name.c_str());
-  FREYA_LOG_DEBUG("     Attributes count      = %i", query_desc.attributes_count);
-  FREYA_LOG_DEBUG("     Uniforms count        = %i", query_desc.uniforms_count);
-  FREYA_LOG_DEBUG("     Uniform buffers count = %i", query_desc.uniform_blocks_count);
-  
-  // Done!
-  return id;
-}
-
-AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc) {
-  // Create a new shader
-  AssetID shader_id = asset_group_push_shader(group_id, shader_desc);
-
-  // Done!
-  return asset_group_push_shader_context(group_id, shader_id);
 }
 
 AssetID asset_group_push_font(const AssetGroupID& group_id, const DynamicArray<u8>& font_data, const String& name) {
@@ -1032,7 +996,7 @@ bool asset_group_load_package(const AssetGroupID& group_id, const FilePath& frpk
         read_textures(file, group);
         break;
       case ASSET_TYPE_SHADER:
-        read_shaders(file, group);
+        // @TODO (Assets/shaders): Again, do we need this???
         break;
       case ASSET_TYPE_FONT:
         read_fonts(file, group);
@@ -1080,24 +1044,19 @@ const AssetID& asset_group_get_id(const AssetGroupID& group_id, const String& as
   return group.named_ids[asset_name];
 }
 
-GfxBuffer* asset_group_get_buffer(const AssetID& id) {
+sg_buffer asset_group_get_buffer(const AssetID& id) {
   AssetGroup& group = s_manager.groups[id.get_group_id()];
   return get_asset(id, group.buffers, ASSET_TYPE_BUFFER);
 }
 
-GfxTexture* asset_group_get_texture(const AssetID& id) {
+Texture& asset_group_get_texture(const AssetID& id) {
   AssetGroup& group = s_manager.groups[id.get_group_id()];
   return get_asset(id, group.textures, ASSET_TYPE_TEXTURE);
 }
 
-GfxShader* asset_group_get_shader(const AssetID& id) {
+sg_shader asset_group_get_shader(const AssetID& id) {
   AssetGroup& group = s_manager.groups[id.get_group_id()];
   return get_asset(id, group.shaders, ASSET_TYPE_SHADER);
-}
-
-ShaderContext* asset_group_get_shader_context(const AssetID& id) {
-  AssetGroup& group = s_manager.groups[id.get_group_id()];
-  return get_asset(id, group.shader_contexts, ASSET_TYPE_SHADER_CONTEXT);
 }
 
 Font* asset_group_get_font(const AssetID& id) {

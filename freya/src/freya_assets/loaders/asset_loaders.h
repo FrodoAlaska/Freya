@@ -5,19 +5,11 @@
 /// ----------------------------------------------------------------------
 /// Texture loader functions
 
-bool texture_loader_load(const freya::FilePath& path, freya::GfxTextureDesc* tex_desc);
+bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img);
 
-void texture_loader_unload(freya::GfxTextureDesc& tex_desc);
+void texture_loader_unload(sg_image_desc& image_desc);
 
 /// Texture loader functions
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
-/// Shader loader functions
-
-bool shader_loader_load(const freya::FilePath& path, freya::GfxShaderDesc* shader_desc);
-
-/// Shader loader functions
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------

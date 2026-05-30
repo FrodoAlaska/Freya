@@ -292,41 +292,6 @@ FREYA_API const sizei file_write_bytes(File& file, const void* buff, const sizei
 /// @NOTE: This function will raise an error if `file` is not opened.
 FREYA_API void file_write_bytes(File& file, const String& str);
 
-/// Write the contents of the given `tex_desc` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const GfxTextureDesc& tex_desc);
-
-/// Write the contents of the given `shader_desc` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const GfxShaderDesc& shader_desc);
-
-/// Write the contents of the given `audio_desc` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const AudioBufferDesc& audio_desc);
-
-/// Write the contents of the given `transform` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const Transform& transform);
-
-/// Write the contents of the given `source` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const AudioSourceID& source);
-
-/// Write the contents of the given `listener_desc` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const AudioListenerDesc& listener_desc);
-
-/// Write the contents of the given `timer` into `file`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_write_bytes(File& file, const Timer& timer);
-
 /// Write the given `string` into `file` as a string representation.
 ///
 /// @NOTE: This function will raise an error if `file` is not opened.
@@ -342,40 +307,6 @@ FREYA_API const sizei file_read_bytes(File& file, void* out_buff, const sizei si
 ///
 /// @NOTE: This function will raise an error if `file` is not opened.
 FREYA_API void file_read_bytes(File& file, String* str);
-
-/// Read a `GfxTextureDesc` from `file` and save it into `out_desc`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, GfxTextureDesc* out_desc);
-
-/// Read a `GfxShaderDesc` from `file` and save it into `out_desc`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, GfxShaderDesc* out_desc);
-
-/// Read a `AudioBufferDesc` from `file` and save it into `out_desc`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, AudioBufferDesc* out_desc);
-
-/// Read a `Transform` from `file` and save it into `transform`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, Transform* transform);
-/// Read an `AudioSourceID` from `file` and save it into `source`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, AudioSourceID* source);
-
-/// Read an `AudioListenerDesc` from `file` and save it into `listener`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, AudioListenerDesc* listener);
-
-/// Read an `Timer` from `file` and save it into `timer`.
-///
-/// @NOTE: This function will raise an error if `file` is not opened.
-FREYA_API void file_read_bytes(File& file, Timer* timer);
 
 /// Read the WHOLE `file` as a `String` and save it into `str`.
 ///

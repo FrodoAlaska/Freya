@@ -50,7 +50,6 @@ set(FREYA_SOURCES
   
   # Assets/loaders
   ${FREYA_SRC_DIR}/freya_assets/loaders/texture_loader.cpp
-  ${FREYA_SRC_DIR}/freya_assets/loaders/shader_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/font_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/audio_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/ui_config_loader.cpp
@@ -58,7 +57,6 @@ set(FREYA_SOURCES
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp
-  ${FREYA_SRC_DIR}/renderer/shader_context.cpp
   ${FREYA_SRC_DIR}/renderer/animation.cpp
   ${FREYA_SRC_DIR}/renderer/animator.cpp
   ${FREYA_SRC_DIR}/renderer/particles.cpp
@@ -143,6 +141,9 @@ set(LIBS_SOURCES
   # dr_libs
   ${FREYA_LIBS_DIR}/dr_libs/dr_mp3.cpp
   ${FREYA_LIBS_DIR}/dr_libs/dr_wav.cpp
+
+  # sokol
+  ${FREYA_LIBS_DIR}/sokol/sokol.c
 )
 ############################################################
 

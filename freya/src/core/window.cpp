@@ -426,8 +426,10 @@ void window_poll_events(Window* window) {
 }
 
 void window_swap_buffers(Window* window, const i32 interval) {
+#if FREYA_PLATFORM_WEB != 1
   glfwSwapInterval(interval);
   glfwSwapBuffers(window->handle);
+#endif
 }
 
 const bool window_is_open(const Window* window) {

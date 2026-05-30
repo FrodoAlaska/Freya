@@ -29,29 +29,6 @@ enum ParticleDistributionType {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Color
-using Color = Vec4;
-/// Color
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Color consts
-
-/// Predefined colors for ease-of-use.
-
-const Color COLOR_WHITE  = Color(1.0f);
-const Color COLOR_BLACK  = Color(0.0f, 0.0f, 0.0f, 1.0f);
-const Color COLOR_RED    = Color(1.0f, 0.0f, 0.0f, 1.0f);
-const Color COLOR_GREEN  = Color(0.0f, 1.0f, 0.0f, 1.0f);
-const Color COLOR_BLUE   = Color(0.0f, 0.0f, 1.0f, 1.0f);
-const Color COLOR_YELLOW = Color(1.0f, 1.0f, 0.0f, 1.0f);
-const Color COLOR_CYAN   = Color(0.0f, 1.0f, 1.0f, 1.0f);
-const Color COLOR_PURPLE = Color(1.0f, 0.0f, 1.0f, 1.0f);
-
-/// Color consts
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// Function signatures
 
 struct PostProcessPass;
@@ -75,8 +52,6 @@ struct PostProcessPass {
 
   GfxFramebufferDesc frame_desc;
   GfxFramebuffer* frame;
-
-  ShaderContext* shader_context;
 
   Array<GfxTexture*, RENDER_TARGETS_MAX> outputs;
   sizei outputs_count = 0;
@@ -149,39 +124,6 @@ struct Camera {
   f32 exposure = 1.0f; 
 };
 /// Camera 
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// ShaderContext
-struct ShaderContext {
-  /// The underlying shader pointer of the context.
-  GfxShader* shader = nullptr; 
-
-  /// A cache of uniforms where the key is the name of 
-  /// the uniform in the shader and the value is the 
-  /// uniform's location in the shader.
-  HashMap<String, i32> uniforms_cache;
-};
-/// ShaderContext
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Font
-struct Font {
-  /// @NOTE:
-  ///
-  /// The library we currently use for UI (RmlUi) uses FreeType to load 
-  /// the fonts and deal with all that logic. All it needs from us, however, 
-  /// is the byte data loaded from a truetype font. And `font_data` is just that. 
-  ///
-  /// This is clearly not a good approach. But, in the future, we will make RmlUi 
-  /// rely on _our_ font data. For now, though, this is how it works.
-  ///
-
-  String name;
-  DynamicArray<u8> font_data;
-};
-/// Font
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -348,28 +290,6 @@ struct ParticleEmitter {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Color functions
-
-/// Return a new RGB `Color` from the given `hex_color`. 
-///
-/// @NOTE: The given hex color should be arranged as follows: `0xRRGGBBAA`.
-FREYA_API Color color_hex_to_rgb(const u32 hex_color);
-
-/// Return a new HEX value from the given `rgb` color.
-///
-/// @NOTE: The returned hex color will be arranged as follows: `0xRRGGBBAA`.
-FREYA_API u32 color_rgb_to_hex(const Color& rgb);
-
-/// Lerp the given `color` towards `other` by `delta`.
-FREYA_API void color_lerp(Color& color, const Color& other, const f32 delta);
-
-/// Use smoothstep to interpolate the given `color` towards `other` by `amount`.
-FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount);
-
-/// Color functions
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// PostProcess functions
 
 /// Allocate and initialize a `PostProcessPass`, using the information given from `desc`.
@@ -435,41 +355,6 @@ FREYA_API Vec2 camera_screen_to_world_space(const Camera& cam, const Vec2& posit
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// ShaderContext functions
-
-/// Cache the location of the uniform with the name `uniform_name` to the given `ctx`.
-/// 
-/// @NOTE: If the uniform's name is not found within the context, the function will throw a warning. 
-FREYA_API void shader_context_cache_uniform(ShaderContext* ctx, const i8* uniform_name);
-
-/// Set a uniform of type `i32` with the name `uniform_name` in `ctx` to the given `value`. 
-FREYA_API void shader_context_set_uniform(ShaderContext* ctx, const String& uniform_name, const i32 value);
-
-/// Set a uniform of type `f32` with the name `uniform_name` in `ctx` to the given `value`. 
-FREYA_API void shader_context_set_uniform(ShaderContext* ctx, const String& uniform_name, const f32 value);
-
-/// Set a uniform of type `Vec2` with the name `uniform_name` in `ctx` to the given `value`. 
-FREYA_API void shader_context_set_uniform(ShaderContext* ctx, const String& uniform_name, const Vec2& value);
-
-/// Set a uniform of type `Vec3` with the name `uniform_name` in `ctx` to the given `value`. 
-FREYA_API void shader_context_set_uniform(ShaderContext* ctx, const String& uniform_name, const Vec3& value);
-
-/// Set a uniform of type `Vec4` with the name `uniform_name` in `ctx` to the given `value`. 
-FREYA_API void shader_context_set_uniform(ShaderContext* ctx, const String& uniform_name, const Vec4& value);
-
-/// Set a uniform of type `Mat4` with the name `uniform_name` in `ctx` to the given `value`. 
-FREYA_API void shader_context_set_uniform(ShaderContext* ctx, const String& uniform_name, const Mat4& value);
-
-/// Set an array uniforms of type `i32` with the name `uniform_name` in `ctx` to the given `values` with `count` elements. 
-FREYA_API void shader_context_set_uniform_array(ShaderContext* ctx, const String& uniform_name, const i32* values, const sizei count);
-
-/// Set an array uniforms of type `f32` with the name `uniform_name` in `ctx` to the given `values` with `count` elements. 
-FREYA_API void shader_context_set_uniform_array(ShaderContext* ctx, const String& uniform_name, const f32* values, const sizei count);
-
-/// ShaderContext functions
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// Animation functions
 
 /// Initialize an animation `out_anim` using the information found in `desc`.
@@ -529,7 +414,6 @@ FREYA_API void particle_emitter_reset(ParticleEmitter& emitter, const Vec2& posi
 
 /// ParticleEmitter functions
 ///---------------------------------------------------------------------------------------------------------------------
-
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Renderer functions

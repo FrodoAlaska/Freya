@@ -19,6 +19,8 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 
 - [GLFW](https://github.com/glfw/glfw)
 - [GLM](https://github.com/g-truc/glm)
+- [sokol-gfx](https://github.com/floooh/sokol)
+- [sokol-gp](https://github.com/edubart/sokol_gp)
 - [ImGui](https://github.com/ocornut/imgui)
 - [OpenAL-Soft](https://github.com/kcat/openal-soft)
 - [Box2D](https://github.com/erincatto/box2d)

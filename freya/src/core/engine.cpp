@@ -54,7 +54,7 @@ static void start_shutdown() {
   audio_device_shutdown();
   asset_manager_shutdown();
   
-  ui_renderer_shutdown();
+  // ui_renderer_shutdown();
   renderer_shutdown();
 
   window_close(s_engine.window);
@@ -114,7 +114,7 @@ static bool desktop_update_and_render(f32 dt) {
   clock_update();
 
   // Present
-  gfx_context_present(s_engine.gfx_context); 
+  window_swap_buffers(s_engine.window, 1); // @TODO (Window): Make the VSYNC more configurable
 
   // Done!
   
@@ -185,7 +185,7 @@ i32 engine_run(const AppDesc& desc) {
   renderer_init(s_engine.window);
   s_engine.gfx_context = renderer_get_context();
   
-  ui_renderer_init(s_engine.gfx_context);
+  // ui_renderer_init(s_engine.gfx_context);
 
   // Audio init
   audio_device_init(nullptr);

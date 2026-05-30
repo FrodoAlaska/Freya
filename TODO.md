@@ -13,8 +13,22 @@
 
 ### Major Systems
 
+- Graphics 
+    - Add the new asset types to the renderer with all the new `renderer_queue_*` functions 
+    - Test with a simple quad and textured quad
+    - Propogate the changes to other systems 
+        - Particles 
+        - Animations 
+        - Physics debug draw 
+        - ECS
+        - Post-process 
+    - Add a useful logger func to `sokol_gfx`
+    - Change the UI renderer as well
+
 - Web build
     - Yep. We need to either overhaul the graphics backend completely or just switch to SOKOL. It's a mess, dude...
+
+- Update the README after finishing the graphics backend refactor and succefully running a working web build
 
 - Audio
     - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.

@@ -7,19 +7,6 @@
 namespace freya { // Start of freya
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Forward declarations
-
-struct Font;
-struct ShaderContext;
-struct UIConfig;
-
-template<typename TAsset, typename TAssetDesc>
-struct AssetCollection;
-
-/// Forward declarations
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// Assets consts
 
 /// The currently valid version of any `.frpkg` file
@@ -45,7 +32,6 @@ enum AssetType {
   ASSET_TYPE_BUFFER = 0, 
   ASSET_TYPE_TEXTURE, 
   ASSET_TYPE_SHADER,
-  ASSET_TYPE_SHADER_CONTEXT,
   ASSET_TYPE_FONT,
   ASSET_TYPE_AUDIO_BUFFER,
   ASSET_TYPE_UI_CONFIG,
@@ -164,12 +150,11 @@ struct AssetGroup {
 
   AssetGroupID id;
 
-  DynamicArray<GfxBuffer*> buffers;
-  DynamicArray<GfxTexture*> textures;
-  DynamicArray<GfxShader*> shaders;
+  DynamicArray<sg_buffer> buffers;
+  DynamicArray<Texture> textures;
+  DynamicArray<sg_shader> shaders;
   DynamicArray<AudioBufferID> audio_buffers;
   
-  DynamicArray<ShaderContext*> shader_contexts;
   DynamicArray<Font*> fonts;
   DynamicArray<UIConfig> ui_configs;
   DynamicArray<lua_State*> lua_states;
@@ -232,25 +217,19 @@ FREYA_API void asset_group_reload(const AssetGroupID& group_id);
 /// and then write them on disk. 
 FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
 
-/// Push a new `GfxBuffer` into `group_id`, using all the information found in `buff_desc`,
+/// Push a new `sg_buffer` into `group_id`, using all the information found in `buff_desc`,
 /// returning a valid `AssetID` to be used later.
-FREYA_API AssetID asset_group_push_buffer(const AssetGroupID& group_id, const GfxBufferDesc& buff_desc);
+FREYA_API AssetID asset_group_push_buffer(const AssetGroupID& group_id, const sg_buffer_desc& buff_desc);
 
-/// Push a new `GfxTexture` into `group_id`, using all the information found in `tex_desc`,
+/// Push a new `Texture` into `group_id`, using all the information found in `image_desc`, and `sampler_desc`,
 /// returning a valid `AssetID` to be used later.
-FREYA_API AssetID asset_group_push_texture(const AssetGroupID& group_id, const GfxTextureDesc& tex_desc);
+FREYA_API AssetID asset_group_push_texture(const AssetGroupID& group_id, 
+                                           const sg_image_desc& image_desc, 
+                                           const sg_sampler_desc& sampler_desc);
 
-/// Push a new `GfxShader` into `group_id`, using all the information found in `shader_desc`,
+/// Push a new `sg_shader` into `group_id`, using all the information found in `shader_desc`,
 /// returning a valid `AssetID` to be used later.
-FREYA_API AssetID asset_group_push_shader(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
-
-/// Push a new `ShaderContext` into `group_id`, using the previously-created shader `shader_id`,
-/// returning a valid `AssetID` to be used later.
-FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const AssetID& shader_id);
-
-/// Push a new `ShaderContext` into `group_id`, creating a new `GfxShader` with the information 
-/// found in `shader_desc`, returning a valid `AssetID` to be used later.
-FREYA_API AssetID asset_group_push_shader_context(const AssetGroupID& group_id, const GfxShaderDesc& shader_desc);
+FREYA_API AssetID asset_group_push_shader(const AssetGroupID& group_id, const sg_shader_desc& shader_desc);
 
 /// Push a new `Font` into `group_id`, using `font_data` and `name` (name of the font),
 /// returning a valid `AssetID` to be used later.
@@ -279,37 +258,29 @@ FREYA_API bool asset_group_load_package(const AssetGroupID& group_id, const File
 /// exist in `group_id`. The name of the asset is derived from its file stem (i.e `texture.png` -> `texture`).
 FREYA_API const AssetID& asset_group_get_id(const AssetGroupID& group_id, const String& asset_name);
 
-/// Retrieve a `GfxBuffer`, using `id`.
+/// Retrieve a `sg_buffer`, using `id`.
 ///
 /// @NOTE: This function will assert if the given `id` is either: 
 ///   1 - is invalid and was never created before, 
 ///   2 - the internal group ID is invalid,
 ///   3 - or the internal type does not match this asset.
-FREYA_API GfxBuffer* asset_group_get_buffer(const AssetID& id);
+FREYA_API sg_buffer asset_group_get_buffer(const AssetID& id);
 
-/// Retrieve a `GfxTexture`, using `id`.
+/// Retrieve a `Texture`, using `id`.
 ///
 /// @NOTE: This function will assert if the given `id` is either: 
 ///   1 - is invalid and was never created before, 
 ///   2 - the internal group ID is invalid,
 ///   3 - or the internal type does not match this asset.
-FREYA_API GfxTexture* asset_group_get_texture(const AssetID& id);
+FREYA_API Texture& asset_group_get_texture(const AssetID& id);
 
-/// Retrieve a `GfxShader`, using `id`.
+/// Retrieve a `sg_shader`, using `id`.
 ///
 /// @NOTE: This function will assert if the given `id` is either: 
 ///   1 - is invalid and was never created before, 
 ///   2 - the internal group ID is invalid,
 ///   3 - or the internal type does not match this asset.
-FREYA_API GfxShader* asset_group_get_shader(const AssetID& id);
-
-/// Retrieve a `ShaderContext`, using `id`.
-///
-/// @NOTE: This function will assert if the given `id` is either: 
-///   1 - is invalid and was never created before, 
-///   2 - the internal group ID is invalid,
-///   3 - or the internal type does not match this asset.
-FREYA_API ShaderContext* asset_group_get_shader_context(const AssetID& id);
+FREYA_API sg_shader asset_group_get_shader(const AssetID& id);
 
 /// Retrieve a `Font`, using `id`.
 ///

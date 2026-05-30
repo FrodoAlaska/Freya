@@ -82,8 +82,8 @@ void app_render() {
 
   // UI render
   
-  freya::ui_renderer_begin();
-  freya::ui_renderer_end();
+  // freya::ui_renderer_begin();
+  // freya::ui_renderer_end();
 }
 
 void app_render_gui() {
