@@ -322,13 +322,6 @@ void gui_debug_info() {
       if(ImGui::Checkbox("Paused", &paused)) {
         physics_world_toggle_paused();
       }
-
-      // Debug draw 
-    
-      bool debug = physics_world_is_debug();
-      if(ImGui::Checkbox("Debug draw", &debug)) {
-        physics_world_toggle_debug();
-      }
       
       // Debug color 
     

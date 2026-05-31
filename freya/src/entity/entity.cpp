@@ -120,7 +120,7 @@ void entity_world_render(const EntityWorld& world) {
 
       // Render a texture (if it's a valid)
 
-      if(sprite.texture.size.x == -1) {
+      if(sprite.texture.size.x != -1) {
         renderer_queue_texture(sprite.texture, transform, sprite.color);
         continue;
       }

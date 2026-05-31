@@ -469,6 +469,11 @@ FREYA_API void renderer_queue_point(const Vec2& position, f32 size, const Color&
 /// Queue a three-point triangle with points `p1`, `p2`, and `p3` with a `color`.
 FREYA_API void renderer_queue_triangle(const Vec2& p1, const Vec2& p2, const Vec2& p3, const Color& color);
 
+/// Queue an array of triangle strips with `vertices` at `transform` tinted with `color`.
+FREYA_API void renderer_queue_triangles_strip(const Transform& transform, 
+                                              const DynamicArray<Vec2>& vertices, 
+                                              const Color& color);
+
 /// Queue an animation using the given `animation`, transformed with `transform` with a `tint`.
 ///
 /// @NOTE: By default, `tint` is set to `Color(1.0f)`.

@@ -125,6 +125,7 @@ void renderer_begin(Camera& camera) {
 
   sgp_begin(size.x, size.y);
   sgp_project(0.0f, (f32)camera.view_bounds.x, 0.0f, (f32)camera.view_bounds.y);
+  sgp_set_blend_mode(SGP_BLENDMODE_BLEND);
 
   // Pusing the camera transformation
 
@@ -156,8 +157,10 @@ void renderer_begin(Camera& camera) {
 void renderer_end() {
   FREYA_PROFILE_FUNCTION();
 
-  // Should be the camera's transform
+  // Reset the painter's state
+  
   sgp_pop_transform();
+  sgp_reset_blend_mode();
 
   // End the painter 
 
@@ -263,6 +266,27 @@ void renderer_queue_triangle(const Vec2& p1, const Vec2& p2, const Vec2& p3, con
   sgp_draw_filled_triangle(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
 }
 
+void renderer_queue_triangles_strip(const Transform& transform, const DynamicArray<Vec2>& vertices, const Color& color) {
+  sgp_set_color(color.r, color.g, color.b, color.a);
+
+  sgp_push_transform();
+
+  sgp_translate(transform.position.x, transform.position.y);
+  sgp_rotate(transform.rotation);
+  sgp_scale(transform.scale.x, transform.scale.y);
+
+  // @TEMP (Renderer)
+
+  DynamicArray<sgp_point> sgp_points(vertices.size());
+  for(sizei i = 0; i < sgp_points.size(); i++) {
+    sgp_points[i] = sgp_point{vertices[i].x, vertices[i].y};
+  }
+
+  sgp_draw_filled_triangles_strip(sgp_points.data(), vertices.size());
+
+  sgp_pop_transform();
+}
+
 void renderer_queue_animation(const Animation& anim, const Transform& transform, const Color& tint) {
   Rect2D dest = {
     .size     = anim.frame_size * transform.scale,
@@ -277,7 +301,7 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
   }
 
   for(sizei i = 0; i < emitter.particles_count; i++) {
-    if(emitter.texture.size.x == -1) {
+    if(emitter.texture.size.x != -1) {
       renderer_queue_texture(emitter.texture, emitter.transforms[i], emitter.color);
       continue;
     }

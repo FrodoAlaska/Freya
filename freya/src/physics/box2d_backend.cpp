@@ -25,7 +25,6 @@ struct PhysicsWorld {
   b2DebugDraw draw_def;
 
   bool is_paused = false;
-  bool is_debug  = false;
 
   f32 timestep      = PHYSICS_FIXED_DELTA_TIME;
   Color debug_color = Color(1.0f, 0.0f, 1.0f, 0.3f);
@@ -122,49 +121,50 @@ static f32 on_cast_hit(b2ShapeId shape, b2Vec2 point, b2Vec2 b2normal, f32 fract
     result = hit_func(cast_result);
   }
 
+  // Done!
   return result;
 }
 
 static void b2draw_circle(b2Transform b2transform, f32 radius, b2HexColor b2color, void* context) {
-  // @TODO (Box2D/debug draw)
-  // Transform transform = {
-  //   .position = b2vec_to_vec(b2transform.p),
-  //   .scale    = Vec2(radius) * 75.0f,
-  //   .rotation = b2Rot_GetAngle(b2transform.q),
-  // };
-  // renderer_queue_debug_polygon(transform, 12, s_world.debug_color);
+  // @TODO (Box2D/Draw)
 }
 
-static void b2draw_polygon(b2Transform b2transform, const b2Vec2* vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
-  // @TODO (Box2D/debug draw)
-  //  if(vertex_count != 4) { // Not a perfect quad
-  //    Vec2 size = Vec2(radius) * 75.0f;
-  //
-  //    // Queue the polygon
-  //
-  //    Transform transform = {
-  //      .position = b2vec_to_vec(b2transform.p),
-  //      .scale    = size,
-  //      .rotation = b2Rot_GetAngle(b2transform.q) + FREYA_TO_RADIANS(45.0f), 
-  //    };
-  //    renderer_queue_debug_polygon(transform, vertex_count, s_world.debug_color);
-  //
-  //    return;
-  //  }
-  // 
-  //  // Queue a perfect quad
-  //
-  //  Vec2 max = b2vec_to_vec(vertices[0]);
-  //  for(i32 i = 0; i < vertex_count; i++) {
-  //    max = vec2_max(max, b2vec_to_vec(vertices[i]));
-  //  }
-  //  
-  //  Transform transform = {
-  //    .position = b2vec_to_vec(b2transform.p),
-  //    .scale    = (max * 2.0f),
-  //    .rotation = b2Rot_GetAngle(b2transform.q), 
-  //  };
-  //  renderer_queue_quad(transform, s_world.debug_color);
+static void b2draw_polygon(b2Transform b2transform, const b2Vec2* b2vertices, i32 vertex_count, f32 radius, b2HexColor b2color, void* context) {
+  // Setting up the state for rendering
+
+  DynamicArray<Vec2> vertices(vertex_count);
+  
+  Vec2 min = Vec2(FLOAT_MAX);
+  Vec2 max = Vec2(FLOAT_MIN);
+
+  for(sizei i = 0; i < vertices.size(); i++) {
+    vertices[i] = (b2vec_to_vec(b2vertices[i]) * 2.0f); // It's usually half the size, so we scale it
+     
+    min = vec2_min(vertices[i], min);
+    max = vec2_max(vertices[i], max);
+  }
+
+  // Assume that this is a quad with 4 vertices
+
+  if(vertex_count == 4) { 
+    Transform transform = {
+      .position = b2vec_to_vec(b2transform.p),
+      .scale    = max,
+      .rotation = b2Rot_GetAngle(b2transform.q),
+    };
+    renderer_queue_quad(transform, s_world.debug_color);
+
+    return;
+  }
+
+  // Other polygon
+
+  Transform transform = {
+    .position = b2vec_to_vec(b2transform.p),
+    .scale    = (radius > 0.0f) ? Vec2(radius * 100.0f) : Vec2(1.0f),
+    .rotation = b2Rot_GetAngle(b2transform.q),
+  };
+  renderer_queue_triangles_strip(transform, vertices, s_world.debug_color);
 }
 
 static void b2draw_point(b2Vec2 p, float size, b2HexColor b2color, void* context) {
@@ -214,12 +214,6 @@ void physics_world_shutdown() {
 }
 
 void physics_world_step(const i32 sub_steps) {
-  // Draw the debug mode (if enabled)
-
-  if(s_world.is_debug) {
-    b2World_Draw(s_world.id, &s_world.draw_def);
-  }
-  
   // Paused the world!
 
   if(s_world.is_paused) {
@@ -471,16 +465,12 @@ void physics_world_toggle_paused() {
   s_world.is_paused = !s_world.is_paused;
 }
 
-void physics_world_toggle_debug() {
-  s_world.is_debug = !s_world.is_debug;
+void physics_world_draw_debug() {
+  b2World_Draw(s_world.id, &s_world.draw_def);
 }
 
 const bool physics_world_is_paused() {
   return s_world.is_paused;
-}
-
-const bool physics_world_is_debug() {
-  return s_world.is_debug;
 }
 
 /// Physics world functions

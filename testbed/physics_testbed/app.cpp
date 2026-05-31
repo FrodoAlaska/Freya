@@ -11,6 +11,7 @@ struct App {
   freya::AssetGroupID group_id;
 
   freya::EntityWorld ecs;
+  freya::Entity entt1;
 };
 
 static App s_app;
@@ -29,18 +30,34 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // Editor init
   freya::gui_init(window);
+  
+  // Physics world init
+  freya::physics_world_set_gravity(freya::Vec2(0.0f));
 
   // Camera init
   
   freya::CameraDesc cam_desc = {
-    .position = freya::Vec2(0.0f),
-    .zoom     = 1.0f,
+    .position    = freya::Vec2(0.0f),
+    .view_bounds = freya::window_get_size(s_app.window), 
+    .zoom        = 1.0f,
   };
   freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
   s_app.group_id = freya::asset_group_create("app_assets");
-  
+ 
+  // Entity init
+
+  s_app.entt1 = freya::entity_create(s_app.ecs, freya::Vec2(100.0f), freya::Vec2(32.0f));
+  freya::entity_add_sprite(s_app.ecs, s_app.entt1, freya::AssetID{});
+
+  freya::PhysicsBodyDesc body_desc = {
+    .type = freya::PHYSICS_BODY_DYNAMIC,
+  };
+
+  freya::DynamicBodyComponent& body = freya::entity_add_dynamic_body(s_app.ecs, s_app.entt1, body_desc);
+  freya::collider_create(body.body, freya::ColliderDesc{}, freya::Vec2(0.0f), 32.0f);
+
   // Done!
   return true;
 }
@@ -58,6 +75,12 @@ void app_update(freya::f32 dt) {
     freya::event_dispatch(freya::Event{.type = freya::EVENT_APP_QUIT});
     return;
   }
+  
+  // Enable/disable debug mode
+
+  if(freya::input_key_pressed(freya::KEY_F1)) {
+    freya::gui_toggle_active();
+  }
 
   // Update the ECS 
   freya::entity_world_update(s_app.ecs, dt);
@@ -70,16 +93,26 @@ void app_render() {
   // 2D render
 
   freya::renderer_begin(s_app.camera);
+
   freya::entity_world_render(s_app.ecs);
+  
+  if(freya::gui_is_active()) {
+    freya::physics_world_draw_debug();
+  }
+
   freya::renderer_end();
 
   // UI render
   
-  freya::ui_renderer_begin();
-  freya::ui_renderer_end();
+  // freya::ui_renderer_begin();
+  // freya::ui_renderer_end();
 }
 
 void app_render_gui() {
+  if(!freya::gui_is_active()) {
+    return;
+  }
+
   freya::gui_begin(); 
  
   // Debug
