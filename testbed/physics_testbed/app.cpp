@@ -44,12 +44,16 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
+  
   s_app.group_id = freya::asset_group_create("app_assets");
- 
-  // Entity init
 
-  s_app.entt1 = freya::entity_create(s_app.ecs, freya::Vec2(100.0f), freya::Vec2(32.0f));
-  freya::entity_add_sprite(s_app.ecs, s_app.entt1, freya::AssetID{});
+  freya::asset_group_build(s_app.group_id, "../../assets/assets_list.lua", "assets.frpkg");
+  freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
+ 
+  // Entity1 init
+
+  s_app.entt1 = freya::entity_create(s_app.ecs, freya::Vec2(100.0f), freya::Vec2(128.0f));
+  freya::entity_add_sprite(s_app.ecs, s_app.entt1, freya::asset_group_get_id(s_app.group_id, "frodo"));
 
   freya::PhysicsBodyDesc body_desc = {
     .type = freya::PHYSICS_BODY_DYNAMIC,
@@ -58,6 +62,11 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::DynamicBodyComponent& body = freya::entity_add_dynamic_body(s_app.ecs, s_app.entt1, body_desc);
   freya::collider_create(body.body, freya::ColliderDesc{}, freya::Vec2(0.0f), 32.0f);
 
+  // Entity2 init
+
+  freya::Entity entt2 = freya::entity_create(s_app.ecs, freya::Vec2(200.0f), freya::Vec2(64.0f));
+  freya::entity_add_sprite(s_app.ecs, entt2, freya::asset_group_get_id(s_app.group_id, "grass"));
+  
   // Done!
   return true;
 }
@@ -94,8 +103,11 @@ void app_render() {
 
   freya::renderer_begin(s_app.camera);
 
+  // Draw the ECS
   freya::entity_world_render(s_app.ecs);
-  
+ 
+  // Draw the physics world
+
   if(freya::gui_is_active()) {
     freya::physics_world_draw_debug();
   }

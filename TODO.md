@@ -14,12 +14,10 @@
 ### Major Systems
 
 - Graphics 
-    - Change the version of the `frpkg` 
-    - Test out textures
-    - Add a useful logger func to `sokol_gfx`
     - Propogate the changes to other systems 
         - Post-process 
         - Test
+    - Add a useful logger func to `sokol_gfx`
     - Check ImGui
     - Change the UI renderer as well
 

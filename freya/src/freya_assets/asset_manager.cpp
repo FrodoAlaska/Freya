@@ -762,6 +762,7 @@ AssetID asset_group_push_texture(const AssetGroupID& group_id,
   
   Texture texture;
 
+  texture.id    = (i32)group.textures.size();
   texture.size  = Vec2(image_desc.width, image_desc.height);
   texture.image = sg_make_image(image_desc);
 

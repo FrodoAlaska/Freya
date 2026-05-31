@@ -71,6 +71,7 @@ struct Texture {
   sg_sampler sampler;
   sg_view view;
 
+  i32 id     = -1;
   IVec2 size = IVec2(-1);
 };
 /// Texture

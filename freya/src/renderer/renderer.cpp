@@ -20,8 +20,6 @@ struct Renderer {
   
   PostProcessPass* default_pass = nullptr;
   DynamicArray<PostProcessPass*> passes;
-
-  i32 textures_count = 0;
 };
 
 static Renderer s_renderer;
@@ -116,8 +114,6 @@ void renderer_begin(Camera& camera) {
 
   // Reset the renderer's state 
 
-  s_renderer.textures_count = 0;
-
   IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
   IVec2 size       = window_get_size(s_renderer.window);
 
@@ -156,7 +152,7 @@ void renderer_begin(Camera& camera) {
 
 void renderer_end() {
   FREYA_PROFILE_FUNCTION();
-
+  
   // Reset the painter's state
   
   sgp_pop_transform();
@@ -223,7 +219,10 @@ void renderer_queue_texture(const Texture& texture,
   Vec2 dest_pos  = dest.position;
   Vec2 dest_size = dest.size; 
 
-  sgp_draw_textured_rect(s_renderer.textures_count, 
+  sgp_set_view(0, texture.view);
+  sgp_set_sampler(0, texture.sampler);
+
+  sgp_draw_textured_rect(0, 
                          {dest_pos.x, dest_pos.y, dest_size.x, dest_size.y},
                          {src_pos.x, src_pos.y, src_size.x, src_size.y}); 
 }
@@ -235,7 +234,7 @@ void renderer_queue_texture(const Texture& texture, const Transform& transform, 
   };
   
   Rect2D dest = {
-    .size     = (Vec2)(texture.size) * transform.scale,
+    .size     = transform.scale,
     .position = transform.position, 
   };
 
@@ -301,7 +300,7 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
   }
 
   for(sizei i = 0; i < emitter.particles_count; i++) {
-    if(emitter.texture.size.x != -1) {
+    if(emitter.texture.id != -1) {
       renderer_queue_texture(emitter.texture, emitter.transforms[i], emitter.color);
       continue;
     }

@@ -12,7 +12,7 @@ namespace freya { // Start of freya
 /// Assets consts
 
 /// The currently valid version of any `.frpkg` file
-const u8 FRPKG_VALID_VERSION  = 5;
+const u8 FRPKG_VALID_VERSION  = 6;
 
 /// A value to indicate an invalid asset group.
 const i32 ASSET_GROUP_INVALID = -1;
