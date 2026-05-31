@@ -16,7 +16,10 @@
 - Graphics 
     - Propogate the changes to other systems 
         - Post-process 
-        - Test
+            - Try things out with just a default post-process pass 
+            - Add another pass that is more wild 
+            - Test out everything
+            - Finalize and polish
     - Add a useful logger func to `sokol_gfx`
     - Check ImGui
     - Change the UI renderer as well
@@ -33,6 +36,7 @@
     - Dynamic 2D lighting
 
 - Misc.
+    - Test more shit with compute shaders. Particles, post-processing, and other effects
     - A more detecated LUA layer
     - Memory arenas and custom allocaters
 

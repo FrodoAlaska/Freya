@@ -13,6 +13,9 @@ namespace freya { // Start of freya
 struct Renderer {
   Window* window = nullptr;
 
+  sg_sampler default_sampler;
+  sg_buffer vertex_buffer;
+
   sg_pass pass               = {};
   sg_pass_action pass_action = {};
 
@@ -76,6 +79,28 @@ void renderer_init(Window* window) {
   
   FREYA_ASSERT_LOG(sgp_is_valid(), "Failed to initialize the graphics painter");
 
+  // Default sampler init
+
+  sg_sampler_desc sampler_desc = {};
+  s_renderer.default_sampler   = sg_make_sampler(sampler_desc);
+
+  // Vertex buffer init
+
+  f32 vertices[] = {
+    -1.0f, -1.0f, 0.0f, 0.0f,
+     1.0f, -1.0f, 1.0f, 0.0f,
+     1.0f,  1.0f, 1.0f, 1.0f,
+    
+     1.0f,  1.0f, 1.0f, 1.0f,
+    -1.0f,  1.0f, 0.0f, 1.0f,
+    -1.0f, -1.0f, 0.0f, 0.0f,
+  };
+
+  sg_buffer_desc buff_desc = {
+    .data = SG_RANGE(vertices),
+  };
+  s_renderer.vertex_buffer = sg_make_buffer(buff_desc);
+
   // Pass init
 
   s_renderer.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
@@ -138,13 +163,8 @@ void renderer_begin(Camera& camera) {
 
   // Setup the pass 
 
-  s_renderer.pass.action  = s_renderer.pass_action;
-
-  s_renderer.pass.swapchain.width  = frame_size.x;
-  s_renderer.pass.swapchain.height = frame_size.y;
-
-  s_renderer.pass.swapchain.sample_count   = window_get_samples_count(s_renderer.window);
-  s_renderer.pass.swapchain.gl.framebuffer = 0; // The default framebuffer in GL is always 0
+  s_renderer.pass.action    = s_renderer.pass_action;
+  s_renderer.pass.swapchain = renderer_get_default_swapchain();
 
   // Begin the pass
   sg_begin_pass(&s_renderer.pass);
@@ -163,16 +183,46 @@ void renderer_end() {
   sgp_flush();
   sgp_end();
 
-  // End the GFX
-
+  // End the geometry pass
   sg_end_pass();
-  sg_commit();
 
-  // @TODO: Iniate the post-processing pipeline
+  // Initiate the post-processing pipeline
 
+  PostProcessPass* current_pass = s_renderer.default_pass;
   for(auto& pass : s_renderer.passes) {
+    // Prepare the pass
+    post_process_prepare(pass);
 
+    // Use the bindings of the pass 
+
+    sg_bindings bindings = {};
+    for(u32 i = 0; i < pass->outputs_count; i++) {
+      bindings.views[i] = pass->outputs[i];
+    }
+
+    bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
+    bindings.samplers[0]       = s_renderer.default_sampler;
+
+    // Apply the bindings and the pipeline
+    
+    sg_apply_pipeline(pass->pipeline);
+    sg_apply_bindings(bindings);
+
+    // Render the screen-space post-process effect
+    sg_draw(0, 6, 1);
+
+    // Set the current pass to render at the end
+    current_pass = pass; 
+
+    // End the pass
+    sg_end_pass();
   }
+
+  // Render the final pass result to the screen 
+  // @TODO
+
+  // Done with this frame... 
+  sg_commit();
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -213,6 +263,20 @@ PostProcessPass* renderer_pop_post_process() {
 
 u32 renderer_get_post_process_count() {
   return (u32)s_renderer.passes.size();
+}
+
+sg_swapchain renderer_get_default_swapchain() {
+  sg_swapchain swapchain = {};
+
+  IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
+
+  swapchain.width  = frame_size.x;
+  swapchain.height = frame_size.y;
+
+  swapchain.sample_count   = window_get_samples_count(s_renderer.window);
+  swapchain.gl.framebuffer = 0; // The default framebuffer in GL is always 0
+
+  return swapchain;
 }
 
 void renderer_queue_texture(const Texture& texture, 

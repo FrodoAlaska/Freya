@@ -72,13 +72,13 @@ struct PostProcessPass {
   Color clear_color;
   f32 depth_clear;
 
-  sg_shader shader = {};
+  sg_pipeline pipeline = {};
 
   sg_pass_action action = {};
   sg_pass pass          = {};
 
   Array<sg_view, RENDER_TARGETS_MAX> outputs;
-  sizei outputs_count = 0;
+  u32 outputs_count = 0;
 
   PostProcessPass* previous = nullptr;
   String debug_name;
@@ -449,6 +449,9 @@ FREYA_API PostProcessPass* renderer_pop_post_process();
 
 /// Retrieve the number of created post-process passes
 FREYA_API u32 renderer_get_post_process_count();
+
+/// Retrieve a default platform-specific swapchain to give to any passes
+FREYA_API sg_swapchain renderer_get_default_swapchain();
 
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.

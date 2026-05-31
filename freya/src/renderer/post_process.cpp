@@ -28,10 +28,6 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
   pass->clear_color = desc.clear_color;
   pass->debug_name  = desc.debug_name;
 
-  if(desc.shader_id != ASSET_ID_INVALID) {
-    pass->shader = asset_group_get_shader(desc.shader_id);
-  }
-
   //
   // Pass init
   //
@@ -59,12 +55,8 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
         
         sg_view_desc view_desc = {};
 
-        view_desc.depth_stencil_attachment.image     = sg_make_image(image_desc);
-        view_desc.depth_stencil_attachment.mip_level = 0;
-        view_desc.depth_stencil_attachment.slice     = 0;
-
-        // Create the view
-        p.attachments.depth_stencil = sg_make_view(view_desc);
+        view_desc.depth_stencil_attachment.image = sg_make_image(image_desc);
+        p.attachments.depth_stencil              = sg_make_view(view_desc);
 
         // Set up the action 
 
@@ -73,7 +65,7 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
         
         p.action.stencil = {};
       } break;
-      default: {
+      default: { // Color attachments
         // Set up the image 
 
         sg_image_desc image_desc = {};
@@ -84,16 +76,16 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
         image_desc.pixel_format           = attachment; 
         image_desc.usage.color_attachment = true;
 
+        sg_image image = sg_make_image(image_desc);
+
         // Set up the view
         
         sg_view_desc view_desc = {};
 
-        view_desc.color_attachment.image     = sg_make_image(image_desc);
-        view_desc.color_attachment.mip_level = 0;
-        view_desc.color_attachment.slice     = 0;
+        view_desc.color_attachment.image = image;
+        view_desc.texture.image          = image; // Doing this to sample this image later
 
         // Create the view
-        
         p.attachments.colors[colors_count] = sg_make_view(view_desc);
 
         // Set up the action 
@@ -117,11 +109,28 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
  
   // Setup the swapchain
 
+  p.swapchain        = renderer_get_default_swapchain();
   p.swapchain.width  = pass->frame_size.x;
   p.swapchain.height = pass->frame_size.y;
 
-  p.swapchain.sample_count   = window_get_samples_count(window);
   p.swapchain.gl.framebuffer = renderer_get_post_process_count();
+
+  // 
+  // Pipeline init 
+  //
+
+  sg_pipeline_desc pipe_desc = {};
+  
+  pipe_desc.depth.compare       = SG_COMPAREFUNC_LESS_EQUAL;
+  pipe_desc.depth.write_enabled = true;
+
+  pipe_desc.shader     = asset_group_get_shader(desc.shader_id); 
+  pipe_desc.index_type = SG_INDEXTYPE_UINT16;
+
+  pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // Position
+  pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
+
+  pass->pipeline = sg_make_pipeline(pipe_desc);
 
   // Done!
   return pass;
@@ -140,6 +149,19 @@ PostProcessPass* post_process_define_vignette(Window* window, const f32 intensit
 }
 
 void post_process_prepare(PostProcessPass* pass) {
+  // Prepare the swapchain 
+
+  sg_pass& p = pass->pass;
+
+  p.swapchain.width  = pass->frame_size.x;
+  p.swapchain.height = pass->frame_size.y;
+
+  // Begin the pass
+  sg_begin_pass(&p);
+
+  // Set the viewport
+  sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
+
   // Call the prepare function
 
   if(pass->prepare_func) {
@@ -157,7 +179,6 @@ void post_process_destroy(PostProcessPass* pass) {
 
 /// PostProcess functions
 ///---------------------------------------------------------------------------------------------------------------------
-
 
 } // End of freya
 
