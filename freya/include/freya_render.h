@@ -11,10 +11,13 @@ namespace freya { // Start of freya
 /// Consts
 
 /// The maximum amount of zoom the camera can achieve.
-const f32 CAMERA_MAX_ZOOM = 180.0f;
+const f32 CAMERA_MAX_ZOOM    = 180.0f;
 
 /// The maximum amount of particles tha can be emitted per emitter.
-const sizei PARTICLES_MAX = 1024;
+const u32 PARTICLES_MAX      = 1024;
+
+/// The maximum amount of render targets a post-process pass can have. 
+const u32 RENDER_TARGETS_MAX = 8; 
 
 /// Consts
 ///---------------------------------------------------------------------------------------------------------------------
@@ -41,6 +44,25 @@ using OnPassResizeFn  = std::function<void(PostProcessPass* pass, const IVec2& n
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// PostProcessPassDesc
+struct PostProcessPassDesc {
+  OnPassPrepareFn prepare_func = nullptr;
+  OnPassResizeFn resize_func   = nullptr;
+
+  IVec2 frame_size = IVec2(-1); // Only used in non depth/depth-stencil attachments
+  f32 depth_clear  = 1.0f;      // Only used in depth/depth-stencil attachments
+
+  Color clear_color     = COLOR_WHITE;
+  AssetID shader_id     = {};
+  AssetGroupID group_id = {};
+
+  DynamicArray<sg_pixel_format> attachments;
+  String debug_name = "DEBUG";
+};
+/// PostProcessPassDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// PostProcessPass
 struct PostProcessPass {
   OnPassPrepareFn prepare_func = nullptr;
@@ -48,36 +70,20 @@ struct PostProcessPass {
 
   IVec2 frame_size;
   Color clear_color;
+  f32 depth_clear;
 
-  // GfxFramebufferDesc frame_desc;
-  // GfxFramebuffer* frame;
+  sg_shader shader = {};
 
-  Array<Texture, 8> outputs;
+  sg_pass_action action = {};
+  sg_pass pass          = {};
+
+  Array<sg_view, RENDER_TARGETS_MAX> outputs;
   sizei outputs_count = 0;
 
   PostProcessPass* previous = nullptr;
   String debug_name;
 };
 /// PostProcessPass
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// PostProcessPassDesc
-struct PostProcessPassDesc {
-  OnPassPrepareFn prepare_func = nullptr;
-  OnPassResizeFn resize_func   = nullptr;
-
-  IVec2 frame_size          = IVec2(0);
-  Color clear_color         = COLOR_WHITE;
-  AssetID shader_context_id = {};
-  AssetGroupID asset_group  = {};
-
-  u32 clear_flags;
-  DynamicArray<sg_pixel_format> attachments;
-
-  String debug_name = "DEBUG";
-};
-/// PostProcessPassDesc
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -292,7 +298,7 @@ struct ParticleEmitter {
 /// PostProcess functions
 
 /// Allocate and initialize a `PostProcessPass`, using the information given from `desc`.
-FREYA_API PostProcessPass* post_process_create(const PostProcessPassDesc& desc);
+FREYA_API PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& desc);
 
 /// Create a pre-defined blur pass, using the given `window`.
 FREYA_API PostProcessPass* post_process_define_blur(Window* window);
@@ -440,6 +446,9 @@ FREYA_API void renderer_push_post_process(PostProcessPass* pass);
 /// @NOTE: The popped pass will still be valid, but it just won't be processed 
 /// at the end of the frame anymore.
 FREYA_API PostProcessPass* renderer_pop_post_process();
+
+/// Retrieve the number of created post-process passes
+FREYA_API u32 renderer_get_post_process_count();
 
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.

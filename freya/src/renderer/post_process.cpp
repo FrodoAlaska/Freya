@@ -10,83 +10,121 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// PostProcess functions
 
-PostProcessPass* post_process_create(const PostProcessPassDesc& desc) {
+PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& desc) {
   FREYA_ASSERT_LOG(desc.attachments.size() < RENDER_TARGETS_MAX, "Cannot add more than RENDER_TARGETS_MAX attachments");
 
   //
-  // Pass init
+  // Post-process init
   //
 
   PostProcessPass* pass = new PostProcessPass{};
-  
-  pass->gfx = renderer_get_context();
 
   pass->prepare_func = desc.prepare_func;
   pass->resize_func  = desc.resize_func;
 
   pass->frame_size  = desc.frame_size;
+  pass->depth_clear = desc.depth_clear;
+
   pass->clear_color = desc.clear_color;
   pass->debug_name  = desc.debug_name;
 
-  if(desc.shader_context_id != ASSET_ID_INVALID) {
-    pass->shader_context = asset_group_get_shader_context(desc.shader_context_id);
+  if(desc.shader_id != ASSET_ID_INVALID) {
+    pass->shader = asset_group_get_shader(desc.shader_id);
   }
 
   //
-  // Pass framebuffer init
-  // 
+  // Pass init
+  //
 
   // Define the attachments of the pass
-  // @TEMP
 
-  GfxTextureDesc tex_desc = {
-    .width  = (u32)pass->frame_size.x, 
-    .height = (u32)pass->frame_size.y, 
-    .filter = GFX_TEXTURE_FILTER_MIN_MAG_NEAREST,
-  };
+  i32 colors_count = 0;
+  sg_pass& p       = pass->pass; 
 
   for(auto& attachment : desc.attachments) {
-    tex_desc.format = attachment;
+    switch(attachment) {
+      case SG_PIXELFORMAT_DEPTH:
+      case SG_PIXELFORMAT_DEPTH_STENCIL: {
+        // Set up the image 
 
-    switch (attachment) {
-      case GFX_TEXTURE_FORMAT_DEPTH16:
-      case GFX_TEXTURE_FORMAT_DEPTH24:
-      case GFX_TEXTURE_FORMAT_DEPTH32F:
-      case GFX_TEXTURE_FORMAT_DEPTH_STENCIL_24_8:
-        tex_desc.type = GFX_TEXTURE_DEPTH_TARGET;
-        break;
-      case GFX_TEXTURE_FORMAT_STENCIL8:
-        tex_desc.type = GFX_TEXTURE_STENCIL_TARGET;
-        break;
-      default:
-        tex_desc.type = GFX_TEXTURE_2D;
-        break;
-    }
-    
-    GfxTexture* texture = asset_group_get_texture(asset_group_push_texture(desc.asset_group, tex_desc));
-    switch(tex_desc.type) {
-      case GFX_TEXTURE_DEPTH_TARGET:
-        pass->frame_desc.depth_attachment = texture;
-        break;
-      case GFX_TEXTURE_STENCIL_TARGET:
-        pass->frame_desc.stencil_attachment = texture;
-        break;
-      default:
-        pass->frame_desc.color_attachments[pass->frame_desc.attachments_count] = texture;
-        pass->frame_desc.attachments_count++;
-        break;
+        sg_image_desc image_desc = {};
+        
+        image_desc.width  = pass->frame_size.x;
+        image_desc.height = pass->frame_size.y;
+
+        image_desc.pixel_format                   = attachment; 
+        image_desc.usage.depth_stencil_attachment = true;
+
+        // Set up the view
+        
+        sg_view_desc view_desc = {};
+
+        view_desc.depth_stencil_attachment.image     = sg_make_image(image_desc);
+        view_desc.depth_stencil_attachment.mip_level = 0;
+        view_desc.depth_stencil_attachment.slice     = 0;
+
+        // Create the view
+        p.attachments.depth_stencil = sg_make_view(view_desc);
+
+        // Set up the action 
+
+        p.action.depth             = {};
+        p.action.depth.clear_value = desc.depth_clear;
+        
+        p.action.stencil = {};
+      } break;
+      default: {
+        // Set up the image 
+
+        sg_image_desc image_desc = {};
+        
+        image_desc.width  = pass->frame_size.x;
+        image_desc.height = pass->frame_size.y;
+
+        image_desc.pixel_format           = attachment; 
+        image_desc.usage.color_attachment = true;
+
+        // Set up the view
+        
+        sg_view_desc view_desc = {};
+
+        view_desc.color_attachment.image     = sg_make_image(image_desc);
+        view_desc.color_attachment.mip_level = 0;
+        view_desc.color_attachment.slice     = 0;
+
+        // Create the view
+        
+        p.attachments.colors[colors_count] = sg_make_view(view_desc);
+
+        // Set up the action 
+
+        p.action.colors[colors_count]             = {};
+        p.action.colors[colors_count].clear_value = {
+          pass->clear_color.r, 
+          pass->clear_color.g, 
+          pass->clear_color.b, 
+          pass->clear_color.a
+        };
+
+        // More colors!
+        colors_count++;
+      } break;
     }
   }
-  
-  pass->frame_desc.clear_flags = desc.clear_flags;
-  pass->frame                  = gfx_framebuffer_create(pass->gfx, pass->frame_desc);
+
+  // Apply the action 
+  p.action = pass->action;
+ 
+  // Setup the swapchain
+
+  p.swapchain.width  = pass->frame_size.x;
+  p.swapchain.height = pass->frame_size.y;
+
+  p.swapchain.sample_count   = window_get_samples_count(window);
+  p.swapchain.gl.framebuffer = renderer_get_post_process_count();
 
   // Done!
   return pass;
-}
-
-PostProcessPass* post_process_define_hdr(Window* window, Camera* camera) {
-  return hdr_pass_create(window, camera); 
 }
 
 PostProcessPass* post_process_define_blur(Window* window) {
@@ -102,14 +140,6 @@ PostProcessPass* post_process_define_vignette(Window* window, const f32 intensit
 }
 
 void post_process_prepare(PostProcessPass* pass) {
-  // Prepare the context
-
-  gfx_context_set_target(pass->gfx, pass->frame);
-  gfx_context_set_viewport(pass->gfx, 0, 0, pass->frame_size.x, pass->frame_size.y);
-
-  Color& col = pass->clear_color;
-  gfx_context_clear(pass->gfx, col.r, col.g, col.b, col.a);
-
   // Call the prepare function
 
   if(pass->prepare_func) {
@@ -122,7 +152,6 @@ void post_process_destroy(PostProcessPass* pass) {
     return;
   }
 
-  gfx_framebuffer_destroy(pass->frame);
   delete pass;
 }
 

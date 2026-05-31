@@ -94,9 +94,9 @@ void renderer_init(Window* window) {
 void renderer_shutdown() {
   // Destroy the framebuffers
 
-  // post_process_destroy(s_renderer.default_pass);
+  post_process_destroy(s_renderer.default_pass);
   for(PostProcessPass* pass : s_renderer.passes) {
-    // post_process_destroy(pass);
+    post_process_destroy(pass);
   }
   s_renderer.passes.clear();
 
@@ -144,7 +144,7 @@ void renderer_begin(Camera& camera) {
   s_renderer.pass.swapchain.height = frame_size.y;
 
   s_renderer.pass.swapchain.sample_count   = window_get_samples_count(s_renderer.window);
-  s_renderer.pass.swapchain.gl.framebuffer = 0; // @TODO (Renderer): Does this count all the time?
+  s_renderer.pass.swapchain.gl.framebuffer = 0; // The default framebuffer in GL is always 0
 
   // Begin the pass
   sg_begin_pass(&s_renderer.pass);
@@ -167,6 +167,12 @@ void renderer_end() {
 
   sg_end_pass();
   sg_commit();
+
+  // @TODO: Iniate the post-processing pipeline
+
+  for(auto& pass : s_renderer.passes) {
+
+  }
 }
 
 void renderer_set_clear_color(const Color& color) {
@@ -203,6 +209,10 @@ PostProcessPass* renderer_pop_post_process() {
 
   FREYA_LOG_TRACE("Popped post-process \'%s\' from the chain", pass->debug_name.c_str());
   return pass;
+}
+
+u32 renderer_get_post_process_count() {
+  return (u32)s_renderer.passes.size();
 }
 
 void renderer_queue_texture(const Texture& texture, 
