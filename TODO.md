@@ -16,7 +16,6 @@
 - Graphics 
     - Propogate the changes to other systems 
         - Post-process 
-            - Try things out with just a default post-process pass 
             - Add another pass that is more wild 
             - Test out everything
             - Finalize and polish

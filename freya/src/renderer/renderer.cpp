@@ -79,6 +79,54 @@ static void sg_logger_func(const char* tag,
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// Private functions
+
+static void swapchain_pass_prepare() {
+  // Set up the swapchain 
+
+  s_renderer.pass_action.colors[0].clear_value = {
+    .r = s_renderer.color.r,
+    .g = s_renderer.color.g,
+    .b = s_renderer.color.b,
+    .a = s_renderer.color.a,
+  }; 
+
+  s_renderer.pass.action    = s_renderer.pass_action;
+  s_renderer.pass.swapchain = renderer_get_default_swapchain();
+
+  // Begin the pass
+  sg_begin_pass(&s_renderer.pass);
+}
+
+static void swapchain_pass_commit(PostProcessPass* current_pass) {
+  if(current_pass) {
+    // Set up the bindings of the pass 
+    sg_bindings bindings = {};
+
+    // Use the final texture image of the current pass
+    
+    bindings.views[0] = current_pass->outputs[0];
+
+    bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
+    bindings.samplers[0]       = s_renderer.default_sampler;
+
+    // Apply the bindings and the pipeline
+
+    sg_apply_pipeline(s_renderer.pipeline);
+    sg_apply_bindings(bindings);
+
+    // Render the screen-space post-process effect
+    sg_draw(0, 6, 1);
+  }
+
+  // End the swapchain pass
+  sg_end_pass();
+}
+
+/// Private functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// Renderer functions
 
 void renderer_init(Window* window) {
@@ -145,7 +193,22 @@ void renderer_init(Window* window) {
 
   default_pass->outputs[0] = default_pass->attachments[0];
   default_pass->outputs_count++;
+ 
+  // Default pipeline init 
   
+  sg_pipeline_desc pipe_desc = {};
+  
+  pipe_desc.depth.compare       = SG_COMPAREFUNC_LESS_EQUAL;
+  pipe_desc.depth.write_enabled = true;
+
+  pipe_desc.shader     = asset_group_get_shader(pass_desc.shader_id); // Same shader as the default post-process pass
+  pipe_desc.index_type = SG_INDEXTYPE_UINT16;
+
+  pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // Position
+  pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
+
+  s_renderer.pipeline = sg_make_pipeline(pipe_desc);
+
   // Listen to events
   
   event_register(EVENT_WINDOW_MAXIMIZED, window_resized_callback);
@@ -200,8 +263,16 @@ void renderer_begin(Camera& camera) {
   sgp_set_color(s_renderer.color.r, s_renderer.color.g, s_renderer.color.b, s_renderer.color.a);
   sgp_clear();
 
-  // Begin the pass
-  post_process_prepare(s_renderer.passes[0]);
+  // Either start the post-processing chain if there are 
+  // more than the default pass available, or just prepare 
+  // the default swapchain for normal rendering.
+  
+  if(s_renderer.passes.size() > 1) {
+    post_process_prepare(s_renderer.passes[0]);
+  }
+  else {
+    swapchain_pass_prepare();
+  }
 }
 
 void renderer_end() {
@@ -213,24 +284,33 @@ void renderer_end() {
   sgp_reset_blend_mode();
 
   // End the painter 
+  
   sgp_flush();
+  sgp_end();
+
+  // End the default post-processing pass if we are 
+  // currently expected to walk that chain 
+
+  if(s_renderer.passes.size() > 1) {
+    sg_end_pass(); // Should be the default post-process pass
+  }
 
   // Initiate the post-processing pipeline
 
-  for(auto& pass : s_renderer.passes) {
+  PostProcessPass* current_pass = nullptr;
+  for(sizei i = 1; i < s_renderer.passes.size(); i++) { // Skip the default pass
     // Prepare the pass
+    
+    PostProcessPass* pass = s_renderer.passes[i];
     post_process_prepare(pass);
 
     // Set up the bindings of the pass 
     sg_bindings bindings = {};
 
-    // Use the outputs of the previous pass (if it exists)
+    // Use the outputs of the current pass
    
-    if(pass->previous) {
-      PostProcessPass* previous = pass->previous;
-      for(u32 i = 0; i < previous->outputs_count; i++) {
-        bindings.views[i] = previous->outputs[i];
-      }
+    for(u32 i = 0; i < pass->outputs_count; i++) {
+      bindings.views[i] = pass->outputs[i];
     }
 
     bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
@@ -246,7 +326,21 @@ void renderer_end() {
 
     // End the pass
     sg_end_pass();
+
+    // Set the current pass to render later
+    current_pass = pass; 
   }
+
+  // Only preapre the default swapchain if we have some 
+  // post-processing passes to go through. If there aren't any, 
+  // then the default swapchain was already prepared at the start of the frame.
+
+  if(current_pass) {
+    swapchain_pass_prepare();
+  }
+
+  // Draw the final image to the swapchain
+  swapchain_pass_commit(current_pass);
 
   // Done with this frame... 
   sg_commit();
