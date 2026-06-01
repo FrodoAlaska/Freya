@@ -37,6 +37,8 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
   i32 colors_count = 0;
   sg_pass& p       = pass->pass; 
 
+  sg_pixel_format depth_format = SG_PIXELFORMAT_NONE;
+
   for(auto& attachment : desc.attachments) {
     switch(attachment) {
       case SG_PIXELFORMAT_DEPTH:
@@ -45,48 +47,59 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
 
         sg_image_desc image_desc = {};
         
-        image_desc.width  = pass->frame_size.x;
-        image_desc.height = pass->frame_size.y;
+        image_desc.width        = pass->frame_size.x;
+        image_desc.height       = pass->frame_size.y;
+        image_desc.sample_count = desc.samples_count;
 
         image_desc.pixel_format                   = attachment; 
         image_desc.usage.depth_stencil_attachment = true;
+
+        sg_image depth_img = sg_make_image(image_desc);
 
         // Set up the view
         
         sg_view_desc view_desc = {};
 
-        view_desc.depth_stencil_attachment.image = sg_make_image(image_desc);
+        view_desc.depth_stencil_attachment.image = depth_img;
         p.attachments.depth_stencil              = sg_make_view(view_desc);
         
-        pass->attachments.emplace_back(p.attachments.depth_stencil);
-
         // Set up the action 
 
         p.action.depth             = {};
         p.action.depth.clear_value = desc.depth_clear;
         
         p.action.stencil = {};
+
+        depth_format = attachment;
+        
+        // Create the texture view to use later
+
+        view_desc.depth_stencil_attachment.image = {};
+        view_desc.texture.image                  = depth_img;
+
+        pass->attachments.emplace_back(sg_make_view(view_desc));
       } break;
       default: { // Color attachments
         // Set up the image 
 
         sg_image_desc image_desc = {};
         
-        image_desc.width  = pass->frame_size.x;
-        image_desc.height = pass->frame_size.y;
+        image_desc.width        = pass->frame_size.x;
+        image_desc.height       = pass->frame_size.y;
+        image_desc.sample_count = desc.samples_count;
 
         image_desc.pixel_format           = attachment; 
         image_desc.usage.color_attachment = true;
 
+        sg_image color_img = sg_make_image(image_desc);
+
         // Set up the view
         
         sg_view_desc view_desc           = {};
-        view_desc.color_attachment.image = sg_make_image(image_desc);
+        view_desc.color_attachment.image = color_img;
 
         // Create the view
-        
         p.attachments.colors[colors_count] = sg_make_view(view_desc);
-        pass->attachments.emplace_back(p.attachments.colors[colors_count]);
 
         // Set up the action 
 
@@ -100,6 +113,13 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
 
         // More colors!
         colors_count++;
+
+        // Create the texture view to use later
+
+        view_desc.color_attachment.image = {};
+        view_desc.texture.image          = color_img;
+        
+        pass->attachments.emplace_back(sg_make_view(view_desc));
       } break;
     }
   }
@@ -112,12 +132,15 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
   //
 
   sg_pipeline_desc pipe_desc = {};
-  
-  pipe_desc.depth.compare       = SG_COMPAREFUNC_LESS_EQUAL;
-  pipe_desc.depth.write_enabled = true;
 
-  pipe_desc.shader     = asset_group_get_shader(desc.shader_id); 
-  pipe_desc.index_type = SG_INDEXTYPE_UINT16;
+  pipe_desc.depth.pixel_format = depth_format;
+  if(pipe_desc.depth.pixel_format != SG_PIXELFORMAT_NONE) {
+    pipe_desc.depth.compare       = SG_COMPAREFUNC_LESS_EQUAL;
+    pipe_desc.depth.write_enabled = true;
+  }
+
+  pipe_desc.shader       = asset_group_get_shader(desc.shader_id); 
+  pipe_desc.sample_count = desc.samples_count;
 
   pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // Position
   pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
@@ -138,20 +161,6 @@ PostProcessPass* post_process_define_greyscale(Window* window) {
 
 PostProcessPass* post_process_define_vignette(Window* window, const f32 intensity) {
   return vignette_pass_create(window, intensity);
-}
-
-void post_process_prepare(PostProcessPass* pass) {
-  // Begin the pass
-  sg_begin_pass(&pass->pass);
-
-  // Set the viewport
-  sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
-
-  // Call the prepare function
-
-  if(pass->prepare_func) {
-    pass->prepare_func(pass);
-  }
 }
 
 void post_process_destroy(PostProcessPass* pass) {

@@ -178,11 +178,12 @@ void renderer_init(Window* window) {
   // Default pass init
   
   PostProcessPassDesc pass_desc = {
-    .frame_size  = window_get_size(s_renderer.window),
-    .clear_color = Color(0.1f, 0.1f, 0.1f, 1.0f),
-    .shader_id   = asset_group_push_shader(ASSET_CACHE_ID, *default_pass_shader_desc(sg_query_backend())),
-    .group_id    = ASSET_CACHE_ID,
-    .debug_name  = "Default",
+    .frame_size    = window_get_size(s_renderer.window),
+    .clear_color   = Color(0.1f, 0.1f, 0.1f, 1.0f),
+    .shader_id     = asset_group_push_shader(ASSET_CACHE_ID, *default_pass_shader_desc(sg_query_backend())),
+    .group_id      = ASSET_CACHE_ID,
+    .samples_count = window_get_samples_count(s_renderer.window),
+    .debug_name    = "Default",
   };
 
   pass_desc.attachments.emplace_back(SG_PIXELFORMAT_RGBA8);
@@ -191,8 +192,8 @@ void renderer_init(Window* window) {
   PostProcessPass* default_pass = post_process_create(s_renderer.window, pass_desc);
   renderer_push_post_process(default_pass);
 
-  default_pass->outputs[0] = default_pass->attachments[0];
-  default_pass->outputs_count++;
+  default_pass->outputs[0]    = default_pass->attachments[0];
+  default_pass->outputs_count = 1;
  
   // Default pipeline init 
   
@@ -201,8 +202,7 @@ void renderer_init(Window* window) {
   pipe_desc.depth.compare       = SG_COMPAREFUNC_LESS_EQUAL;
   pipe_desc.depth.write_enabled = true;
 
-  pipe_desc.shader     = asset_group_get_shader(pass_desc.shader_id); // Same shader as the default post-process pass
-  pipe_desc.index_type = SG_INDEXTYPE_UINT16;
+  pipe_desc.shader = asset_group_get_shader(pass_desc.shader_id); // Same shader as the default post-process pass
 
   pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // Position
   pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
@@ -268,7 +268,9 @@ void renderer_begin(Camera& camera) {
   // the default swapchain for normal rendering.
   
   if(s_renderer.passes.size() > 1) {
-    post_process_prepare(s_renderer.passes[0]);
+    PostProcessPass* pass = s_renderer.passes[0];
+    sg_begin_pass(&pass->pass);
+    sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
   }
   else {
     swapchain_pass_prepare();
@@ -302,15 +304,17 @@ void renderer_end() {
     // Prepare the pass
     
     PostProcessPass* pass = s_renderer.passes[i];
-    post_process_prepare(pass);
+    sg_begin_pass(&pass->pass);
+    sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
 
     // Set up the bindings of the pass 
     sg_bindings bindings = {};
 
-    // Use the outputs of the current pass
-   
-    for(u32 i = 0; i < pass->outputs_count; i++) {
-      bindings.views[i] = pass->outputs[i];
+    // Use the outputs of the previous pass
+  
+    PostProcessPass* previous = pass->previous;
+    for(u32 i = 0; i < previous->outputs_count; i++) {
+      bindings.views[i] = previous->outputs[i];
     }
 
     bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
@@ -320,6 +324,10 @@ void renderer_end() {
     
     sg_apply_pipeline(pass->pipeline);
     sg_apply_bindings(bindings);
+
+    if(pass->prepare_func) {
+      pass->prepare_func(pass);
+    }
 
     // Render the screen-space post-process effect
     sg_draw(0, 6, 1);

@@ -56,6 +56,8 @@ struct PostProcessPassDesc {
   AssetID shader_id     = {};
   AssetGroupID group_id = {};
 
+  i32 samples_count = 1;
+
   DynamicArray<sg_pixel_format> attachments;
   String debug_name = "DEBUG";
 };
@@ -310,12 +312,6 @@ FREYA_API PostProcessPass* post_process_define_greyscale(Window* window);
 
 /// Create a pre-defined vignette pass, using the given `window` and `intensity` of the vignette.
 FREYA_API PostProcessPass* post_process_define_vignette(Window* window, const f32 intensity = 12.0f);
-
-/// Prepare the given `pass` for rendering.
-///
-/// @NOTE: This function does not need to be called by any client code. 
-/// It will only be used internally by the renderer.
-FREYA_API void post_process_prepare(PostProcessPass* pass);
 
 /// Destroy the given `pass`, reclaiming any allocated memory.
 FREYA_API void post_process_destroy(PostProcessPass* pass);

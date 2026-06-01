@@ -66,7 +66,10 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   freya::Entity entt2 = freya::entity_create(s_app.ecs, freya::Vec2(200.0f), freya::Vec2(64.0f));
   freya::entity_add_sprite(s_app.ecs, entt2, freya::asset_group_get_id(s_app.group_id, "grass"));
-  
+
+  // Post-process pass init
+  freya::renderer_push_post_process(freya::post_process_define_blur(window));
+
   // Done!
   return true;
 }
