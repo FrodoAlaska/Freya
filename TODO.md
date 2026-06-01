@@ -14,11 +14,7 @@
 ### Major Systems
 
 - Graphics 
-    - Check ImGui
     - Change the UI renderer as well
-
-- Web build
-    - Yep. We need to either overhaul the graphics backend completely or just switch to SOKOL. It's a mess, dude...
 
 - Update the README after finishing the graphics backend refactor and succefully running a working web build
 

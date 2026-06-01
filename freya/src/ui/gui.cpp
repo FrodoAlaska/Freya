@@ -116,8 +116,14 @@ bool gui_init(Window* window) {
   }
   
   // Setting up the opengl backend
-  
-  if(!ImGui_ImplOpenGL3_Init("#version 460 core")) {
+
+#if FREYA_PLATFORM_WEB == 1
+  String glsl_version = "#version 300 es";
+#else
+  String glsl_version = "#version 460 core";
+#endif
+
+  if(!ImGui_ImplOpenGL3_Init(glsl_version.c_str())) {
     FREYA_LOG_ERROR("Failed to initialize OpenGL for ImGui");
     return false;
   }

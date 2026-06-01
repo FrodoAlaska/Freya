@@ -44,16 +44,12 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::camera_create(s_app.camera, cam_desc);
 
   // Assets init
-  
   s_app.group_id = freya::asset_group_create("app_assets");
-
-  freya::asset_group_build(s_app.group_id, "../../assets/assets_list.lua", "assets.frpkg");
-  freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
  
   // Entity1 init
 
   s_app.entt1 = freya::entity_create(s_app.ecs, freya::Vec2(100.0f), freya::Vec2(128.0f));
-  freya::entity_add_sprite(s_app.ecs, s_app.entt1, freya::asset_group_get_id(s_app.group_id, "frodo"));
+  freya::entity_add_sprite(s_app.ecs, s_app.entt1, {}, freya::COLOR_WHITE);
 
   freya::PhysicsBodyDesc body_desc = {
     .type = freya::PHYSICS_BODY_DYNAMIC,
@@ -65,10 +61,7 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   // Entity2 init
 
   freya::Entity entt2 = freya::entity_create(s_app.ecs, freya::Vec2(200.0f), freya::Vec2(64.0f));
-  freya::entity_add_sprite(s_app.ecs, entt2, freya::asset_group_get_id(s_app.group_id, "grass"));
-
-  // Post-process pass init
-  freya::renderer_push_post_process(freya::post_process_define_blur(window));
+  freya::entity_add_sprite(s_app.ecs, entt2, {}, freya::COLOR_RED);
 
   // Done!
   return true;
