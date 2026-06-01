@@ -6,5 +6,9 @@
   #define SOKOL_GLES3 
 #endif
 
+#if defined(DEBUG) || defined(_DEBUG)
+  #define SOKOL_DEBUG
+#endif
+
 #include "sokol_gfx.h"
 #include "sokol_gp.h"

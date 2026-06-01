@@ -695,7 +695,6 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
 
   FilePath paths[] = {
     "textures", 
-    "shaders",
     "fonts",
     "audio", 
     "ui",
@@ -801,7 +800,7 @@ AssetID asset_group_push_shader(const AssetGroupID& group_id, const sg_shader_de
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed shader:", group.name.c_str());
-  if(!shader_desc.compute_func.source) {
+  if(shader_desc.compute_func.source) {
     FREYA_LOG_DEBUG("     Compute source length = %zu", strlen(shader_desc.compute_func.source));
   }
   else {

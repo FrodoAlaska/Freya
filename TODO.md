@@ -20,7 +20,6 @@
             - Add another pass that is more wild 
             - Test out everything
             - Finalize and polish
-    - Add a useful logger func to `sokol_gfx`
     - Check ImGui
     - Change the UI renderer as well
 

@@ -77,7 +77,9 @@ struct PostProcessPass {
   sg_pass_action action = {};
   sg_pass pass          = {};
 
+  DynamicArray<sg_view> attachments;
   Array<sg_view, RENDER_TARGETS_MAX> outputs;
+
   u32 outputs_count = 0;
 
   PostProcessPass* previous = nullptr;

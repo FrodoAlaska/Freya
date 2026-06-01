@@ -57,6 +57,8 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
 
         view_desc.depth_stencil_attachment.image = sg_make_image(image_desc);
         p.attachments.depth_stencil              = sg_make_view(view_desc);
+        
+        pass->attachments.emplace_back(p.attachments.depth_stencil);
 
         // Set up the action 
 
@@ -76,17 +78,15 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
         image_desc.pixel_format           = attachment; 
         image_desc.usage.color_attachment = true;
 
-        sg_image image = sg_make_image(image_desc);
-
         // Set up the view
         
-        sg_view_desc view_desc = {};
-
-        view_desc.color_attachment.image = image;
-        view_desc.texture.image          = image; // Doing this to sample this image later
+        sg_view_desc view_desc           = {};
+        view_desc.color_attachment.image = sg_make_image(image_desc);
 
         // Create the view
+        
         p.attachments.colors[colors_count] = sg_make_view(view_desc);
+        pass->attachments.emplace_back(p.attachments.colors[colors_count]);
 
         // Set up the action 
 
@@ -106,14 +106,6 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
 
   // Apply the action 
   p.action = pass->action;
- 
-  // Setup the swapchain
-
-  p.swapchain        = renderer_get_default_swapchain();
-  p.swapchain.width  = pass->frame_size.x;
-  p.swapchain.height = pass->frame_size.y;
-
-  p.swapchain.gl.framebuffer = renderer_get_post_process_count();
 
   // 
   // Pipeline init 
@@ -149,15 +141,8 @@ PostProcessPass* post_process_define_vignette(Window* window, const f32 intensit
 }
 
 void post_process_prepare(PostProcessPass* pass) {
-  // Prepare the swapchain 
-
-  sg_pass& p = pass->pass;
-
-  p.swapchain.width  = pass->frame_size.x;
-  p.swapchain.height = pass->frame_size.y;
-
   // Begin the pass
-  sg_begin_pass(&p);
+  sg_begin_pass(&pass->pass);
 
   // Set the viewport
   sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
@@ -174,6 +159,7 @@ void post_process_destroy(PostProcessPass* pass) {
     return;
   }
 
+  pass->attachments.clear();
   delete pass;
 }
 

@@ -2,6 +2,8 @@
 #include "freya_logger.h"
 #include "freya_event.h"
 
+#include "shaders/default_pass_shader.h"
+
 #include "sokol/sokol_gp.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -16,13 +18,13 @@ struct Renderer {
   sg_sampler default_sampler;
   sg_buffer vertex_buffer;
 
-  sg_pass pass               = {};
-  sg_pass_action pass_action = {};
-
   Color color = Color(1.0f);
-  
-  PostProcessPass* default_pass = nullptr;
   DynamicArray<PostProcessPass*> passes;
+
+  sg_pass_action pass_action;
+  sg_pass pass;
+
+  sg_pipeline pipeline;
 };
 
 static Renderer s_renderer;
@@ -49,6 +51,30 @@ static bool window_resized_callback(const Event& event, const void* dispatcher, 
   return true;
 }
 
+static void sg_logger_func(const char* tag, 
+                           u32 level, 
+                           u32 item, 
+                           const char* msg, 
+                           u32 line, 
+                           const char* filename, 
+                           void* user_data) {
+  switch(level) {
+    case 0: // Panic
+      FREYA_LOG_FATAL("%s - (%i, %s)", msg, line, filename); 
+      FREYA_ASSERT_LOG(false, "Fatal SOKOL error encountered");
+      break;
+    case 1: // Error
+      FREYA_LOG_ERROR("[SOKOL-ERROR]: %s - (%i, %s)", msg, line, filename); 
+      break;
+    case 2: // Warning
+      FREYA_LOG_WARN("[SOKOL-WARN]: %s - (%i, %s)", msg, line, filename); 
+      break;
+    case 3: // Info
+      FREYA_LOG_INFO("[SOKOL-INFO]: %s - (%i, %s)", msg, line, filename); 
+      break;
+  }
+}
+
 /// Callbacks
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -61,7 +87,7 @@ void renderer_init(Window* window) {
   // GFX init
 
   sg_desc gfx_desc     = {};
-  // @TODO: gfx_desc.logger.func = slog_func;
+  gfx_desc.logger.func = sg_logger_func;
 
   gfx_desc.environment.defaults = sg_environment_defaults {
     .color_format = SG_PIXELFORMAT_RGBA8,
@@ -101,10 +127,24 @@ void renderer_init(Window* window) {
   };
   s_renderer.vertex_buffer = sg_make_buffer(buff_desc);
 
-  // Pass init
+  // Default pass init
+  
+  PostProcessPassDesc pass_desc = {
+    .frame_size  = window_get_size(s_renderer.window),
+    .clear_color = Color(0.1f, 0.1f, 0.1f, 1.0f),
+    .shader_id   = asset_group_push_shader(ASSET_CACHE_ID, *default_pass_shader_desc(sg_query_backend())),
+    .group_id    = ASSET_CACHE_ID,
+    .debug_name  = "Default",
+  };
 
-  s_renderer.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-  s_renderer.pass_action.colors[0].clear_value = sg_color{0.1f, 0.1f, 0.1f, 1.0f};
+  pass_desc.attachments.emplace_back(SG_PIXELFORMAT_RGBA8);
+  pass_desc.attachments.emplace_back(SG_PIXELFORMAT_DEPTH_STENCIL);
+
+  PostProcessPass* default_pass = post_process_create(s_renderer.window, pass_desc);
+  renderer_push_post_process(default_pass);
+
+  default_pass->outputs[0] = default_pass->attachments[0];
+  default_pass->outputs_count++;
   
   // Listen to events
   
@@ -119,7 +159,6 @@ void renderer_init(Window* window) {
 void renderer_shutdown() {
   // Destroy the framebuffers
 
-  post_process_destroy(s_renderer.default_pass);
   for(PostProcessPass* pass : s_renderer.passes) {
     post_process_destroy(pass);
   }
@@ -161,13 +200,8 @@ void renderer_begin(Camera& camera) {
   sgp_set_color(s_renderer.color.r, s_renderer.color.g, s_renderer.color.b, s_renderer.color.a);
   sgp_clear();
 
-  // Setup the pass 
-
-  s_renderer.pass.action    = s_renderer.pass_action;
-  s_renderer.pass.swapchain = renderer_get_default_swapchain();
-
   // Begin the pass
-  sg_begin_pass(&s_renderer.pass);
+  post_process_prepare(s_renderer.passes[0]);
 }
 
 void renderer_end() {
@@ -179,25 +213,24 @@ void renderer_end() {
   sgp_reset_blend_mode();
 
   // End the painter 
-
   sgp_flush();
-  sgp_end();
-
-  // End the geometry pass
-  sg_end_pass();
 
   // Initiate the post-processing pipeline
 
-  PostProcessPass* current_pass = s_renderer.default_pass;
   for(auto& pass : s_renderer.passes) {
     // Prepare the pass
     post_process_prepare(pass);
 
-    // Use the bindings of the pass 
-
+    // Set up the bindings of the pass 
     sg_bindings bindings = {};
-    for(u32 i = 0; i < pass->outputs_count; i++) {
-      bindings.views[i] = pass->outputs[i];
+
+    // Use the outputs of the previous pass (if it exists)
+   
+    if(pass->previous) {
+      PostProcessPass* previous = pass->previous;
+      for(u32 i = 0; i < previous->outputs_count; i++) {
+        bindings.views[i] = previous->outputs[i];
+      }
     }
 
     bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
@@ -211,15 +244,9 @@ void renderer_end() {
     // Render the screen-space post-process effect
     sg_draw(0, 6, 1);
 
-    // Set the current pass to render at the end
-    current_pass = pass; 
-
     // End the pass
     sg_end_pass();
   }
-
-  // Render the final pass result to the screen 
-  // @TODO
 
   // Done with this frame... 
   sg_commit();
@@ -238,10 +265,7 @@ void renderer_push_post_process(PostProcessPass* pass) {
 
   // Push the pass to the back and set its previous
 
-  if(s_renderer.passes.empty()) {
-    pass->previous = s_renderer.default_pass;
-  }
-  else {
+  if(!s_renderer.passes.empty()) {
     pass->previous = s_renderer.passes.back();
   }
 
@@ -252,6 +276,15 @@ void renderer_push_post_process(PostProcessPass* pass) {
 }
 
 PostProcessPass* renderer_pop_post_process() {
+  // We only have the default pass left, so do not pop anymore
+
+  if(s_renderer.passes.size() == 1) {
+    FREYA_LOG_TRACE("Could not pop anymore passes");
+    return nullptr;
+  }
+
+  // Pop the pass, otherwise
+
   PostProcessPass* pass = s_renderer.passes.back();
   s_renderer.passes.pop_back();
 
