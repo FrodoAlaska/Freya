@@ -45,7 +45,7 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   s_app.group_id = freya::asset_group_create("app_assets");
 
 #if !defined(FREYA_DISTRIBUTE)
-  freya::asset_group_build(s_app.group_id, "../../assets/assets_list.frlist", "assets.frpkg");
+  freya::asset_group_build(s_app.group_id, "../../assets/assets_list.lua", "assets.frpkg");
 #endif
 
   freya::asset_group_load_package(s_app.group_id, "assets.frpkg");

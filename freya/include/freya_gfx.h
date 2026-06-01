@@ -30,13 +30,13 @@ namespace freya { // Start of freya
 
 /// Only supported OpenGL version
 
-#define FREYA_GL_VERSION 4
-#define FREYA_GL_VERSION 3
+#define FREYA_GL_MIN_VERSION 4
+#define FREYA_GL_MAX_VERSION 3
 
 /// Only supported OpenGL-ES version
 
-#define FREYA_GLES_VERSION 3
-#define FREYA_GLES_VERSION 0
+#define FREYA_GLES_MIN_VERSION 3
+#define FREYA_GLES_MAX_VERSION 0
 
 /// DEFS
 ///---------------------------------------------------------------------------------------------------------------------

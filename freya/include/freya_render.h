@@ -499,7 +499,7 @@ FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 /// UI renderer functions
 
 /// Initialize the UI renderer.
-FREYA_API bool ui_renderer_init();
+FREYA_API bool ui_renderer_init(Window* window);
 
 /// Shutdown and reclaim all the memory allocated by the UI renderer.
 FREYA_API void ui_renderer_shutdown();

@@ -22,10 +22,10 @@ set(CURRENT_TESTBED
   # "noise_testbed"
   # "particles_testbed"
   # "pathfinding_testbed"
-  "physics_testbed"
+  # "physics_testbed"
   # "poisson_testbed"
   # "tilemap_testbed"
-  # "ui_testbed"
+  "ui_testbed"
 )
 ############################################################
 

@@ -2,15 +2,13 @@
 #include "freya_ui.h"
 #include "freya_assets.h"
 #include "freya_event.h"
-#include "freya_input.h"
 #include "freya_logger.h"
 
-#include "shaders/ui_shaders.h"
+#include "shaders/ui_shader.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/SystemInterface.h>
 #include <RmlUi/Core/RenderInterface.h>
-#include <RmlUi/Core/Input.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Log.h>
 
@@ -32,10 +30,6 @@ const sizei INDEX_BUFFER_SIZE  = KiB(256);
 enum ShaderID {
   SHADER_TEXTURE = 0, 
   SHADER_COLOR,
-  SHADER_GRADIENT, 
-  SHADER_CREATION, 
-  SHADER_COLOR_MATRIX,
-  SHADER_BLEND_MASK,
 
   SHADERS_MAX,
 };
@@ -52,26 +46,26 @@ class FRRenderInterface;
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// UIBatch
-struct UIBatch {
-  DynamicArray<Rml::Vertex> vertices; 
-  DynamicArray<i32> indices;
-};
-/// UIBatch
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// UIDrawCall
-struct UIDrawCall {
-  GfxTexture* texture; 
-  ShaderID shader_id;
+/// MatricesUniformInterface
+struct MatricesUniformInterface {
+  Mat4 projection = Mat4(1.0f); 
+  Mat4 transform  = Mat4(1.0f); 
 
   Vec2 translation = Vec2(0.0f);
-  Mat4 transform   = Mat4(1.0f);
-
-  sizei batch_index = 0;
+  u8 __padding[8];
 };
-/// UIDrawCall
+/// MatricesUniformInterface
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIBatch
+struct UIBatch {
+  sg_buffer vertex_buffer = {};
+  sg_buffer index_buffer  = {};
+
+  u32 count = 0;
+};
+/// UIBatch
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -80,18 +74,20 @@ struct UIRenderer {
   FRSystemInterface* system_interface; 
   FRRenderInterface* render_interface;
 
-  GfxContext* gfx;
   Window* window;
-  GfxPipeline* pipeline; 
 
-  ShaderContext* shaders[SHADERS_MAX]; // Pre-compiled shader contexts
+  sg_pass_action pass_action = {};
+  sg_pass pass               = {};
 
-  DynamicArray<UIBatch> batches;       // Compiled batches
-  DynamicArray<GfxTexture*> textures;  // Textures in use
-  DynamicArray<UIDrawCall> draw_calls; // Compiled draw calls
+  sg_sampler sampler = {};
 
-  Mat4 transform = Mat4(1.0f);
-  Mat4 ortho     = Mat4(1.0f);
+  sg_pipeline pipeline  = {}; 
+  Texture white_texture = {};
+
+  DynamicArray<Texture> textures;
+  DynamicArray<UIBatch> batches;
+
+  MatricesUniformInterface uniform;
 
   AssetGroupID group_id;
 };
@@ -144,22 +140,87 @@ public:
 public:
   Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices, Rml::Span<const int> indices) override {
     UIBatch batch = {}; 
-    batch.vertices.assign(vertices.data(), vertices.data() + vertices.size());
-    batch.indices.assign(indices.data(), indices.data() + indices.size());
+     
+    // Vertex buffer init
 
+    sg_buffer_desc vertex_desc = {};
+
+    vertex_desc.usage.vertex_buffer = true;
+    vertex_desc.data                = {vertices.data(), vertices.size() * sizeof(Rml::Vertex)};
+
+    batch.vertex_buffer = sg_make_buffer(vertex_desc); 
+
+    // Index buffer init
+
+    sg_buffer_desc index_desc = {};
+
+    index_desc.usage.index_buffer = true;
+    index_desc.data               = {indices.data(), indices.size() * sizeof(i32)};
+
+    batch.index_buffer = sg_make_buffer(index_desc); 
+
+    // Done!
+    
+    batch.count = (u32)indices.size();
     renderer.batches.push_back(batch);
+
     return (Rml::CompiledGeometryHandle)(renderer.batches.size());
   }
   
-  void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle texture) override {
-    UIDrawCall call{};
-    call.texture     = (texture == 0) ? nullptr : renderer.textures[(sizei)(texture - 1)];
-    call.shader_id   = (texture == 0) ? SHADER_COLOR : SHADER_TEXTURE;
-    call.translation = Vec2(translation.x, translation.y);
-    call.transform   = renderer.transform;
-    call.batch_index = (sizei)(geometry - 1);
+  void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle tex_handle) override {
+    // Set up the pass 
 
-    renderer.draw_calls.push_back(call);
+    const Color& col = renderer_get_clear_color();
+
+    renderer.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
+    renderer.pass_action.colors[0].clear_value = {
+      .r = col.r,
+      .g = col.g,
+      .b = col.b,
+      .a = col.a,
+    }; 
+
+    renderer.pass.action    = renderer.pass_action;
+    renderer.pass.swapchain = renderer_get_default_swapchain();
+
+    // Begin the pass
+    sg_begin_pass(&renderer.pass);
+
+    // Set up the bindings of the pass 
+    sg_bindings bindings = {};
+
+    // Use the resources of the draw call
+    
+    UIBatch& batch = renderer.batches[(sizei)(geometry - 1)];
+     
+    bindings.vertex_buffers[0] = batch.vertex_buffer;
+    bindings.index_buffer      = batch.index_buffer;
+
+    bindings.samplers[0] = renderer.white_texture.sampler;
+
+    Texture* texture = &renderer.textures[0]; // Assume it's the white texture
+    if(tex_handle > 0) {
+      texture = &renderer.textures[(sizei)(tex_handle - 1)];
+    }
+
+    bindings.views[0] = texture->view;
+
+    // Set the translation 
+    renderer.uniform.translation = Vec2(translation.x, translation.y);
+
+    // Apply the bindings and the pipeline
+
+    sg_apply_pipeline(renderer.pipeline);
+    sg_apply_uniforms(UB_Matrices, SG_RANGE(renderer.uniform));
+    sg_apply_bindings(bindings);
+
+    // Render the screen-space post-process effect
+    sg_draw(0, batch.count, 1);
+
+    // End the pass and commit
+     
+    sg_end_pass();
+    sg_commit();
   }
   
   void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override {
@@ -169,15 +230,14 @@ public:
   Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override {
     // Use the preset asset group to retrieve the texture by name
    
-    String name         = filepath_stem(source);
-    AssetID texture_id  = asset_group_get_id(renderer.group_id, name);
-    GfxTexture* texture = asset_group_get_texture(texture_id);
+    String name        = filepath_stem(source);
+    AssetID texture_id = asset_group_get_id(renderer.group_id, name);
+    Texture& texture   = asset_group_get_texture(texture_id);
 
     // Write back the dimensions of the texture to Rml
 
-    GfxTextureDesc& tex_desc = gfx_texture_get_desc(texture);
-    texture_dimensions.x     = tex_desc.width;
-    texture_dimensions.y     = tex_desc.height;
+    texture_dimensions.x = texture.size.x;
+    texture_dimensions.y = texture.size.y;
 
     // Done!
     
@@ -188,17 +248,23 @@ public:
   Rml::TextureHandle GenerateTexture(Rml::Span<const Rml::byte> source, Rml::Vector2i source_dimensions) override {
     // Convert the given data to our format
 
-    GfxTextureDesc tex_desc; 
-    tex_desc.width  = source_dimensions.x; 
-    tex_desc.height = source_dimensions.y; 
-    tex_desc.depth  = 0; 
-    tex_desc.mips   = 1; 
-    tex_desc.type   = GFX_TEXTURE_2D; 
-    tex_desc.format = GFX_TEXTURE_FORMAT_RGBA8; 
-    tex_desc.data   = (void*)source.data();
+    sg_image_desc image_desc = {}; 
+    
+    image_desc.width  = source_dimensions.x;
+    image_desc.height = source_dimensions.y;
+
+    image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+
+    image_desc.data.mip_levels[0].ptr  = source.data();
+    image_desc.data.mip_levels[0].size = source.size();
+
+    sg_sampler_desc sampler_desc = {};
+
+    sampler_desc.min_filter = SG_FILTER_NEAREST;
+    sampler_desc.mag_filter = SG_FILTER_NEAREST;
 
     // Add it to the asset group
-    AssetID texture_id = asset_group_push_texture(renderer.group_id, tex_desc); 
+    AssetID texture_id = asset_group_push_texture(renderer.group_id, image_desc, sampler_desc); 
 
     // Done!
     
@@ -207,23 +273,23 @@ public:
   }
 
   void ReleaseTexture(Rml::TextureHandle texture) override {
-    renderer.textures[(sizei)(texture - 1)] = nullptr;
+    renderer.textures[(sizei)(texture - 1)] = Texture{};
   }
 
   void EnableScissorRegion(bool enable) override {
-    gfx_context_set_state(renderer.gfx, GFX_STATE_SCISSOR, enable);
+    // @TODO (UI)
   }
 
   void SetScissorRegion(Rml::Rectanglei region) override {
     Rml::Vector2i position = region.Position();
     Rml::Vector2i size     = region.Size();
 
-    gfx_context_set_scissor_rect(renderer.gfx, position.x, position.y, size.x, size.y);
+    sg_apply_scissor_rect(position.x, position.y, size.x, size.y, true);
   }
 
   void SetTransform(const Rml::Matrix4f* transform) override {
     if(!transform) {
-      renderer.transform = Mat4(1.0f);
+      renderer.uniform.transform = Mat4(1.0f);
       return;
     }
 
@@ -232,10 +298,10 @@ public:
     Rml::Vector4f colomn3 = (*transform)[2];
     Rml::Vector4f colomn4 = (*transform)[3];
 
-    renderer.transform[0] = Vec4(colomn1.x, colomn1.y, colomn1.z, colomn1.w);
-    renderer.transform[1] = Vec4(colomn2.x, colomn2.y, colomn2.z, colomn2.w);
-    renderer.transform[2] = Vec4(colomn3.x, colomn3.y, colomn3.z, colomn3.w);
-    renderer.transform[3] = Vec4(colomn4.x, colomn4.y, colomn4.z, colomn4.w);
+    renderer.uniform.transform[0] = Vec4(colomn1.x, colomn1.y, colomn1.z, colomn1.w);
+    renderer.uniform.transform[1] = Vec4(colomn2.x, colomn2.y, colomn2.z, colomn2.w);
+    renderer.uniform.transform[2] = Vec4(colomn3.x, colomn3.y, colomn3.z, colomn3.w);
+    renderer.uniform.transform[3] = Vec4(colomn4.x, colomn4.y, colomn4.z, colomn4.w);
   }
 
   Rml::CompiledShaderHandle CompileShader(const Rml::String& name, const Rml::Dictionary& parameters) override {
@@ -263,69 +329,58 @@ public:
 ///---------------------------------------------------------------------------------------------------------------------
 /// UI renderer functions
 
-bool ui_renderer_init() {
+bool ui_renderer_init(Window* window) {
   FREYA_PROFILE_FUNCTION();
 
-  s_renderer.gfx    = gfx;
-  s_renderer.window = gfx_context_get_desc(gfx).window;
+  // Window init
+  s_renderer.window = window;
 
   //
   // Pipeline init
   //
-
-  GfxPipelineDesc pipe_desc{};
-
-  // Vertex buffer init
-
-  GfxBufferDesc buff_desc = {
-    .data  = nullptr, 
-    .size  = VERTEX_BUFFER_SIZE,
-    .type  = GFX_BUFFER_VERTEX,
-    .usage = GFX_BUFFER_USAGE_DYNAMIC_DRAW,
-  };
-  pipe_desc.vertex_buffer = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
-
-  // Index buffer init
-
-  buff_desc = {
-    .data  = nullptr, 
-    .size  = INDEX_BUFFER_SIZE,
-    .type  = GFX_BUFFER_INDEX,
-    .usage = GFX_BUFFER_USAGE_DYNAMIC_DRAW,
-  };
-  pipe_desc.index_buffer = asset_group_get_buffer(asset_group_push_buffer(ASSET_CACHE_ID, buff_desc));
-
-  // Layouts init
-
-  pipe_desc.layouts[0].attributes[0]    = GFX_LAYOUT_FLOAT2; // Position
-  pipe_desc.layouts[0].attributes[1]    = GFX_LAYOUT_UBYTE4; // Color
-  pipe_desc.layouts[0].attributes[2]    = GFX_LAYOUT_FLOAT2; // Texture coords
-  pipe_desc.layouts[0].attributes_count = 3;
   
-  // Create the pipeline 
+  sg_pipeline_desc pipe_desc = {};
 
-  pipe_desc.draw_mode = GFX_DRAW_MODE_TRIANGLE; 
-  s_renderer.pipeline = gfx_pipeline_create(gfx, pipe_desc);
+  pipe_desc.depth.compare       = SG_COMPAREFUNC_LESS_EQUAL;
+  pipe_desc.depth.write_enabled = true;
+  pipe_desc.index_type          = SG_INDEXTYPE_UINT32;
 
+  AssetID shader_id = asset_group_push_shader(ASSET_CACHE_ID, *ui_shader_desc(sg_query_backend()));
+  pipe_desc.shader  = asset_group_get_shader(shader_id); 
+
+  pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // Position
+  pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_UBYTE4; // Color
+  pipe_desc.layout.attrs[2].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
+
+  s_renderer.pipeline = sg_make_pipeline(pipe_desc);
+
+  // 
+  // Textures init 
   //
-  // Shaders init
-  //
 
-  AssetID shader_ids[SHADERS_MAX] = {
-    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_texture_shader()), 
-    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_color_shader()), 
-    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_gradient_shader()), 
-    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_creation_shader()),  
-    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_color_matrix()),  
-    asset_group_push_shader_context(ASSET_CACHE_ID, generate_ui_blend_mask()),  
-  };
+  sg_image_desc image_desc = {};
 
-  for(sizei i = 0; i < SHADERS_MAX; i++) {
-    s_renderer.shaders[i] = asset_group_get_shader_context(shader_ids[i]);
-  }
+  image_desc.width        = 1;
+  image_desc.height       = 1;
+  image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+
+  u8 white_pixels[4]            = {255, 255, 255, 255};
+  image_desc.data.mip_levels[0] = SG_RANGE(white_pixels);
+
+  sg_sampler_desc sampler_desc = {};
+
+  AssetID texture_id       = asset_group_push_texture(ASSET_CACHE_ID, image_desc, sampler_desc);
+  s_renderer.white_texture = asset_group_get_texture(texture_id); 
+
+  s_renderer.textures.push_back(s_renderer.white_texture);
 
   // Pre-allocating some memory for better performance
   s_renderer.batches.reserve(128);
+
+  // Calculating the orthographic matrix
+
+  IVec2 window_size             = window_get_size(window);
+  s_renderer.uniform.projection = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f) * s_renderer.uniform.transform;
 
   //
   // Interfaces init
@@ -357,13 +412,8 @@ void ui_renderer_shutdown() {
 
   // Clearing all the resources
 
-  for(auto& batch : s_renderer.batches) {
-    batch.vertices.clear();
-    batch.indices.clear();
-  }
-
+  s_renderer.textures.clear();
   s_renderer.batches.clear();
-  s_renderer.draw_calls.clear();
 
   // Done!
   FREYA_LOG_INFO("Successfully shutdown the ui renderer");
@@ -371,72 +421,12 @@ void ui_renderer_shutdown() {
 
 void ui_renderer_begin() {
   FREYA_PROFILE_FUNCTION();
-
-  // Calculating the orthographic matrix
-
-  IVec2 framebuffer_size = window_get_size(s_renderer.window);
-  s_renderer.ortho       = mat4_ortho(0.0f, (f32)framebuffer_size.x, (f32)framebuffer_size.y, 0.0f) * s_renderer.transform;
-
-  // Clear calls from previous frames
-  s_renderer.draw_calls.clear();
+  // @TODO
 }
 
 void ui_renderer_end() {
   FREYA_PROFILE_FUNCTION();
-
-  // Initiating the draw calls
-
-  for(auto& call : s_renderer.draw_calls) {
-    // Retrieve the correct shader
-
-    ShaderContext* shader = s_renderer.shaders[call.shader_id];
-
-    // Setting uniforms 
-
-    shader_context_set_uniform(shader, "u_translate", call.translation);
-    shader_context_set_uniform(shader, "u_transform", call.transform);
-    shader_context_set_uniform(shader, "u_projection", s_renderer.ortho);
-
-    // Use the resources
-
-    GfxBindingDesc bind_desc;
-    bind_desc.shader = shader->shader;
-
-    if(call.texture) {
-      bind_desc.textures       = &call.texture;
-      bind_desc.textures_count = 1;
-    }
-
-    gfx_context_use_bindings(s_renderer.gfx, bind_desc);
-
-    // Update the required resources
-    
-    GfxPipelineDesc& pipe_desc = gfx_pipeline_get_desc(s_renderer.pipeline);
-
-    UIBatch& batch = s_renderer.batches[call.batch_index];
-    if(!batch.vertices.empty()) {
-      gfx_buffer_upload_data(pipe_desc.vertex_buffer, 
-                             0, 
-                             sizeof(Rml::Vertex) * batch.vertices.size(), 
-                             batch.vertices.data());
-    }
-
-    if(!batch.indices.empty()) {
-      gfx_buffer_upload_data(pipe_desc.index_buffer, 
-                             0, 
-                             sizeof(i32) * batch.indices.size(), 
-                             batch.indices.data());
-    }
-
-    pipe_desc.vertices_count = batch.vertices.size();
-    pipe_desc.indices_count  = batch.indices.size();
-    gfx_pipeline_update(s_renderer.pipeline, pipe_desc);
-    
-    // Render the batch
-
-    gfx_context_use_pipeline(s_renderer.gfx, s_renderer.pipeline); 
-    gfx_context_draw(s_renderer.gfx, 0);
-  }
+  // @TODO
 }
 
 void ui_renderer_set_asset_group(const AssetGroupID& group_id) {
