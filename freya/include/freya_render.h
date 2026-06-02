@@ -504,11 +504,8 @@ FREYA_API bool ui_renderer_init(Window* window);
 /// Shutdown and reclaim all the memory allocated by the UI renderer.
 FREYA_API void ui_renderer_shutdown();
 
-/// Begin the rendering process of the UI renderer.
-FREYA_API void ui_renderer_begin();
-
-/// End the rendering process of the UI renderer. 
-FREYA_API void ui_renderer_end();
+/// Apply the given `ui_ctx` to be renderer.
+FREYA_API void ui_renderer_apply_context(UIContext* ui_ctx);
 
 /// Set the internal asset group of the UI renderer to the given `group_id`.
 /// 

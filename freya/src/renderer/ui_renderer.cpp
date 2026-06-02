@@ -168,31 +168,13 @@ public:
   }
   
   void RenderGeometry(Rml::CompiledGeometryHandle geometry, Rml::Vector2f translation, Rml::TextureHandle tex_handle) override {
-    // Set up the pass 
-
-    const Color& col = renderer_get_clear_color();
-
-    renderer.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-    renderer.pass_action.colors[0].clear_value = {
-      .r = col.r,
-      .g = col.g,
-      .b = col.b,
-      .a = col.a,
-    }; 
-
-    renderer.pass.action    = renderer.pass_action;
-    renderer.pass.swapchain = renderer_get_default_swapchain();
-
-    // Begin the pass
-    sg_begin_pass(&renderer.pass);
-
     // Set up the bindings of the pass 
     sg_bindings bindings = {};
 
     // Use the resources of the draw call
-    
+
     UIBatch& batch = renderer.batches[(sizei)(geometry - 1)];
-     
+
     bindings.vertex_buffers[0] = batch.vertex_buffer;
     bindings.index_buffer      = batch.index_buffer;
 
@@ -216,15 +198,13 @@ public:
 
     // Render the screen-space post-process effect
     sg_draw(0, batch.count, 1);
-
-    // End the pass and commit
-     
-    sg_end_pass();
-    sg_commit();
   }
   
   void ReleaseGeometry(Rml::CompiledGeometryHandle geometry) override {
-    // @NOTE: Nothing to do here, since we're batching the geometry...
+    UIBatch& batch = renderer.batches[(sizei)(geometry - 1)];
+
+    sg_uninit_buffer(batch.vertex_buffer);
+    sg_uninit_buffer(batch.index_buffer);
   }
 
   Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override {
@@ -348,9 +328,11 @@ bool ui_renderer_init(Window* window) {
   AssetID shader_id = asset_group_push_shader(ASSET_CACHE_ID, *ui_shader_desc(sg_query_backend()));
   pipe_desc.shader  = asset_group_get_shader(shader_id); 
 
-  pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2; // Position
-  pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_UBYTE4; // Color
-  pipe_desc.layout.attrs[2].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
+  pipe_desc.layout.attrs[0].format = SG_VERTEXFORMAT_FLOAT2;  // Position
+  pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_UBYTE4N; // Color
+  pipe_desc.layout.attrs[2].format = SG_VERTEXFORMAT_FLOAT2;  // Texture coords
+
+  pipe_desc.alpha_to_coverage_enabled = true;
 
   s_renderer.pipeline = sg_make_pipeline(pipe_desc);
 
@@ -376,11 +358,6 @@ bool ui_renderer_init(Window* window) {
 
   // Pre-allocating some memory for better performance
   s_renderer.batches.reserve(128);
-
-  // Calculating the orthographic matrix
-
-  IVec2 window_size             = window_get_size(window);
-  s_renderer.uniform.projection = mat4_ortho(0.0f, (f32)window_size.x, (f32)window_size.y, 0.0f) * s_renderer.uniform.transform;
 
   //
   // Interfaces init
@@ -427,6 +404,41 @@ void ui_renderer_begin() {
 void ui_renderer_end() {
   FREYA_PROFILE_FUNCTION();
   // @TODO
+}
+
+void ui_renderer_apply_context(UIContext* ui_ctx) {
+  FREYA_PROFILE_FUNCTION();
+
+  // Calculating the orthographic matrix
+
+  IVec2 size                    = window_get_size(s_renderer.window);
+  s_renderer.uniform.projection = mat4_ortho(0.0f, (f32)size.x, (f32)size.y, 0.0f);
+  
+  // Set up the pass 
+
+  const Color& col = renderer_get_clear_color();
+
+  s_renderer.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
+  s_renderer.pass_action.colors[0].clear_value = {
+    .r = col.r,
+    .g = col.g,
+    .b = col.b,
+    .a = col.a,
+  }; 
+
+  s_renderer.pass.action    = s_renderer.pass_action;
+  s_renderer.pass.swapchain = renderer_get_default_swapchain();
+
+  // Begin the pass
+  sg_begin_pass(&s_renderer.pass);
+
+  // Render the context
+  ui_context_render(ui_ctx);
+   
+  // End the pass and commit
+
+  sg_end_pass();
+  sg_commit();
 }
 
 void ui_renderer_set_asset_group(const AssetGroupID& group_id) {

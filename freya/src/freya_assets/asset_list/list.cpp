@@ -105,7 +105,6 @@ bool list_context_load(ListContext& out_list, const freya::FilePath& path) {
   }
 
   assign_section_paths(out_list, "textures", freya::ASSET_TYPE_TEXTURE);
-  assign_section_paths(out_list, "shaders", freya::ASSET_TYPE_SHADER);
   assign_section_paths(out_list, "fonts", freya::ASSET_TYPE_FONT);
   assign_section_paths(out_list, "audio", freya::ASSET_TYPE_AUDIO_BUFFER);
   assign_section_paths(out_list, "ui", freya::ASSET_TYPE_UI_CONFIG);

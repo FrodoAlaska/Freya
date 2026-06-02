@@ -101,10 +101,7 @@ void app_render() {
   freya::renderer_end();
 
   // UI render
-  
-  freya::ui_renderer_begin();
-  freya::ui_context_render(s_app.ui_ctx);
-  freya::ui_renderer_end();
+  freya::ui_renderer_apply_context(s_app.ui_ctx);
 }
 
 void app_render_gui() {

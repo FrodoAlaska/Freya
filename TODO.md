@@ -13,9 +13,6 @@
 
 ### Major Systems
 
-- Graphics 
-    - Change the UI renderer as well
-
 - Update the README after finishing the graphics backend refactor and succefully running a working web build
 
 - Audio
