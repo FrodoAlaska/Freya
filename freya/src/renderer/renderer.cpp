@@ -25,6 +25,7 @@ struct Renderer {
   sg_pass pass;
 
   sg_pipeline pipeline;
+  DynamicArray<UIContext*> ui_contexts;
 };
 
 static Renderer s_renderer;
@@ -290,6 +291,12 @@ void renderer_end() {
   sgp_flush();
   sgp_end();
 
+  // Render the contexts
+
+  for(auto& ctx : s_renderer.ui_contexts) {
+    ui_context_render(ctx);
+  }
+
   // End the default post-processing pass if we are 
   // currently expected to walk that chain 
 
@@ -516,6 +523,10 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
 
     renderer_queue_quad(emitter.transforms[i], emitter.color);
   }
+}
+
+void renderer_queue_ui_context(UIContext* ui_ctx) {
+  s_renderer.ui_contexts.emplace_back(ui_ctx);
 }
 
 /// Renderer functions

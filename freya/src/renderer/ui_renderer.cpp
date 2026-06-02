@@ -359,6 +359,11 @@ bool ui_renderer_init(Window* window) {
   // Pre-allocating some memory for better performance
   s_renderer.batches.reserve(128);
 
+  // Calculating the orthographic matrix
+
+  IVec2 size                    = window_get_size(s_renderer.window);
+  s_renderer.uniform.projection = mat4_ortho(0.0f, (f32)size.x, (f32)size.y, 0.0f);
+
   //
   // Interfaces init
   //
@@ -394,51 +399,6 @@ void ui_renderer_shutdown() {
 
   // Done!
   FREYA_LOG_INFO("Successfully shutdown the ui renderer");
-}
-
-void ui_renderer_begin() {
-  FREYA_PROFILE_FUNCTION();
-  // @TODO
-}
-
-void ui_renderer_end() {
-  FREYA_PROFILE_FUNCTION();
-  // @TODO
-}
-
-void ui_renderer_apply_context(UIContext* ui_ctx) {
-  FREYA_PROFILE_FUNCTION();
-
-  // Calculating the orthographic matrix
-
-  IVec2 size                    = window_get_size(s_renderer.window);
-  s_renderer.uniform.projection = mat4_ortho(0.0f, (f32)size.x, (f32)size.y, 0.0f);
-  
-  // Set up the pass 
-
-  const Color& col = renderer_get_clear_color();
-
-  s_renderer.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-  s_renderer.pass_action.colors[0].clear_value = {
-    .r = col.r,
-    .g = col.g,
-    .b = col.b,
-    .a = col.a,
-  }; 
-
-  s_renderer.pass.action    = s_renderer.pass_action;
-  s_renderer.pass.swapchain = renderer_get_default_swapchain();
-
-  // Begin the pass
-  sg_begin_pass(&s_renderer.pass);
-
-  // Render the context
-  ui_context_render(ui_ctx);
-   
-  // End the pass and commit
-
-  sg_end_pass();
-  sg_commit();
 }
 
 void ui_renderer_set_asset_group(const AssetGroupID& group_id) {

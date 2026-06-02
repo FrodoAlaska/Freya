@@ -13,8 +13,6 @@
 
 ### Major Systems
 
-- Update the README after finishing the graphics backend refactor and succefully running a working web build
-
 - Audio
     - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.
 

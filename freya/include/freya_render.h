@@ -492,6 +492,9 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 
+/// Queue a UI context `ui_ctx`.
+FREYA_API void renderer_queue_ui_context(UIContext* ui_ctx);
+
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
 
@@ -503,9 +506,6 @@ FREYA_API bool ui_renderer_init(Window* window);
 
 /// Shutdown and reclaim all the memory allocated by the UI renderer.
 FREYA_API void ui_renderer_shutdown();
-
-/// Apply the given `ui_ctx` to be renderer.
-FREYA_API void ui_renderer_apply_context(UIContext* ui_ctx);
 
 /// Set the internal asset group of the UI renderer to the given `group_id`.
 /// 
