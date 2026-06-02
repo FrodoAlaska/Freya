@@ -109,7 +109,7 @@ static bool desktop_update_and_render(f32 dt) {
   clock_update();
 
   // Present
-  window_swap_buffers(s_engine.window, 1); // @TODO (Window): Make the VSYNC more configurable
+  window_swap_buffers(s_engine.window, s_engine.app_desc.has_vsync);
 
   // Done!
   

@@ -92,6 +92,8 @@ struct AppDesc {
   i32 window_flags  = 0;
   i32 samples_count = 1;
 
+  bool has_vsync = false;
+
   char** args_values = nullptr; 
   i32 args_count     = 0;
 };
