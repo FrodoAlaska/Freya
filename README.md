@@ -1,17 +1,17 @@
 # The Freya Game Engine
 
-A very capable, yet simple 2D game engine made entirely for hobby purposes. It is full of features that target 2D games/applications, with no plans to target 3D _any_ time soon. It is _purely_ a 2D game engine. It currently supports Windows with minimal Linux support.
+A very capable, yet simple 2D game engine made entirely for hobby purposes. It is full of features that target 2D games/applications, with no plans to target 3D _any_ time soon. It is _purely_ a 2D game engine. It currently fully supports *Windows*, *Linux*, and the *Web*.
 
 ## Features 
 
-- Cross-platform window creation with OpenGL and GLES.  
+- Cross-platform window creation with OpenGL4.3 and GLES3 using SOKOL.  
 - Gamepad, keyboard, and mouse input support.  
-- A flexible and configurable 2D renderer, using modern OpenGL (4.5+) and GLES3.
+- A flexible and configurable 2D renderer
 - A fully-fledged audio system with both 2D and 3D spatialized audio.
 - A robust and easy-to-use game UI system, using HTML and CSS to decalre and style widgets.
 - A robust 2D physics engine, using the fantastic Box2D library. 
 - A flexible Entity Component System (ECS) module, using the EnTT library.
-- Integrated ImGui support, featuring an abstracted `editor` layer for editing engine-specific types through a GUI.  
+- Integrated ImGui support, featuring an abstracted `gui` layer for editing engine-specific types through a GUI.  
 - A durable, but simple noise generation module for both 2D and 3D.
 - A simple tile map system for easily editing and adding tile maps.
 
@@ -170,9 +170,10 @@ void app_render() {
   freya::renderer_end();
 
   // Render UI elements
-  
-  freya::ui_renderer_begin();
-  freya::ui_renderer_end();
+  // @NOTE: This example doesn't have it, but 
+  // you can render UI elements using the function below 
+  // with a `UIContext` object.
+  // freya::ui_renderer_apply_context(ui_ctx);
 }
 
 void app_render_gui() {
@@ -206,6 +207,9 @@ int engine_main(int argc, char* argv[]) {
     .window_width  = 800, 
     .window_height = 600, 
     .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_CENTER_MOUSE),
+
+    .samples_count = 1,
+    .has_vsync     = false,
 
     .args_values = argv, 
     .args_count  = argc,
