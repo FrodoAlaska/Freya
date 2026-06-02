@@ -168,12 +168,6 @@ void app_render() {
   //
 
   freya::renderer_end();
-
-  // Render UI elements
-  // @NOTE: This example doesn't have it, but 
-  // you can render UI elements using the function below 
-  // with a `UIContext` object.
-  // freya::ui_renderer_apply_context(ui_ctx);
 }
 
 void app_render_gui() {
