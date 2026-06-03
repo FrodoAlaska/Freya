@@ -1,10 +1,8 @@
-#include "freya_render.h"
-#include "freya_ui.h"
-#include "freya_assets.h"
+#include "ui_renderer_impl.h"
 #include "freya_event.h"
 #include "freya_logger.h"
 
-#include "shaders/ui_shader.h"
+#include "../shaders/ui_shader.h"
 
 #include <RmlUi/Core.h>
 #include <RmlUi/Core/SystemInterface.h>
@@ -15,26 +13,6 @@
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
-
-///---------------------------------------------------------------------------------------------------------------------
-/// Consts
-
-const sizei VERTEX_BUFFER_SIZE = KiB(256);
-const sizei INDEX_BUFFER_SIZE  = KiB(256);
-
-/// Consts
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// ShaderID
-enum ShaderID {
-  SHADER_TEXTURE = 0, 
-  SHADER_COLOR,
-
-  SHADERS_MAX,
-};
-/// ShaderID
-///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Forward declarations
@@ -88,8 +66,7 @@ struct UIRenderer {
   DynamicArray<UIBatch> batches;
 
   MatricesUniformInterface uniform;
-
-  AssetGroupID group_id;
+  Font* current_font = nullptr;
 };
 
 static UIRenderer s_renderer;
@@ -205,13 +182,16 @@ public:
 
     sg_uninit_buffer(batch.vertex_buffer);
     sg_uninit_buffer(batch.index_buffer);
+
+    sg_dealloc_buffer(batch.vertex_buffer);
+    sg_dealloc_buffer(batch.index_buffer);
   }
 
   Rml::TextureHandle LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) override {
     // Use the preset asset group to retrieve the texture by name
    
     String name        = filepath_stem(source);
-    AssetID texture_id = asset_group_get_id(renderer.group_id, name);
+    AssetID texture_id = asset_group_get_id(renderer_get_asset_group_id(), name);
     Texture& texture   = asset_group_get_texture(texture_id);
 
     // Write back the dimensions of the texture to Rml
@@ -244,7 +224,7 @@ public:
     sampler_desc.mag_filter = SG_FILTER_NEAREST;
 
     // Add it to the asset group
-    AssetID texture_id = asset_group_push_texture(renderer.group_id, image_desc, sampler_desc); 
+    AssetID texture_id = asset_group_push_texture(renderer_get_asset_group_id(), image_desc, sampler_desc); 
 
     // Done!
     
@@ -401,15 +381,18 @@ void ui_renderer_shutdown() {
   FREYA_LOG_INFO("Successfully shutdown the ui renderer");
 }
 
-void ui_renderer_set_asset_group(const AssetGroupID& group_id) {
-  s_renderer.group_id = group_id;
+void ui_renderer_prepare() {
+  FREYA_DEBUG_ASSERT(s_renderer.current_font, "MUST set a font before rendering UI elements!");
+
+  // Calculating the orthographic matrix
+
+  IVec2 size                    = window_get_size(s_renderer.window);
+  s_renderer.uniform.projection = mat4_ortho(0.0f, (f32)size.x, (f32)size.y, 0.0f);
 }
 
-bool ui_renderer_set_font(const String& font_name) {
-  const AssetID& font_id = asset_group_get_id(s_renderer.group_id, font_name);
-  Font* font             = asset_group_get_font(font_id);
-
-  return Rml::LoadFontFace(font->font_data, font->name, Rml::Style::FontStyle::Normal);
+bool ui_renderer_apply_font(const AssetID& font_id) {
+  s_renderer.current_font = asset_group_get_font(font_id);
+  return Rml::LoadFontFace(s_renderer.current_font->font_data, s_renderer.current_font->name, Rml::Style::FontStyle::Normal);
 }
 
 /// UI renderer functions

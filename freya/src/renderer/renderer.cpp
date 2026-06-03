@@ -3,6 +3,7 @@
 #include "freya_event.h"
 
 #include "shaders/default_pass_shader.h"
+#include "ui/ui_renderer_impl.h" 
 
 #include "sokol/sokol_gp.h"
 
@@ -26,6 +27,8 @@ struct Renderer {
 
   sg_pipeline pipeline;
   DynamicArray<UIContext*> ui_contexts;
+
+  AssetGroupID group_id = ASSET_CACHE_ID;
 };
 
 static Renderer s_renderer;
@@ -181,8 +184,8 @@ void renderer_init(Window* window) {
   PostProcessPassDesc pass_desc = {
     .frame_size    = window_get_size(s_renderer.window),
     .clear_color   = Color(0.1f, 0.1f, 0.1f, 1.0f),
-    .shader_id     = asset_group_push_shader(ASSET_CACHE_ID, *default_pass_shader_desc(sg_query_backend())),
-    .group_id      = ASSET_CACHE_ID,
+    .shader_id     = asset_group_push_shader(s_renderer.group_id, *default_pass_shader_desc(sg_query_backend())),
+    .group_id      = s_renderer.group_id,
     .samples_count = window_get_samples_count(s_renderer.window),
     .debug_name    = "Default",
   };
@@ -216,6 +219,9 @@ void renderer_init(Window* window) {
   event_register(EVENT_WINDOW_FRAMEBUFFER_RESIZED, window_resized_callback);
   event_register(EVENT_WINDOW_FULLSCREEN, window_resized_callback);
 
+  // UI renderer init
+  ui_renderer_init(s_renderer.window); 
+
   // Done!
   FREYA_LOG_INFO("Successfully initialized the renderer context");
 }
@@ -228,6 +234,9 @@ void renderer_shutdown() {
   }
   s_renderer.passes.clear();
 
+  // UI renderer shutdown
+  ui_renderer_shutdown();
+
   // GFX shutdown
 
   sgp_shutdown();
@@ -235,6 +244,14 @@ void renderer_shutdown() {
 
   // Done!
   FREYA_LOG_INFO("Successfully shutdown the renderer context");
+}
+
+void renderer_apply_asset_group(const AssetGroupID& group_id) {
+  s_renderer.group_id = group_id;
+}
+
+bool renderer_apply_font(const AssetID& font_id) {
+  return ui_renderer_apply_font(font_id);
 }
 
 void renderer_begin(Camera& camera) {
@@ -293,9 +310,11 @@ void renderer_end() {
 
   // Render the contexts
 
+  ui_renderer_prepare();
   for(auto& ctx : s_renderer.ui_contexts) {
     ui_context_render(ctx);
   }
+  s_renderer.ui_contexts.clear();
 
   // End the default post-processing pass if we are 
   // currently expected to walk that chain 
@@ -318,7 +337,7 @@ void renderer_end() {
     sg_bindings bindings = {};
 
     // Use the outputs of the previous pass
-  
+     
     PostProcessPass* previous = pass->previous;
     for(u32 i = 0; i < previous->outputs_count; i++) {
       bindings.views[i] = previous->outputs[i];
@@ -361,14 +380,6 @@ void renderer_end() {
   sg_commit();
 }
 
-void renderer_set_clear_color(const Color& color) {
-  s_renderer.color = color;
-}
-
-const Color& renderer_get_clear_color() {
-  return s_renderer.color;
-}
-
 void renderer_push_post_process(PostProcessPass* pass) {
   FREYA_DEBUG_ASSERT(pass, "");
 
@@ -403,6 +414,14 @@ PostProcessPass* renderer_pop_post_process() {
   return pass;
 }
 
+void renderer_set_clear_color(const Color& color) {
+  s_renderer.color = color;
+}
+
+const Color& renderer_get_clear_color() {
+  return s_renderer.color;
+}
+
 u32 renderer_get_post_process_count() {
   return (u32)s_renderer.passes.size();
 }
@@ -419,6 +438,10 @@ sg_swapchain renderer_get_default_swapchain() {
   swapchain.gl.framebuffer = 0; // The default framebuffer in GL is always 0
 
   return swapchain;
+}
+
+AssetGroupID& renderer_get_asset_group_id() {
+  return s_renderer.group_id;
 }
 
 void renderer_queue_texture(const Texture& texture, 

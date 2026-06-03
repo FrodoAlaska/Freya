@@ -58,7 +58,9 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/color.cpp
   ${FREYA_SRC_DIR}/renderer/post_process.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
-  ${FREYA_SRC_DIR}/renderer/ui_renderer.cpp
+
+  # Renderer/UI
+  ${FREYA_SRC_DIR}/renderer/ui/ui_renderer_impl.cpp
   
   # Renderer/post-process effects
   ${FREYA_SRC_DIR}/renderer/post_process_effects/blur_pass.cpp

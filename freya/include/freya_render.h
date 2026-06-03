@@ -424,17 +424,23 @@ FREYA_API void renderer_init(Window* window);
 /// Shutdown and destroy any resources created by the renderer.
 FREYA_API void renderer_shutdown();
 
+/// Apply the given `group_id` to be used internally in the renderer. 
+///
+/// @NOTE: If no custom `AssetGroupID` is applied, the renderer 
+/// will use the default `ASSET_CACHE_ID` group instead.
+FREYA_API void renderer_apply_asset_group(const AssetGroupID& group_id);
+
+/// Apply the internal font of the renderer to the font retrieved 
+/// from given asset ID `font_id`, returning `true` on success and `false` on failure.
+///
+/// @NOTE: This function _MUST_ be called before 
+FREYA_API bool renderer_apply_font(const AssetID& font_id);
+
 /// Setup the renderer for any proceeding render operation, using the given `cam`.
 FREYA_API void renderer_begin(Camera& camera);
 
 /// Sumbit the results of the renderer to the screen.
 FREYA_API void renderer_end();
-
-/// Set renderer's clear color to the given `color`.
-FREYA_API void renderer_set_clear_color(const Color& color);
-
-/// Retrieve the renderer's current clear color.
-FREYA_API const Color& renderer_get_clear_color();
 
 /// Push the given `pass` to the back of the current post-process chain.
 FREYA_API void renderer_push_post_process(PostProcessPass* pass);
@@ -445,11 +451,20 @@ FREYA_API void renderer_push_post_process(PostProcessPass* pass);
 /// at the end of the frame anymore.
 FREYA_API PostProcessPass* renderer_pop_post_process();
 
+/// Set renderer's clear color to the given `color`.
+FREYA_API void renderer_set_clear_color(const Color& color);
+
+/// Retrieve the renderer's current clear color.
+FREYA_API const Color& renderer_get_clear_color();
+
 /// Retrieve the number of created post-process passes
 FREYA_API u32 renderer_get_post_process_count();
 
 /// Retrieve a default platform-specific swapchain to give to any passes
 FREYA_API sg_swapchain renderer_get_default_swapchain();
+
+/// Retrieve the `AssetGroupID` the renderer is currently using.
+FREYA_API AssetGroupID& renderer_get_asset_group_id();
 
 /// Queue a texture to be drawn by the end of the frame, using
 /// the given `texture` at `src` and render into `dest`, rotated by `rotation`, tinted with `tint`.
@@ -496,32 +511,6 @@ FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 FREYA_API void renderer_queue_ui_context(UIContext* ui_ctx);
 
 /// Renderer functions
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// UI renderer functions
-
-/// Initialize the UI renderer.
-FREYA_API bool ui_renderer_init(Window* window);
-
-/// Shutdown and reclaim all the memory allocated by the UI renderer.
-FREYA_API void ui_renderer_shutdown();
-
-/// Set the internal asset group of the UI renderer to the given `group_id`.
-/// 
-/// @NOTE: This is essential, since the renderer will refer (by name, usually) 
-/// to already-loaded assets. This function _MUST_ be called at least once on initialization.
-FREYA_API void ui_renderer_set_asset_group(const AssetGroupID& group_id);
-
-/// Set the internal font of the UI renderer to the font retrieved 
-/// from the internal asset group of the UI renderer using the given `font_name`.
-///
-/// @NOTE: This function _MUST_ be called only after setting the internal 
-/// asset group of the UI renderer (see `ui_renderer_set_asset_group`).
-/// In addition, this function _MUST_ be called at least once on initialization.
-FREYA_API bool ui_renderer_set_font(const String& font_name);
-
-/// UI renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya

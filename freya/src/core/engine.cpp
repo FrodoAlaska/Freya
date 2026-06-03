@@ -52,7 +52,6 @@ static void start_shutdown() {
   audio_device_shutdown();
   asset_manager_shutdown();
   
-  ui_renderer_shutdown();
   renderer_shutdown();
 
   window_close(s_engine.window);
@@ -175,10 +174,8 @@ i32 engine_run(const AppDesc& desc) {
   // Asset manager init
   asset_manager_init();
 
-  // Renderers init 
-  
+  // Renderer init 
   renderer_init(s_engine.window);
-  ui_renderer_init(s_engine.window);
 
   // Audio init
   audio_device_init(nullptr);

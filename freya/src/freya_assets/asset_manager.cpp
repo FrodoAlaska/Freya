@@ -703,6 +703,10 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
 
   for(sizei i = 0; i < group.watchers.size(); i++) {
     if(!group.watchers[i]) {
+      if(!filesystem_exists(paths[i])) { // Avoid ghost directories
+        continue;
+      }
+
       FilePath dir = filepath_append(assets_path, paths[i]);
       FREYA_LOG_DEBUG("Watching directory \'%s\'", dir.c_str());
 

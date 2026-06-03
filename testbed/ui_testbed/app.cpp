@@ -22,9 +22,6 @@ static App s_app;
 /// App functions 
 
 bool app_init(const freya::Args& args, freya::Window* window) {
-  // App init
-  freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
-
   // Window init
   s_app.window = window;
 
@@ -49,18 +46,21 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 #endif
 
   freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
+  
+  // Renderer init
+  
+  freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
+  freya::renderer_apply_asset_group(s_app.group_id);
 
   // UI renderer init
-
-  freya::ui_renderer_set_asset_group(s_app.group_id);
-  freya::ui_renderer_set_font("HeavyDataNerdFont");
+  freya::renderer_apply_font(freya::asset_group_get_id(s_app.group_id, "HeavyDataNerdFont"));
 
   // UI context init
   s_app.ui_ctx = freya::ui_context_create("main", cam_desc.view_bounds);
 
   // UI document load
 
-  const freya::AssetID& cfg_id  = freya::asset_group_get_id(s_app.group_id, "main_menu");
+  const freya::AssetID& cfg_id  = freya::asset_group_get_id(s_app.group_id, "game_hud");
   const freya::UIConfig& ui_cfg = freya::asset_group_get_ui_config(cfg_id);
 
   s_app.ui_doc = freya::ui_document_load_from_memory(s_app.ui_ctx, ui_cfg);
