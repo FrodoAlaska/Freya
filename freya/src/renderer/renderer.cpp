@@ -310,7 +310,10 @@ void renderer_end() {
 
   // Render the contexts
 
-  ui_renderer_prepare();
+  if(!s_renderer.ui_contexts.empty()) {
+    ui_renderer_prepare();
+  }
+
   for(auto& ctx : s_renderer.ui_contexts) {
     ui_context_render(ctx);
   }
