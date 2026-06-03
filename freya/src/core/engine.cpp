@@ -70,8 +70,8 @@ static bool web_update_and_render(f64 dt, void* user_data) {
   // Physics world update
   physics_world_step();
 
-  // Update 
-  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, dt);
+  // Update (@NOTE: Using the given `dt` causes problems for some reason. So we just use the platform-specific one)
+  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, clock_get_delta_time());
 
   // Render
 

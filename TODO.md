@@ -13,6 +13,8 @@
 
 ### Major Systems
 
+- Update the project template again. Get help from the latest game. Especially the CMake and script stuff
+
 - Audio
     - OpenAL is a bloated mess that needs to be completely removed. Please use MiniAudio instead. Thanks.
 
