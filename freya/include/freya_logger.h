@@ -170,6 +170,7 @@ FREYA_API void logger_log(const LogLevel lvl, const char* msg, ...);
 #else 
   #define FREYA_ASSERT(expr)
   #define FREYA_ASSERT_LOG(expr, msg)
+  #define FREYA_DEBUG_ASSERT(expr, msg)
 #endif // FREYA_ASSERTS_ENABLED
 
 /// Asserts
