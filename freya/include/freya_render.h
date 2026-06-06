@@ -67,6 +67,8 @@ struct PostProcessPassDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 /// PostProcessPass
 struct PostProcessPass {
+  Window* window = nullptr;
+
   OnPassPrepareFn prepare_func = nullptr;
   OnPassResizeFn resize_func   = nullptr;
 
@@ -301,7 +303,14 @@ struct ParticleEmitter {
 ///---------------------------------------------------------------------------------------------------------------------
 /// PostProcess functions
 
-/// Allocate and initialize a `PostProcessPass`, using the information given from `desc`.
+/// Allocate a `PostProcessPass` object.
+FREYA_API PostProcessPass* post_process_allocate(Window* window);
+
+/// Initialize a given `pass` post-process object using the information given from `desc`.
+FREYA_API void post_process_init(PostProcessPass* pass, const PostProcessPassDesc& desc);
+
+/// Allocate and initialize a `PostProcessPass`, using the information given from `desc`, 
+/// effectively the same as calling both `post_process_allocate` and `post_process_init`.
 FREYA_API PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& desc);
 
 /// Create a pre-defined blur pass, using the given `window`.

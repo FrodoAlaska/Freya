@@ -66,7 +66,6 @@ void app_update(freya::f32 dt) {
 
   if(freya::input_key_pressed(freya::KEY_F1)) {
     freya::gui_toggle_active();
-    freya::physics_world_toggle_debug();
   }
 
   // Update
@@ -85,11 +84,6 @@ void app_render() {
   freya::renderer_queue_quad(transform, freya::COLOR_WHITE);
 
   freya::renderer_end();
-
-  // UI render
-  
-  // freya::ui_renderer_begin();
-  // freya::ui_renderer_end();
 }
 
 void app_render_gui() {

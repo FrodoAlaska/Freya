@@ -1,4 +1,5 @@
 #include "freya_math.h"
+#include "freya_timer.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -73,6 +74,8 @@ static bool point_is_valid(PoissonDisk& disk, DynamicArray<Vec2>& out_points, co
 /// PoissonDisk functions
 
 void poisson_disk_calculate(const PoissonDiskDesc& desc, DynamicArray<Vec2>& out_points) {
+  FREYA_PROFILE_FUNCTION();
+
   // Poisson state init 
 
   PoissonDisk disk;

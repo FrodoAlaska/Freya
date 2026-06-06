@@ -10,14 +10,24 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// PostProcess functions
 
-PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& desc) {
-  FREYA_ASSERT_LOG(desc.attachments.size() < RENDER_TARGETS_MAX, "Cannot add more than RENDER_TARGETS_MAX attachments");
+PostProcessPass* post_process_allocate(Window* window) {
+  // Allocate the pass
 
+  PostProcessPass* pass = new PostProcessPass{};
+  pass->window          = window;
+
+  pass->attachments.reserve(RENDER_TARGETS_MAX);
+
+  // Done!
+  return pass;
+}
+
+void post_process_init(PostProcessPass* pass, const PostProcessPassDesc& desc) {
+  FREYA_DEBUG_ASSERT(pass, "Invalid PostProcessPass object passed to `post_process_init");
+  FREYA_DEBUG_ASSERT(desc.attachments.size() < RENDER_TARGETS_MAX, "Cannot add more than RENDER_TARGETS_MAX attachments");
   //
   // Post-process init
   //
-
-  PostProcessPass* pass = new PostProcessPass{};
 
   pass->prepare_func = desc.prepare_func;
   pass->resize_func  = desc.resize_func;
@@ -146,8 +156,12 @@ PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& 
   pipe_desc.layout.attrs[1].format = SG_VERTEXFORMAT_FLOAT2; // Texture coords
 
   pass->pipeline = sg_make_pipeline(pipe_desc);
+}
 
-  // Done!
+PostProcessPass* post_process_create(Window* window, const PostProcessPassDesc& desc) {
+  PostProcessPass* pass = post_process_allocate(window);
+  post_process_init(pass, desc);
+
   return pass;
 }
 
@@ -164,10 +178,6 @@ PostProcessPass* post_process_define_vignette(Window* window, const f32 intensit
 }
 
 void post_process_destroy(PostProcessPass* pass) {
-  if(!pass) {
-    return;
-  }
-
   pass->attachments.clear();
   delete pass;
 }
