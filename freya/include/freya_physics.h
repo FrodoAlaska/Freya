@@ -80,6 +80,9 @@ enum ColliderType {
   /// Identifies a capsule collider.
   COLLIDER_CAPSULE,
   
+  /// Identifies a segment collider.
+  COLLIDER_SEGMENT,
+  
   /// Identifies a polygon collider.
   ///
   /// @NOTE: This type will be set for creating either 
@@ -553,6 +556,9 @@ FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& de
 ///
 /// @NOTE: Each entry in the `points` array should be a value between [-1, 1], since they are more like vertices.
 FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const DynamicArray<Vec2>& points, const f32 radius);
+
+/// Add a segment collider to `body` using the given `point1` and `point2.
+FREYA_API ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& point1, const Vec2& point2);
 
 /// Test the given `point` against `collider`.
 FREYA_API bool collider_test_point(ColliderID& collider, const Vec2& point);

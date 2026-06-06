@@ -704,6 +704,20 @@ ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const 
   return b2CreatePolygonShape(body, &shape_def, &shape);
 }
 
+ColliderID collider_create(PhysicsBodyID& body, const ColliderDesc& desc, const Vec2& point1, const Vec2& point2) {
+  // Shape def init
+  b2ShapeDef shape_def = define_shape_def(desc);
+
+  // Shape init
+  
+  b2Segment shape;
+  shape.point1 = vec_to_b2vec(point1);
+  shape.point2 = vec_to_b2vec(point2);
+  
+  // Done!
+  return b2CreateSegmentShape(body, &shape_def, &shape);
+}
+
 bool collider_test_point(ColliderID& collider, const Vec2& point) {
   return b2Shape_TestPoint(collider, vec_to_b2vec(point));
 }
@@ -739,6 +753,8 @@ ColliderType collider_get_type(ColliderID& collider) {
       return COLLIDER_CIRCLE;
     case b2_capsuleShape:
       return COLLIDER_CAPSULE;
+    case b2_segmentShape:
+      return COLLIDER_SEGMENT;
     case b2_polygonShape:
       return COLLIDER_POLYGON;
     default:
