@@ -48,20 +48,32 @@ bool app_init(const freya::Args& args, freya::Window* window) {
  
   // Entity1 init
 
-  s_app.entt1 = freya::entity_create(s_app.ecs, freya::Vec2(100.0f), freya::Vec2(128.0f));
+  s_app.entt1 = freya::entity_create(s_app.ecs, freya::Vec2(100.0f), freya::Vec2(32.0f));
   freya::entity_add_sprite(s_app.ecs, s_app.entt1, {}, freya::COLOR_WHITE);
 
   freya::PhysicsBodyDesc body_desc = {
-    .type = freya::PHYSICS_BODY_DYNAMIC,
+    .type           = freya::PHYSICS_BODY_DYNAMIC,
+    .rotation_fixed = true,
   };
 
   freya::DynamicBodyComponent& body = freya::entity_add_dynamic_body(s_app.ecs, s_app.entt1, body_desc);
-  freya::collider_create(body.body, freya::ColliderDesc{}, freya::Vec2(0.0f), 32.0f);
+  freya::collider_create(body.body, freya::ColliderDesc{}, freya::Vec2(32.0f));
 
   // Entity2 init
 
   freya::Entity entt2 = freya::entity_create(s_app.ecs, freya::Vec2(200.0f), freya::Vec2(64.0f));
   freya::entity_add_sprite(s_app.ecs, entt2, {}, freya::COLOR_RED);
+  
+  freya::StaticBodyComponent& body2 = freya::entity_add_static_body(s_app.ecs, entt2, body_desc);
+
+  freya::DynamicArray<freya::Vec2> segments = {
+    freya::Vec2(0.0f), 
+    freya::Vec2(16.0f, 0.0f),
+    freya::Vec2(32.0f, 0.0f),
+    freya::Vec2(48.0f, 0.0f),
+    freya::Vec2(64.0f, 0.0f),
+  };
+  freya::chain_create(body2.body, freya::ChainDesc{}, segments);
 
   // Done!
   return true;
@@ -87,11 +99,29 @@ void app_update(freya::f32 dt) {
     freya::gui_toggle_active();
   }
 
+  // Move the entity
+
+  freya::Vec2 direction = freya::Vec2(0.0f);
+
+  if(freya::input_key_down(freya::KEY_W)) {
+    direction.y = -1.0f;
+  }
+  else if(freya::input_key_down(freya::KEY_S)) {
+    direction.y = 1.0f;
+  }
+  
+  if(freya::input_key_down(freya::KEY_A)) {
+    direction.x = -1.0f;
+  }
+  else if(freya::input_key_down(freya::KEY_D)) {
+    direction.x = 1.0f;
+  }
+
+  freya::DynamicBodyComponent& body = freya::entity_get_component<freya::DynamicBodyComponent>(s_app.ecs, s_app.entt1);
+  freya::physics_body_set_linear_velocity(body.body, freya::Vec2(150.0f) * direction);
+
   // Update the ECS 
   freya::entity_world_update(s_app.ecs, dt);
-
-  // Move the camera
-  freya::camera_move_top_down(s_app.camera, freya::Vec2(150.0f), dt);
 }
 
 void app_render() {

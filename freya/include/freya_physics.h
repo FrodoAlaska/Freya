@@ -93,15 +93,21 @@ enum ColliderType {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// PhysicsBody
+/// PhysicsBodyID
 using PhysicsBodyID = b2BodyId;
-/// PhysicsBody
+/// PhysicsBodyID
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// Collider
+/// ColliderID
 using ColliderID    = b2ShapeId;
-/// Collider
+/// ColliderID
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// ChainID
+using ChainID       = b2ChainId;
+/// ChainID
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -194,6 +200,33 @@ struct ColliderCastDesc {
   PhysicsObjectLayer mask_layers = (PhysicsObjectLayer)(PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1);
 };
 /// ColliderCastDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// ChainDesc
+struct ChainDesc {
+  /// Enable sensor events for the segments in this chain. 
+  ///
+  /// @NOTE: By default, this is set to `true`.
+  bool enable_sensor_events      = true;
+
+  /// Indicates whether this chain is a loop, connecting 
+  /// the first segment to the last. 
+  ///
+  /// @NOTE: By default, this is set to `false`.
+  bool is_loop                   = false;
+
+  /// The layer that the ray will be generated in.
+  ///
+  /// @NOTE: By default, this value is set to `PHYSICS_OBJECT_LAYER_0`.
+  PhysicsObjectLayer layer       = PHYSICS_OBJECT_LAYER_0;
+
+  /// The ray will only collide with bodies in those layers.
+  ///
+  /// @NOTE: By default, this value is set to `PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1`.
+  PhysicsObjectLayer mask_layers = (PhysicsObjectLayer)(PHYSICS_OBJECT_LAYER_0 | PHYSICS_OBJECT_LAYER_1);
+};
+/// ChainDesc
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -589,6 +622,33 @@ FREYA_API ColliderDesc collider_get_desc(ColliderID& collider);
 FREYA_API PhysicsBodyID collider_get_body(ColliderID& collider);
 
 /// Collider functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// Chain functions
+
+/// Add a chain collider to `body` using the information in `desc` with `points` being 
+/// the number of segments in this chain.
+///
+/// @NOTE: The number of points MUST be more than 4. 
+FREYA_API ChainID chain_create(PhysicsBodyID& body, const ChainDesc& desc, const DynamicArray<Vec2>& points); 
+
+/// Set the friction of the given `chain` to `friction`.
+FREYA_API void chain_set_friction(ChainID& chain, const f32 friction);
+
+/// Set the restitution of the given `chain` to `restitution`.
+FREYA_API void chain_set_restitution(ChainID& chain, const f32 restitution);
+
+/// Retrieve the friction of the given `chain` collider.
+FREYA_API f32 chain_get_friction(ChainID& chain);
+
+/// Retrieve the restitution of the given `chain` collider.
+FREYA_API f32 chain_get_restitution(ChainID& chain);
+
+/// Check if the given `chain` is valid or not.
+FREYA_API bool chain_is_valid(ChainID& chain);
+
+/// Chain functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya

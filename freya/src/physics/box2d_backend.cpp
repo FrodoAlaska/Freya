@@ -782,6 +782,62 @@ PhysicsBodyID collider_get_body(ColliderID& collider) {
 /// Collider functions
 ///---------------------------------------------------------------------------------------------------------------------
 
+///---------------------------------------------------------------------------------------------------------------------
+/// Chain functions
+
+ChainID chain_create(PhysicsBodyID& body, const ChainDesc& desc, const DynamicArray<Vec2>& points) {
+  FREYA_DEBUG_ASSERT((points.size() >= 4), "A chain collider must have at least 4 points");
+
+  // Def init
+
+  b2ChainDef def = b2DefaultChainDef();
+
+  def.enableSensorEvents = desc.enable_sensor_events;
+  def.isLoop             = desc.is_loop;
+
+  // Points init
+
+  DynamicArray<b2Vec2> b2points(points.size());
+  for(sizei i = 0; i < points.size(); i++) {
+    b2points[i] = vec_to_b2vec(points[i]);
+  }
+  
+  def.count  = (i32)points.size(); 
+  def.points = b2points.data(); 
+ 
+  // Filters init
+  
+  def.filter              = b2DefaultFilter();
+  def.filter.categoryBits = (u64)desc.layer;
+  def.filter.maskBits     = (u64)desc.mask_layers;
+
+  // Done!
+  return b2CreateChain(body, &def);
+}
+
+void chain_set_friction(ChainID& chain, const f32 friction) {
+  b2Chain_SetFriction(chain, friction);
+}
+
+void chain_set_restitution(ChainID& chain, const f32 restitution) {
+  b2Chain_SetRestitution(chain, restitution);
+}
+
+f32 chain_get_friction(ChainID& chain) {
+  return b2Chain_GetFriction(chain);
+}
+
+f32 chain_get_restitution(ChainID& chain) {
+  return b2Chain_GetRestitution(chain);
+}
+
+bool chain_is_valid(ChainID& chain) {
+  return b2Chain_IsValid(chain);
+}
+
+/// Chain functions
+///---------------------------------------------------------------------------------------------------------------------
+
 } // End of freya
 
 //////////////////////////////////////////////////////////////////////////

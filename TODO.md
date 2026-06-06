@@ -2,10 +2,6 @@
 
 ### Components
 
-- Tilemap
-    - Tilemap colliders? Maybe using chain shapes?
-    - Optimize the tilemap
-
 - ECS 
     - Camera controller component
     - Improve the UI situation to make it more compatibale with the ECS
