@@ -100,7 +100,7 @@ void app_render_gui() {
   // Editor
    
   freya::gui_begin_panel("Editor");
-  freya::gui_edit_camera("Camera", &s_app.camera);
+  freya::gui_edit_entity_world("Main", s_app.world);
   freya::gui_end_panel();
 
   freya::gui_end();

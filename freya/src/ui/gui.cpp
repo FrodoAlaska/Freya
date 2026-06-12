@@ -823,6 +823,28 @@ void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
 
     ImGui::TreePop();
   }
+ 
+  // Camera
+
+  if(entity_has_component<Camera>(world, entt)) {
+    if(ImGui::TreeNode("Camera")) {
+      Camera& cam = entity_get_component<Camera>(world, entt);
+      gui_edit_camera("", &cam);
+
+      ImGui::TreePop();
+    }
+  }
+
+  // Tag
+ 
+  if(entity_has_component<TagComponent>(world, entt)) {
+    if(ImGui::TreeNode("Tag")) {
+      TagComponent& tag = entity_get_component<TagComponent>(world, entt);
+      ImGui::InputText("Tag", &tag.tag);
+
+      ImGui::TreePop();
+    }
+  }
 
   // Dynamic body
 
@@ -932,6 +954,28 @@ void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
 
       ImGui::TreePop();
     }
+  }
+
+  ImGui::PopID(); 
+}
+
+void gui_edit_entity_world(const char* name, EntityWorld& world) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+
+  auto view = world.view<EntityID>();
+  u32 count = 0;
+
+  for(auto& entt_id : view) {
+    String name = ("Entity " + std::to_string(count));
+    Entity entt = Entity(entt_id);
+    
+    if(entity_has_component<TagComponent>(world, entt)) {
+      name = entity_get_component_const<TagComponent>(world, entt).tag;
+    }
+    
+    gui_edit_entity(name.c_str(), world, entt);
+    count++;
   }
 
   ImGui::PopID(); 

@@ -111,6 +111,14 @@ struct Entity {
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
+/// TagComponent
+struct TagComponent {
+  String tag;
+};
+/// TagComponent
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
 /// SpriteComponent
 struct SpriteComponent {
   /// The texture that will 
@@ -234,6 +242,9 @@ template<typename Comp, typename... Args>
 FREYA_API Comp& entity_add_component(EntityWorld& world, Entity& entt, Args&&... args) {
   return world.emplace<Comp>(entt.get_id(), std::forward<Args>(args)...);
 }
+
+/// A helper function to add a tag to `entt` using the given `tag`.
+FREYA_API TagComponent& entity_add_tag(EntityWorld& world, Entity& entt, const String& tag);
 
 /// A helper function to add an audio source to `entt`, using the information 
 /// in `desc`, and the `audio_buffer_id` as the main buffer.

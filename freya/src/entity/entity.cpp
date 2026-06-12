@@ -245,6 +245,10 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
   entt.invalidate();
 }
 
+TagComponent& entity_add_tag(EntityWorld& world, Entity& entt, const String& tag) {
+  return world.emplace<TagComponent>(entt.get_id(), tag);
+}
+
 AudioSourceID& entity_add_audio_source(EntityWorld& world, 
                                        Entity& entt, 
                                        AudioSourceDesc& desc, 
