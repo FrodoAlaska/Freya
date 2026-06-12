@@ -37,15 +37,23 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // Camera init
   
+  // Assets init
+  s_app.group_id = freya::asset_group_create("app_assets");
+
+  // Camera init 
+
+  freya::Entity cam_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
+  
   freya::CameraDesc cam_desc = {
-    .position    = freya::Vec2(0.0f),
     .view_bounds = freya::window_get_size(s_app.window), 
     .zoom        = 1.0f,
   };
-  freya::camera_create(s_app.camera, cam_desc);
+  freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
 
-  // Assets init
-  s_app.group_id = freya::asset_group_create("app_assets");
+  // Entity init
+
+  freya::Entity entt = freya::entity_create(s_app.world, freya::Vec2(10.0f), freya::Vec2(32.0f));
+  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_RED);
 
   // Done!
   return true;
@@ -73,18 +81,6 @@ void app_update(freya::f32 dt) {
 
   // Update
   freya::entity_world_update(s_app.world, dt);
-  
-  // 2D render
-
-  freya::renderer_begin(s_app.camera);
-
-  freya::Transform transform = {
-    .position = freya::Vec2(10.0f),
-    .scale    = freya::Vec2(32.0f),
-  };
-  freya::renderer_queue_quad(transform, freya::COLOR_WHITE);
-
-  freya::renderer_end();
 }
 
 void app_render_gui() {

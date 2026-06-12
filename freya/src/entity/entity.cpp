@@ -86,91 +86,6 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
   }
 }
 
-void entity_world_render(const EntityWorld& world) {
-  FREYA_PROFILE_FUNCTION();
-  
-  // Tile sprites
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(TileSpriteComponent)");
-
-    auto view = world.view<TileSpriteComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform        = view.get<Transform>(entt);
-      const TileSpriteComponent& sprite = view.get<TileSpriteComponent>(entt);
-
-      // Setup the dest rect
-
-      Rect2D dest = {
-        .size     = sprite.source_rect.size * transform.scale,
-        .position = transform.position,
-      };
-
-      // Render a regular quad
-      renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
-    }
-  }
-
-  // Sprites
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(SpriteComponent)");
-
-    auto view = world.view<SpriteComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform    = view.get<Transform>(entt);
-      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
-
-      // Render a texture (if it's a valid)
-
-      if(sprite.texture.id != -1) {
-        renderer_queue_texture(sprite.texture, transform, sprite.color);
-        continue;
-      }
-
-      // Render a regular quad
-      renderer_queue_quad(transform, sprite.color);
-    }
-  }
-  
-  // Animations
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(AnimationComponent)");
-
-    auto view = world.view<AnimationComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform     = view.get<Transform>(entt);
-      const AnimationComponent& anim = view.get<AnimationComponent>(entt);
-
-      renderer_queue_animation(anim.animation, transform, anim.tint);
-    }
-  }
-  
-  // Animators
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(Animator)");
-
-    auto view = world.view<Animator, Transform>();
-    for(auto entt : view) {
-      const Transform& transform = view.get<Transform>(entt);
-      const Animator& anim       = view.get<Animator>(entt);
-
-      if(!anim.animations.empty()) {
-        renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
-      }
-    }
-  }
-
-  // ParticleEmitters
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_render(ParticleEmitter)");
-
-    auto view = world.view<ParticleEmitter>();
-    for(auto entt : view) {
-      const ParticleEmitter& emitter = view.get<ParticleEmitter>(entt);
-      renderer_queue_particles(emitter);
-    }
-  }
-}
-
 /// EntityWorld functions
 /// ----------------------------------------------------------------------
 
@@ -243,6 +158,16 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
   
   world.destroy(entt.get_id()); 
   entt.invalidate();
+}
+
+Camera& entity_add_camera(EntityWorld& world, Entity& entt, CameraDesc& desc) {
+  Transform& transform = world.get<Transform>(entt.get_id());
+  desc.position        = transform.position;
+
+  Camera& camera = world.emplace<Camera>(entt.get_id()); 
+  camera_create(camera, desc);
+
+  return camera;
 }
 
 TagComponent& entity_add_tag(EntityWorld& world, Entity& entt, const String& tag) {

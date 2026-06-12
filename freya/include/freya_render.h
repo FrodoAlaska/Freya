@@ -416,9 +416,6 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 
-/// Queue a UI context `ui_ctx`.
-FREYA_API void renderer_queue_ui_context(UIContext* ui_ctx);
-
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------
 

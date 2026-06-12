@@ -31,6 +31,8 @@ struct Renderer {
 
   AssetGroupID group_id = ASSET_CACHE_ID;
   EntityWorld* world    = nullptr;
+
+  Camera* main_cam = nullptr;
 };
 
 static Renderer s_renderer;
@@ -263,16 +265,10 @@ void renderer_sumbit_world(EntityWorld* world) {
 void renderer_prepare() {
   FREYA_DEBUG_ASSERT(s_renderer.world, "Invalid EntityWorld found in renderer");
   FREYA_PROFILE_FUNCTION();
-}
-
-void renderer_commit() {
-  FREYA_PROFILE_FUNCTION();
-}
-
-void renderer_begin(Camera& camera) {
-  FREYA_PROFILE_FUNCTION();
 
   // Reset the renderer's state 
+  
+  EntityWorld* world = s_renderer.world;
 
   IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
   IVec2 size       = window_get_size(s_renderer.window);
@@ -280,16 +276,36 @@ void renderer_begin(Camera& camera) {
   // SGP begin
 
   sgp_begin(size.x, size.y);
-  sgp_project(0.0f, (f32)camera.view_bounds.x, 0.0f, (f32)camera.view_bounds.y);
+  sgp_project(0.0f, (f32)frame_size.x, 0.0f, (f32)frame_size.y);
   sgp_set_blend_mode(SGP_BLENDMODE_BLEND);
 
-  // Pusing the camera transformation
+  // 
+  // Gather the frame data 
+  //
 
-  sgp_push_transform();
+  // Update the camera data
+  {
+    auto view = world->view<Camera>();
+    for(auto& entt : view) {
+      s_renderer.main_cam = &view.get<Camera>(entt);
+      break;
+    }
+  }
 
-  sgp_translate(camera.position.x, camera.position.y);
-  sgp_rotate(camera.rotation);
-  sgp_scale(camera.zoom, camera.zoom);
+  // Projecting the scene using the camera if it was found 
+
+  if(s_renderer.main_cam) {
+    sgp_project(0.0f, (f32)s_renderer.main_cam->view_bounds.x, 0.0f, (f32)s_renderer.main_cam->view_bounds.y);
+    sgp_push_transform();
+
+    sgp_translate(s_renderer.main_cam->position.x, s_renderer.main_cam->position.y);
+    sgp_rotate(s_renderer.main_cam->rotation);
+    sgp_scale(s_renderer.main_cam->zoom, s_renderer.main_cam->zoom);
+  }
+
+  // 
+  // Prepare the frame 
+  //
 
   // Clear
 
@@ -302,20 +318,108 @@ void renderer_begin(Camera& camera) {
   
   if(s_renderer.passes.size() > 1) {
     PostProcessPass* pass = s_renderer.passes[0];
+
     sg_begin_pass(&pass->pass);
     sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
   }
   else {
     swapchain_pass_prepare();
   }
+
+  // 
+  // Gather the draw calls 
+  //
+ 
+  // Tile sprites
+  {
+    auto view = world->view<TileSpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform        = view.get<Transform>(entt);
+      const TileSpriteComponent& sprite = view.get<TileSpriteComponent>(entt);
+
+      // Setup the dest rect
+
+      Rect2D dest = {
+        .size     = sprite.source_rect.size * transform.scale,
+        .position = transform.position,
+      };
+
+      // Render a regular quad
+      renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
+    }
+  }
+
+  // Sprites
+  {
+    auto view = world->view<SpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform    = view.get<Transform>(entt);
+      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
+
+      // Render a texture (if it's a valid)
+
+      if(sprite.texture.id != -1) {
+        renderer_queue_texture(sprite.texture, transform, sprite.color);
+        continue;
+      }
+
+      // Render a regular quad
+      renderer_queue_quad(transform, sprite.color);
+    }
+  }
+  
+  // Animations
+  {
+    auto view = world->view<AnimationComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform     = view.get<Transform>(entt);
+      const AnimationComponent& anim = view.get<AnimationComponent>(entt);
+
+      renderer_queue_animation(anim.animation, transform, anim.tint);
+    }
+  }
+  
+  // Animators
+  {
+    auto view = world->view<Animator, Transform>();
+    for(auto entt : view) {
+      const Transform& transform = view.get<Transform>(entt);
+      const Animator& anim       = view.get<Animator>(entt);
+
+      if(!anim.animations.empty()) {
+        renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
+      }
+    }
+  }
+
+  // ParticleEmitters
+  {
+    auto view = world->view<ParticleEmitter>();
+    for(auto entt : view) {
+      const ParticleEmitter& emitter = view.get<ParticleEmitter>(entt);
+      renderer_queue_particles(emitter);
+    }
+  }
+
+  // UIContext
+  {
+    auto view = world->view<UIContext*>();
+    for(auto entt : view) {
+      UIContext* ctx = view.get<UIContext*>(entt);
+      s_renderer.ui_contexts.emplace_back(ctx);
+    }
+  }
 }
 
-void renderer_end() {
+void renderer_commit() {
   FREYA_PROFILE_FUNCTION();
   
   // Reset the painter's state
-  
-  sgp_pop_transform();
+
+  if(s_renderer.main_cam) {
+    sgp_pop_transform();
+  }
+
   sgp_reset_blend_mode();
 
   // End the painter 
@@ -332,7 +436,6 @@ void renderer_end() {
   for(auto& ctx : s_renderer.ui_contexts) {
     ui_context_render(ctx);
   }
-  s_renderer.ui_contexts.clear();
 
   // End the default post-processing pass if we are 
   // currently expected to walk that chain 
@@ -396,6 +499,11 @@ void renderer_end() {
 
   // Done with this frame... 
   sg_commit();
+
+  // Clean the slate
+ 
+  s_renderer.main_cam = nullptr;
+  s_renderer.ui_contexts.clear();
 }
 
 void renderer_push_post_process(PostProcessPass* pass) {
@@ -524,7 +632,6 @@ void renderer_queue_triangle(const Vec2& p1, const Vec2& p2, const Vec2& p3, con
 
 void renderer_queue_triangles_strip(const Transform& transform, const DynamicArray<Vec2>& vertices, const Color& color) {
   sgp_set_color(color.r, color.g, color.b, color.a);
-
   sgp_push_transform();
 
   sgp_translate(transform.position.x, transform.position.y);
@@ -539,7 +646,6 @@ void renderer_queue_triangles_strip(const Transform& transform, const DynamicArr
   }
 
   sgp_draw_filled_triangles_strip(sgp_points.data(), vertices.size());
-
   sgp_pop_transform();
 }
 
@@ -564,10 +670,6 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
 
     renderer_queue_quad(emitter.transforms[i], emitter.color);
   }
-}
-
-void renderer_queue_ui_context(UIContext* ui_ctx) {
-  s_renderer.ui_contexts.emplace_back(ui_ctx);
 }
 
 /// Renderer functions

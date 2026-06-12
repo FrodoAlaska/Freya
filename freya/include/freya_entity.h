@@ -214,12 +214,6 @@ FREYA_API void entity_world_clear(EntityWorld& world);
 /// @NOTE: This function _MUST_ be called only once per frame. 
 FREYA_API void entity_world_update(EntityWorld& world, const f32 delta_time);
 
-/// Render all the components of `world` in a data-oriented manner.
-///
-/// @NOTE: This function _MUST_ be called only once per frame after calling 
-/// `renderer_begin` and _BEFORE_ `renderer_end`.
-FREYA_API void entity_world_render(const EntityWorld& world);
-
 /// EntityWorld functions
 /// ----------------------------------------------------------------------
 
@@ -242,6 +236,13 @@ template<typename Comp, typename... Args>
 FREYA_API Comp& entity_add_component(EntityWorld& world, Entity& entt, Args&&... args) {
   return world.emplace<Comp>(entt.get_id(), std::forward<Args>(args)...);
 }
+
+/// A helper function to add a camera to `entt`, using the information in `desc`.
+///
+/// @NOTE: The position of the given `desc` will be set inside the function
+/// using the current position of `entt`.
+/// However, the rest of the memebers of `desc` must be filled by the caller.
+FREYA_API Camera& entity_add_camera(EntityWorld& world, Entity& entt, CameraDesc& desc);
 
 /// A helper function to add a tag to `entt` using the given `tag`.
 FREYA_API TagComponent& entity_add_tag(EntityWorld& world, Entity& entt, const String& tag);

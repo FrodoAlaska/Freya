@@ -13,6 +13,7 @@
     - Dynamic 2D lighting
 
 - Misc.
+    - Async asset loading using `sokol_fetch`
     - Test more shit with compute shaders. Particles, post-processing, and other effects
     - A more detecated LUA layer
     - Memory arenas and custom allocaters
