@@ -60,18 +60,18 @@ using Args = DynamicArray<String>;
 
 /// A function callback called once upon the application's initialization, returning 
 /// `true` on success, and `false` otherwise.
-using AppInitFn       = std::function<bool(const Args& args, Window* window)>;
+using AppInitFn     = std::function<bool(const Args& args, Window* window)>;
 
 /// A function callback called once before the end of the application.
-using AppShutdownFn   = std::function<void()>;
+using AppShutdownFn = std::function<void()>;
 
 /// A function callback called every frame before rendering, passing 
 /// in the delta time `dt` of the application.
-using AppUpdateFn     = std::function<void(f32 dt)>;
+using AppUpdateFn   = std::function<void(f32 dt)>;
 
-/// A function callback called every frame after update, used for 
-/// rendering purposes of the application.
-using AppRenderPassFn = std::function<void()>;
+/// A function callback called every frame after rendering, 
+/// allowing the application to sumbit GUI render commands.
+using AppGUIFn      = std::function<void()>;
 
 /// App callbacks
 ///---------------------------------------------------------------------------------------------------------------------
@@ -82,10 +82,8 @@ struct AppDesc {
   AppInitFn init_fn         = nullptr;
   AppShutdownFn shutdown_fn = nullptr;
   AppUpdateFn update_fn     = nullptr;
+  AppGUIFn gui_fn           = nullptr;
   
-  AppRenderPassFn render_fn     = nullptr;
-  AppRenderPassFn render_gui_fn = nullptr;
- 
   String window_title;
   i32 window_width, window_height;
 

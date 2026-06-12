@@ -1,8 +1,8 @@
 #pragma once
 
-#include "freya_render.h"
 #include "freya_physics.h"
 #include "freya_noise.h"
+#include "freya_animation.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -12,6 +12,12 @@ namespace freya { // Start of freya
 /// Forward declarations
 
 struct TileMap;
+
+struct CameraDesc;
+struct Camera;
+
+struct ParticleEmitterDesc;
+struct ParticleEmitter;
 
 /// Forward declarations
 /// ----------------------------------------------------------------------

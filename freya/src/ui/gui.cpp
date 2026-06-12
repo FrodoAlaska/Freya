@@ -3,6 +3,7 @@
 #include "freya_memory.h"
 #include "freya_input.h"
 #include "freya_event.h"
+#include "freya_render.h"
 
 #include <GLFW/glfw3.h>
 

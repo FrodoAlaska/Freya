@@ -5,9 +5,7 @@ int main(int argc, char* argv[]) {
     .init_fn     = app_init,
     .shutdown_fn = app_shutdown,
     .update_fn   = app_update, 
-    
-    .render_fn     = app_render, 
-    .render_gui_fn = app_render_gui, 
+    .gui_fn      = app_render_gui, 
 
     .window_title  = "Freya Testbed", 
     .window_width  = 1600, 

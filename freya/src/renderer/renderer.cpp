@@ -1,6 +1,7 @@
 #include "freya_render.h"
 #include "freya_logger.h"
 #include "freya_event.h"
+#include "freya_entity.h"
 
 #include "shaders/default_pass_shader.h"
 #include "ui/ui_renderer_impl.h" 
@@ -29,6 +30,7 @@ struct Renderer {
   DynamicArray<UIContext*> ui_contexts;
 
   AssetGroupID group_id = ASSET_CACHE_ID;
+  EntityWorld* world    = nullptr;
 };
 
 static Renderer s_renderer;
@@ -252,6 +254,19 @@ void renderer_apply_asset_group(const AssetGroupID& group_id) {
 
 bool renderer_apply_font(const AssetID& font_id) {
   return ui_renderer_apply_font(font_id);
+}
+
+void renderer_sumbit_world(EntityWorld* world) {
+  s_renderer.world = world;
+}
+
+void renderer_prepare() {
+  FREYA_DEBUG_ASSERT(s_renderer.world, "Invalid EntityWorld found in renderer");
+  FREYA_PROFILE_FUNCTION();
+}
+
+void renderer_commit() {
+  FREYA_PROFILE_FUNCTION();
 }
 
 void renderer_begin(Camera& camera) {

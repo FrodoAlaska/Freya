@@ -10,7 +10,7 @@ struct App {
   freya::Camera camera;
   freya::AssetGroupID group_id;
 
-  freya::EntityWorld ecs; 
+  freya::EntityWorld world; 
 };
 
 static App s_app;
@@ -21,8 +21,10 @@ static App s_app;
 /// App functions 
 
 bool app_init(const freya::Args& args, freya::Window* window) {
-  // App init
+  // Renderer init
+  
   freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
+  freya::renderer_sumbit_world(&s_app.world);
 
   // Window init
   s_app.window = window;
@@ -50,6 +52,7 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 }
 
 void app_shutdown() {
+  freya::entity_world_clear(s_app.world);
   freya::asset_group_destroy(s_app.group_id);
   freya::gui_shutdown();
 }
@@ -69,10 +72,8 @@ void app_update(freya::f32 dt) {
   }
 
   // Update
-  freya::entity_world_update(s_app.ecs, dt);
-}
-
-void app_render() {
+  freya::entity_world_update(s_app.world, dt);
+  
   // 2D render
 
   freya::renderer_begin(s_app.camera);

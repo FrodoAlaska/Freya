@@ -17,12 +17,12 @@ set(TESTBED_INCLUDES
 )
 
 set(CURRENT_TESTBED 
-  # "engine_testbed"
+  "engine_testbed"
   # "lua_testbed"
   # "noise_testbed"
   # "particles_testbed"
   # "pathfinding_testbed"
-  "physics_testbed"
+  # "physics_testbed"
   # "poisson_testbed"
   # "tilemap_testbed"
   # "ui_testbed"

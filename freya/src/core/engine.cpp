@@ -58,54 +58,48 @@ static void start_shutdown() {
   event_shutdown();
 }
 
-static bool web_update_and_render(f64 dt, void* user_data) {
-  if(!s_engine.is_running) {
-    start_shutdown();
-    return false;
-  }
-
+static void update_and_render() {
   // Poll for input events
   window_poll_events(s_engine.window);
 
   // Physics world update
   physics_world_step();
 
-  // Update (@NOTE: Using the given `dt` causes problems for some reason. So we just use the platform-specific one)
+  // Update
   CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, clock_get_delta_time());
 
-  // Render
+  // Render 
 
-  CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn);
-  CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn);
+  renderer_prepare();
+  renderer_commit();
+
+  // Render GUI
+  CHECK_VALID_CALLBACK(s_engine.app_desc.gui_fn);
 
   // Update the internal systems
 
   input_update();
   clock_update();
+}
+
+static bool web_update_and_render(f64 dt, void* user_data) {
+  // Start the shutdown process if we stop running
+
+  if(!s_engine.is_running) {
+    start_shutdown();
+    return false;
+  }
+  
+  // Main loop
+  update_and_render();
 
   // Done!
   return s_engine.is_running;
 }
 
-static bool desktop_update_and_render(f32 dt) {
-  // Poll for input events
-  window_poll_events(s_engine.window);
-
-  // Physics world update
-  physics_world_step();
-
-  // Update 
-  CHECK_VALID_CALLBACK(s_engine.app_desc.update_fn, dt);
-
-  // Render
-
-  CHECK_VALID_CALLBACK(s_engine.app_desc.render_fn);
-  CHECK_VALID_CALLBACK(s_engine.app_desc.render_gui_fn);
-
-  // Update the internal systems
-
-  input_update();
-  clock_update();
+static bool desktop_update_and_render() {
+  // Main loop
+  update_and_render();
 
   // Present
   window_swap_buffers(s_engine.window, s_engine.app_desc.has_vsync);
@@ -213,7 +207,7 @@ i32 engine_run(const AppDesc& desc) {
 #if FREYA_PLATFORM_WEB == 1
   emscripten_request_animation_frame_loop(web_update_and_render, nullptr);
 #else
-  while(desktop_update_and_render(clock_get_delta_time()));
+  while(desktop_update_and_render());
   start_shutdown(); // Called after the loop terminates
 #endif
 

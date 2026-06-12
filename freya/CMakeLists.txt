@@ -52,8 +52,6 @@ set(FREYA_SOURCES
  
   # Renderer
   ${FREYA_SRC_DIR}/renderer/camera.cpp
-  ${FREYA_SRC_DIR}/renderer/animation.cpp
-  ${FREYA_SRC_DIR}/renderer/animator.cpp
   ${FREYA_SRC_DIR}/renderer/particles.cpp
   ${FREYA_SRC_DIR}/renderer/color.cpp
   ${FREYA_SRC_DIR}/renderer/post_process.cpp
@@ -78,10 +76,15 @@ set(FREYA_SOURCES
   
   # Tile
   ${FREYA_SRC_DIR}/tile/tilemap.cpp
+  
+  # Animation
+  ${FREYA_SRC_DIR}/animation/animation.cpp
+  ${FREYA_SRC_DIR}/animation/animator.cpp
 )
 
 set(FREYA_HEADERS
   ${FREYA_INCLUDE_DIR}/freya.h
+  ${FREYA_INCLUDE_DIR}/freya_animation.h
   ${FREYA_INCLUDE_DIR}/freya_app.h
   ${FREYA_INCLUDE_DIR}/freya_assets.h
   ${FREYA_INCLUDE_DIR}/freya_audio.h

@@ -2,6 +2,7 @@
 #include "freya_event.h"
 #include "freya_logger.h"
 #include "freya_tilemap.h"
+#include "freya_render.h"
 
 //////////////////////////////////////////////////////////////////////////
 
