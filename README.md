@@ -98,23 +98,15 @@ If the exmaple below is *too* simple, you can check out the `testbed` directory 
 
 struct App {
   freya::Window* window; 
-  freya::Camera camera;
   freya::AssetGroupID group_id;
+
+  freya::EntityWorld world;
 };
 static App s_app;
 
 bool app_init(const freya::Args& args, freya::Window* window) {
   // Carry the window just in case
   s_app.window = window;
-
-  // Create a camera
-  
-  freya::CameraDesc cam_desc = {
-    .position    = freya::Vec2(0.0f),
-    .view_bounds = freya::window_get_size(s_app.window), 
-    .zoom        = 1.0f,
-  };
-  freya::camera_create(s_app.camera, cam_desc);
   
   // Initialize the GUI
   freya::gui_init(window);
@@ -122,8 +114,31 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   // Create the application's asset group
   s_app.group_id = freya::asset_group_create("app_assets");
 
+  // Build an asset package, pointing to a `assets_list.lua` file, spiting out `assets.frpkg`
+  // 
+  // @NOTE: This function will only build the package if there was any change from last time. 
+  // It should be kept at minimum usage on dev-builds only. 
   //
-  // Do other initialization stuff here...
+  freya::asset_group_build(s_app.group_id, "../assets/assets_list.lua", "assets.frpkg");
+
+  // Load the asset package that was built by the previous function. 
+  // 
+  // @NOTE: The `frpkg` format is specifically built for this engine. 
+  // It embeds all of the assets gathered and built by the previous function 
+  // and builds them into a neat binary package. On load, the package's content 
+  // is loaded and the given asset group is populated with the assets. 
+  //
+  // Unlike the previous function, loading the packages should occur at least once 
+  // on the application's initialization to use any assets.
+  //
+  freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
+
+  // Give our entity world to the renderer so that it can process any rendering 
+  // commands that gets issued from the application. 
+  freya::renderer_sumbit_world(&s_app.world);
+
+  //
+  // Create entities or do other initialization stuff here...
   //
 
   // Nothing went wrong. Return true.
@@ -131,6 +146,7 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 }
 
 void app_shutdown() {
+  freya::entity_world_clear(s_app.world);
   freya::asset_group_destroy(s_app.group_id);
   freya::gui_shutdown();
   
@@ -153,21 +169,12 @@ void app_update(freya::f32 dt) {
     freya::gui_toggle_active();
   }
 
-  //
-  // Update the world or other stuff before the render frame...
-  //
-}
-
-void app_render() {
-  // Render 2D stuff
-
-  freya::renderer_begin(s_app.camera);
+  // Update the entity world 
+  freya::entity_world_update(s_app.world, dt);
 
   //
-  // Render commands go here...
+  // Update other stuff before here...
   //
-
-  freya::renderer_end();
 }
 
 void app_render_gui() {
@@ -175,12 +182,12 @@ void app_render_gui() {
     return;
   }
 
-  freya::gui_begin(); 
-
   // 
-  // Insert GUI commands here... 
+  // GUI commands 
   //
 
+  freya::gui_begin(); 
+  freya::gui_edit_entity_world("Main", s_app.world);
   freya::gui_end(); 
 }
 
@@ -193,9 +200,7 @@ int engine_main(int argc, char* argv[]) {
     .init_fn     = app_init,
     .shutdown_fn = app_shutdown,
     .update_fn   = app_update, 
-    
-    .render_fn     = app_render, 
-    .render_gui_fn = app_render_gui, 
+    .gui_fn      = app_render_gui, 
 
     .window_title  = "Freya Example", 
     .window_width  = 800, 
@@ -210,7 +215,7 @@ int engine_main(int argc, char* argv[]) {
   };
 
   // Run the application in a loop and return the 
-  // result once the applicatio exists.
+  // result once the application exists.
   return freya::engine_run(app_desc);
 }
 

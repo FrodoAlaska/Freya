@@ -267,6 +267,9 @@ FREYA_API Timer& entity_add_timer(EntityWorld& world,
                                   const bool one_shot, 
                                   const bool active = true);
 
+/// A helper function to add a UI context to `entt` using the given `name` and `view_bounds`.
+FREYA_API UIContext* entity_add_ui_context(EntityWorld& world, Entity& entt, const String& name, const IVec2& view_bounds);
+
 /// A helper function to add an animation component to `entt`, using the given 
 /// `desc` and `tint`.
 FREYA_API AnimationComponent& entity_add_animation(EntityWorld& world, 

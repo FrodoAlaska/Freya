@@ -1,12 +1,5 @@
 ## TODO
 
-### Components
-
-- ECS 
-    - Camera controller component
-    - Improve the UI situation to make it more compatibale with the ECS
-    - GUI component to render through the GUI
-
 ### Major Systems
 
 - Renderer

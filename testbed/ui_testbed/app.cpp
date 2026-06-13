@@ -7,11 +7,9 @@
 /// App
 struct App {
   freya::Window* window;
-  freya::Camera camera;
   freya::AssetGroupID group_id;
 
-  freya::UIContext* ui_ctx; 
-  freya::UIDocument* ui_doc;
+  freya::EntityWorld world;
 };
 
 static App s_app;
@@ -28,15 +26,6 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   // Editor init
   freya::gui_init(window);
 
-  // Camera init
-  
-  freya::CameraDesc cam_desc = {
-    .position    = freya::Vec2(0.0f),
-    .view_bounds = freya::window_get_size(s_app.window), 
-    .zoom        = 1.0f,
-  };
-  freya::camera_create(s_app.camera, cam_desc);
-
   // Assets init
   
   s_app.group_id = freya::asset_group_create("app_assets");
@@ -50,28 +39,40 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   // Renderer init
   
   freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
+  freya::renderer_sumbit_world(&s_app.world);
+  
   freya::renderer_apply_asset_group(s_app.group_id);
-
-  // UI renderer init
   freya::renderer_apply_font(freya::asset_group_get_id(s_app.group_id, "HeavyDataNerdFont"));
 
+  // Camera entity init
+ 
+  freya::Entity cam_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
+
+  freya::CameraDesc cam_desc = {
+    .view_bounds = freya::window_get_size(s_app.window), 
+    .zoom        = 1.0f,
+  };
+  freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
+
   // UI context init
-  s_app.ui_ctx = freya::ui_context_create("main", cam_desc.view_bounds);
+
+  freya::Entity ctx_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
+  freya::UIContext* ctx  = freya::entity_add_ui_context(s_app.world, ctx_entt, "main", cam_desc.view_bounds);
 
   // UI document load
 
   const freya::AssetID& cfg_id  = freya::asset_group_get_id(s_app.group_id, "game_hud");
   const freya::UIConfig& ui_cfg = freya::asset_group_get_ui_config(cfg_id);
 
-  s_app.ui_doc = freya::ui_document_load_from_memory(s_app.ui_ctx, ui_cfg);
-  freya::ui_document_show(s_app.ui_doc);
+  freya::UIDocument* ui_doc = freya::ui_document_load_from_memory(ctx, ui_cfg);
+  freya::ui_document_show(ui_doc);
 
   // Done!
   return true;
 }
 
 void app_shutdown() {
-  freya::ui_context_destroy(s_app.ui_ctx);
+  freya::entity_world_clear(s_app.world);
   freya::asset_group_destroy(s_app.group_id);
   freya::gui_shutdown();
 }
@@ -90,23 +91,8 @@ void app_update(freya::f32 dt) {
     freya::gui_toggle_active();
   }
 
-  // Context update
-  freya::ui_context_update(s_app.ui_ctx);
-}
-
-void app_render() {
-  // 2D render
-
-  freya::renderer_begin(s_app.camera);
-  
-  freya::Transform transform = {
-    .position = freya::Vec2(25.0f), 
-    .scale    = freya::Vec2(32.0f),
-  };
-  freya::renderer_queue_quad(transform, freya::COLOR_WHITE);
-  freya::renderer_queue_ui_context(s_app.ui_ctx);
-
-  freya::renderer_end();
+  // Update the world 
+  freya::entity_world_update(s_app.world, dt);
 }
 
 void app_render_gui() {

@@ -84,6 +84,17 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
       particle_emitter_update(emitter, delta_time);
     }
   }
+
+  // UIContext
+  {
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(UIContext)");
+
+    auto view = world.view<UIContext*>();
+    for(auto entt : view) {
+      UIContext* ctx = view.get<UIContext*>(entt);
+      ui_context_update(ctx);
+    }
+  }
 }
 
 /// EntityWorld functions
@@ -153,6 +164,11 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
     Animator& anim = entity_get_component<Animator>(world, entt);
     animator_clear(anim);
   }
+  
+  if(entity_has_component<UIContext*>(world, entt)) {
+    UIContext* ctx = entity_get_component<UIContext*>(world, entt);
+    ui_context_destroy(ctx);
+  }
 
   // Destroy the entity in the world
   
@@ -196,6 +212,11 @@ Timer& entity_add_timer(EntityWorld& world,
   timer_create(timer, max_time, one_shot, active);
 
   return world.emplace<Timer>(entt.get_id(), timer);
+}
+
+UIContext* entity_add_ui_context(EntityWorld& world, Entity& entt, const String& name, const IVec2& view_bounds) {
+  UIContext* ctx = ui_context_create(name, view_bounds);
+  return world.emplace<UIContext*>(entt.get_id(), ctx);
 }
 
 AnimationComponent& entity_add_animation(EntityWorld& world, Entity& entt, const AnimationDesc& desc, const Vec4& tint) {
