@@ -25,6 +25,7 @@ struct PhysicsWorld {
   b2DebugDraw draw_def;
 
   bool is_paused = false;
+  bool is_debug  = false;
 
   f32 timestep      = PHYSICS_FIXED_DELTA_TIME;
   Color debug_color = Color(1.0f, 0.0f, 1.0f, 0.3f);
@@ -465,12 +466,20 @@ void physics_world_toggle_paused() {
   s_world.is_paused = !s_world.is_paused;
 }
 
-void physics_world_draw_debug() {
-  b2World_Draw(s_world.id, &s_world.draw_def);
+void physics_world_toggle_debug() {
+  s_world.is_debug = !s_world.is_debug;
 }
 
 const bool physics_world_is_paused() {
   return s_world.is_paused;
+}
+
+const bool physics_world_is_debug() {
+  return s_world.is_debug;
+}
+
+void physics_world_draw_debug() {
+  b2World_Draw(s_world.id, &s_world.draw_def);
 }
 
 /// Physics world functions

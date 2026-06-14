@@ -2,6 +2,7 @@
 #include "freya_logger.h"
 #include "freya_event.h"
 #include "freya_entity.h"
+#include "freya_physics.h"
 
 #include "shaders/default_pass_shader.h"
 #include "ui/ui_renderer_impl.h" 
@@ -407,6 +408,13 @@ void renderer_prepare() {
     for(auto entt : view) {
       UIContext* ctx = view.get<UIContext*>(entt);
       s_renderer.ui_contexts.emplace_back(ctx);
+    }
+  }
+
+  // Physics (@TODO: Not the best place to put this??)
+  {
+    if(physics_world_is_debug()) {
+      physics_world_draw_debug();
     }
   }
 }

@@ -81,9 +81,6 @@ FREYA_API void ui_context_destroy(UIContext* ui_ctx);
 FREYA_API void ui_context_update(UIContext* ui_ctx);
 
 /// Render the given `ui_ctx`.
-///
-/// @NOTE: This function _MUST_ be called _after_ `ui_renderer_begin`, and 
-/// _before_ `ui_renderer_end`.
 FREYA_API void ui_context_render(UIContext* ui_ctx);
 
 /// If the given flag `enable` is `true`, the `ui_ctx` will be allowed to 

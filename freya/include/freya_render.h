@@ -345,12 +345,6 @@ FREYA_API void renderer_prepare();
 /// only required to be called by the engine.
 FREYA_API void renderer_commit();
 
-/// Setup the renderer for any proceeding render operation, using the given `cam`.
-FREYA_API void renderer_begin(Camera& camera);
-
-/// Sumbit the results of the renderer to the screen.
-FREYA_API void renderer_end();
-
 /// Push the given `pass` to the back of the current post-process chain.
 FREYA_API void renderer_push_post_process(PostProcessPass* pass);
 

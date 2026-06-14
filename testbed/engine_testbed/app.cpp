@@ -7,7 +7,6 @@
 /// App
 struct App {
   freya::Window* window;
-  freya::Camera camera;
   freya::AssetGroupID group_id;
 
   freya::EntityWorld world; 
@@ -35,8 +34,6 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   // Physics world init
   freya::physics_world_set_gravity(freya::Vec2(0.0f));
 
-  // Camera init
-  
   // Assets init
   s_app.group_id = freya::asset_group_create("app_assets");
 
