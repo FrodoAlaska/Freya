@@ -28,7 +28,9 @@ static bool check_valid_extension(const freya::FilePath& ext) {
 /// ----------------------------------------------------------------------
 /// Texture loader functions
 
-bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img) {
+bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img, void** out_data) {
+  FREYA_DEBUG_ASSERT(out_data, "Invalid data pointer given to texture_loader_load");
+
   // Sanity check
 
   if(!check_valid_extension(freya::filepath_extension(path))) {
@@ -40,17 +42,17 @@ bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img) {
 
   freya::i32 width, height; 
   if(stbi_is_hdr(path.c_str())) {
-    out_img.pixel_format           = SG_PIXELFORMAT_RGBA32F;
-    out_img.data.mip_levels[0].ptr = stbi_loadf(path.c_str(), &width, &height, NULL, 4);
+    out_img.pixel_format = SG_PIXELFORMAT_RGBA32F;
+    *out_data            = stbi_loadf(path.c_str(), &width, &height, NULL, 4);
   }
   else {
-    out_img.pixel_format           = SG_PIXELFORMAT_RGBA8;
-    out_img.data.mip_levels[0].ptr = stbi_load(path.c_str(), &width, &height, NULL, 4);
+    out_img.pixel_format = SG_PIXELFORMAT_RGBA8;
+    *out_data            = stbi_load(path.c_str(), &width, &height, NULL, 4);
   }
 
   // Fuck!
 
-  if(!out_img.data.mip_levels[0].ptr) {
+  if(!(*out_data)) {
     FREYA_LOG_ERROR("Could not load texture at \'%s'\, %s", path.c_str(), stbi_failure_reason());
     return false;
   }

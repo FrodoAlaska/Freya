@@ -102,14 +102,15 @@ static void build_textures(File& file, const ListSection& section) {
     file_write_bytes(file, name);
 
     // Load the asset
-
      
     sg_sampler_desc sampler_desc = {};
     sampler_desc.min_filter      = SG_FILTER_NEAREST;
     sampler_desc.mag_filter      = SG_FILTER_NEAREST;
 
     sg_image_desc image_desc = {};
-    texture_loader_load(path, image_desc);
+    void* pixels             = nullptr;
+
+    texture_loader_load(path, image_desc, &pixels);
      
     // 
     // Write the asset 
@@ -141,7 +142,10 @@ static void build_textures(File& file, const ListSection& section) {
     u32 pixel_size = (format == SG_PIXELFORMAT_RGBA16F) ? 4 : 1; 
     u32 data_size  = (width * height) * 4 * pixel_size; // 4 = color components
 
-    file_write_bytes(file, image_desc.data.mip_levels[0].ptr, data_size);
+    file_write_bytes(file, pixels, data_size);
+
+    // Free the data
+    memory_free(pixels); 
   }
 }
 
@@ -326,15 +330,18 @@ static void read_textures(File& file, AssetGroup& group) {
     u32 pixel_size = (format == SG_PIXELFORMAT_RGBA16F) ? 4 : 1; 
     u32 data_size  = (width * height) * 4 * pixel_size; // 4 = color components
 
-    image_desc.data.mip_levels[0].ptr  = memory_allocate(data_size);
+    void* pixels = memory_allocate(data_size);
+    file_read_bytes(file, pixels, data_size);
+    
+    image_desc.data.mip_levels[0].ptr  = pixels;
     image_desc.data.mip_levels[0].size = data_size;
-
-    file_read_bytes(file, (void*)image_desc.data.mip_levels[0].ptr, data_size);
 
     // Add the texture to the group
     group.named_ids[name] = asset_group_push_texture(group.id, image_desc, sampler_desc); 
     
     // Done!
+    
+    memory_free(pixels);
     FREYA_LOG_DEBUG("Loaded texture \'%s\' from frpkg ", name.c_str());
   }
 }
@@ -684,7 +691,10 @@ void asset_group_reload(const AssetGroupID& group_id) {
   asset_group_load_package(group_id, group.frpkg_path);
 }
 
-bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path) {
+bool asset_group_build(const AssetGroupID& group_id, 
+                       const FilePath& list_path, 
+                       const FilePath& output_path, 
+                       const bool force_build) {
   GROUP_CHECK(group_id);
 
   AssetGroup& group    = s_manager.groups[group_id.get_id()];
@@ -726,7 +736,7 @@ bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, 
   // We need to check if it's even needed to build the package. 
   // For example, it might already be up-to-date.
 
-  if(!can_build_frpkg(assets_path, output_path)) {
+  if(!can_build_frpkg(assets_path, output_path) && !force_build) {
     FREYA_LOG_DEBUG("Frpkg at \'%s\' is up-to-date", output_path.c_str());
     return true; // No need to build the package... 
   }

@@ -214,10 +214,17 @@ FREYA_API void asset_group_reload(const AssetGroupID& group_id);
 /// Build all of the intermediary formats listed in the `.frlist` file at `list_path` 
 /// into a `FRPKG` file and place it at `output_path`. 
 ///
+/// Since the build process will only take effect if there were any changes in the 
+/// `list_path` directory, the given `force_build` will force the build process to 
+/// occur no matter what. By default, it is set to `false`.
+///
 /// @NOTE: It is advised to only use this function in dev-only builds. 
 /// It is very slow, since it needs to convert all the intermediary formats into binary formats 
 /// and then write them on disk. 
-FREYA_API bool asset_group_build(const AssetGroupID& group_id, const FilePath& list_path, const FilePath& output_path);
+FREYA_API bool asset_group_build(const AssetGroupID& group_id, 
+                                 const FilePath& list_path, 
+                                 const FilePath& output_path, 
+                                 const bool force_build = false);
 
 /// Push a new `sg_buffer` into `group_id`, using all the information found in `buff_desc`,
 /// returning a valid `AssetID` to be used later.

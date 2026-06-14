@@ -5,7 +5,7 @@
 /// ----------------------------------------------------------------------
 /// Texture loader functions
 
-bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img);
+bool texture_loader_load(const freya::FilePath& path, sg_image_desc& out_img, void** out_data);
 
 /// Texture loader functions
 /// ----------------------------------------------------------------------
