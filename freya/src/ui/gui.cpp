@@ -323,6 +323,13 @@ void gui_debug_info() {
         physics_world_set_gravity(gravity);
       }
 
+      // Timestep
+
+      f32 timestep = physics_world_get_fixed_timestep();
+      if(ImGui::SliderFloat("Timestep", &timestep, 0.0f, 1.0f)) {
+        physics_world_set_fixed_timestep(timestep);
+      }
+
       // Paused
 
       bool paused = physics_world_is_paused();
@@ -331,12 +338,19 @@ void gui_debug_info() {
       }
       
       // Debug color 
-    
+       
       Vec4 debug_color = physics_world_get_debug_color();
       bool is_picked   = ImGui::ColorEdit4("Debug color", &debug_color[0]);
       
       if(is_picked) {
         physics_world_set_debug_color(debug_color);
+      }
+
+      // Debug draw
+       
+      bool is_debug = physics_world_is_debug();
+      if(ImGui::Checkbox("Debug draw", &is_debug)) {
+        physics_world_toggle_debug(); 
       }
     }
   }

@@ -27,7 +27,9 @@ struct PhysicsWorld {
   bool is_paused = false;
   bool is_debug  = false;
 
-  f32 timestep      = PHYSICS_FIXED_DELTA_TIME;
+  f32 timestep = PHYSICS_FIXED_DELTA_TIME;
+  f32 speed    = 1.0f;
+
   Color debug_color = Color(1.0f, 0.0f, 1.0f, 0.3f);
 
   Queue<OnCastHitFn> funcs;
@@ -230,7 +232,7 @@ void physics_world_step(const i32 sub_steps) {
   s_world.timestep = (f32)clock_get_delta_time();
   while(s_world.timestep > 0.0) {
     f32 dt = freya::min_float(s_world.timestep, PHYSICS_FIXED_DELTA_TIME);
-    b2World_Step(s_world.id, dt, sub_steps);
+    b2World_Step(s_world.id, dt * s_world.speed, sub_steps);
 
     s_world.timestep -= dt;
   }
@@ -450,12 +452,20 @@ void physics_world_set_gravity(const Vec2& gravity) {
   b2World_SetGravity(s_world.id, vec_to_b2vec(gravity));
 }
 
+void physics_world_set_fixed_timestep(f32 timestep) {
+  s_world.speed = timestep;
+}
+
 void physics_world_set_debug_color(const Vec4& debug_color) {
   s_world.debug_color = debug_color;
 }
 
 Vec2 physics_world_get_gravity() {
   return b2vec_to_vec(b2World_GetGravity(s_world.id));
+}
+
+f32 physics_world_get_fixed_timestep() {
+  return s_world.speed;
 }
 
 Vec4 physics_world_get_debug_color() {

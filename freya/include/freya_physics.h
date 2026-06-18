@@ -430,6 +430,12 @@ FREYA_API void physics_world_add_explosion(const ExplosionDesc& desc);
 /// Set the gravity of the physics world to the given `gravity`.
 FREYA_API void physics_world_set_gravity(const Vec2& gravity);
 
+/// Set the fixed timestep of the physics engine. 
+///
+/// @NOTE: This will influence the speed of the physics simulation.
+/// By default, it is set to `1.0f`.
+FREYA_API void physics_world_set_fixed_timestep(f32 timestep);
+
 /// Set the debug color of the colliders when drawn.
 ///
 /// @NOTE: By default, the color is set to `Vec4(1.0f, 0.0f, 1.0f, 0.3f)`.
@@ -437,6 +443,9 @@ FREYA_API void physics_world_set_debug_color(const Vec4& debug_color);
 
 /// Retrieve the current gravity value of the physics world.
 FREYA_API Vec2 physics_world_get_gravity();
+
+/// Retrieve the current set fixed timestep of the physics engine.
+FREYA_API f32 physics_world_get_fixed_timestep();
 
 /// Retrieve the current debug color of the physics world.
 FREYA_API Vec4 physics_world_get_debug_color();
