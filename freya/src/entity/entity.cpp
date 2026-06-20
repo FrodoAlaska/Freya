@@ -15,8 +15,7 @@ void entity_world_clear(EntityWorld& world) {
   // Destroy each entity
 
   auto view = world.view<EntityID>();
-  for(auto entt_id : view) {
-    Entity entt = Entity(entt_id);
+  for(auto entt : view) {
     entity_destroy(world, entt);
   }
 
@@ -65,12 +64,16 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
 
   // Timers
   {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(Timer)");
+    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(TimerComponent)");
 
-    auto view = world.view<Timer>();
+    auto view = world.view<TimerComponent>();
     for(auto entt : view) {
-      Timer& timer = view.get<Timer>(entt);
-      timer_update(timer, delta_time);
+      TimerComponent& comp = view.get<TimerComponent>(entt);
+      timer_update(comp.timer, delta_time);
+
+      if(comp.timer.has_runout && comp.runout_func) {
+        comp.runout_func(world, entt, comp.user_data);
+      }
     }
   }
 
@@ -103,10 +106,10 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
 /// ----------------------------------------------------------------------
 /// EntityID functions
 
-Entity entity_create(EntityWorld& world,
-                     const Vec2& position, 
-                     const Vec2& scale,
-                     const f32 rotation) {
+EntityID entity_create(EntityWorld& world,
+                       const Vec2& position, 
+                       const Vec2& scale,
+                       const f32 rotation) {
   // Generate an entity ID
   EntityID entt_id = world.create();
 
@@ -118,23 +121,20 @@ Entity entity_create(EntityWorld& world,
   transform.scale    = scale;
 
   world.emplace<Transform>(entt_id, transform);
- 
-  // Create the new entity
-  Entity entt = Entity(entt_id);
 
   // Dispatch an event
 
   Event event = {
     .type = EVENT_ENTITY_ADDED, 
-    .entt = entt,
+    .entt = entt_id,
   };
   event_dispatch(event);
 
   // Done!
-  return entt;
+  return entt_id;
 }
 
-void entity_destroy(EntityWorld& world, Entity& entt) {
+void entity_destroy(EntityWorld& world, EntityID& entt) {
   // Dispatch an event
 
   Event event = {
@@ -171,147 +171,145 @@ void entity_destroy(EntityWorld& world, Entity& entt) {
   }
 
   // Destroy the entity in the world
-  
-  world.destroy(entt.get_id()); 
-  entt.invalidate();
+  world.destroy(entt); 
 }
 
-Camera& entity_add_camera(EntityWorld& world, Entity& entt, CameraDesc& desc) {
-  Transform& transform = world.get<Transform>(entt.get_id());
+Camera& entity_add_camera(EntityWorld& world, EntityID& entt, CameraDesc& desc) {
+  Transform& transform = world.get<Transform>(entt);
   desc.position        = transform.position;
 
-  Camera& camera = world.emplace<Camera>(entt.get_id()); 
+  Camera& camera = world.emplace<Camera>(entt); 
   camera_create(camera, desc);
 
   return camera;
 }
 
-TagComponent& entity_add_tag(EntityWorld& world, Entity& entt, const String& tag) {
-  return world.emplace<TagComponent>(entt.get_id(), tag);
+TagComponent& entity_add_tag(EntityWorld& world, EntityID& entt, const String& tag) {
+  return world.emplace<TagComponent>(entt, tag);
 }
 
 AudioSourceID& entity_add_audio_source(EntityWorld& world, 
-                                       Entity& entt, 
+                                       EntityID& entt, 
                                        AudioSourceDesc& desc, 
                                        const AssetID& audio_buffer_id) {
-  Transform& transform = world.get<Transform>(entt.get_id());
+  Transform& transform = world.get<Transform>(entt);
 
   desc.position      = transform.position; 
   desc.buffers[0]    = asset_group_get_audio_buffer(audio_buffer_id);
   desc.buffers_count = 1;
 
-  return world.emplace<AudioSourceID>(entt.get_id(), audio_source_create(desc));
+  return world.emplace<AudioSourceID>(entt, audio_source_create(desc));
 }
 
-Timer& entity_add_timer(EntityWorld& world, 
-                        Entity& entt, 
-                        const f32 max_time, 
-                        const bool one_shot, 
-                        const bool active) {
+TimerComponent& entity_add_timer(EntityWorld& world, 
+                                 EntityID& entt, 
+                                 const TimerDesc& desc, 
+                                 const OnTimerRunoutFn& runout_func, 
+                                 void* user_data) {
   Timer timer; 
-  timer_create(timer, max_time, one_shot, active);
+  timer_create(timer, desc);
 
-  return world.emplace<Timer>(entt.get_id(), timer);
+  return world.emplace<TimerComponent>(entt, timer, runout_func, user_data);
 }
 
-UIContext* entity_add_ui_context(EntityWorld& world, Entity& entt, const String& name, const IVec2& view_bounds) {
+UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds) {
   UIContext* ctx = ui_context_create(name, view_bounds);
-  return world.emplace<UIContext*>(entt.get_id(), ctx);
+  return world.emplace<UIContext*>(entt, ctx);
 }
 
-AnimationComponent& entity_add_animation(EntityWorld& world, Entity& entt, const AnimationDesc& desc, const Vec4& tint) {
+AnimationComponent& entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
   Animation anim; 
   animation_create(anim, desc);
 
-  return world.emplace<AnimationComponent>(entt.get_id(), anim, tint);
+  return world.emplace<AnimationComponent>(entt, anim, tint);
 }
 
-Animator& entity_add_animator(EntityWorld& world, Entity& entt) {
-  return world.emplace<Animator>(entt.get_id());
+Animator& entity_add_animator(EntityWorld& world, EntityID& entt) {
+  return world.emplace<Animator>(entt);
 }
 
-SpriteComponent& entity_add_sprite(EntityWorld& world, Entity& entt, const AssetID& texture_id, const Vec4& color) {
+SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
   Texture texture = {};
   if(texture_id.get_id() != ASSET_ID_INVALID) {
     texture = asset_group_get_texture(texture_id);
   }
 
-  return world.emplace<SpriteComponent>(entt.get_id(), texture, color);
+  return world.emplace<SpriteComponent>(entt, texture, color);
 }
 
 TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
-                                            Entity& entt, 
+                                            EntityID& entt, 
                                             const AssetID& texture_id,
                                             const Rect2D& source, 
                                             const Vec4& color) {
   Texture texture = asset_group_get_texture(texture_id);
-  return world.emplace<TileSpriteComponent>(entt.get_id(), texture, source, color);
+  return world.emplace<TileSpriteComponent>(entt, texture, source, color);
 }
 
-ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, const ParticleEmitterDesc& desc) {
-  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt.get_id()); 
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {
+  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
   particle_emitter_create(emitter, desc);
   
   return emitter;
 }
 
-ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, Entity& entt, const AssetID& config_id) {
-  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt.get_id()); 
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const AssetID& config_id) {
+  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
   particle_emitter_create(emitter, config_id);
   
   return emitter;
 }
 
 StaticBodyComponent& entity_add_static_body(EntityWorld& world, 
-                                            Entity& entt, 
+                                            EntityID& entt, 
                                             PhysicsBodyDesc& desc, 
                                             const OnCollisionFn& enter_func, 
                                             const OnCollisionFn& exit_func) { 
-  Transform& transform = world.get<Transform>(entt.get_id());
+  Transform& transform = world.get<Transform>(entt);
 
   desc.type          = PHYSICS_BODY_STATIC;
   desc.position      = transform.position;
   desc.rotation      = transform.rotation;
-  desc.user_data     = (uintptr)entt.get_id();
+  desc.user_data     = (uintptr)entt;
   PhysicsBodyID body = physics_body_create(desc);
 
-  return world.emplace<StaticBodyComponent>(entt.get_id(), body, enter_func, exit_func);
+  return world.emplace<StaticBodyComponent>(entt, body, enter_func, exit_func);
 }
 
 DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world, 
-                                              Entity& entt, 
+                                              EntityID& entt, 
                                               PhysicsBodyDesc& desc, 
                                               const OnCollisionFn& enter_func, 
                                               const OnCollisionFn& exit_func) {
   FREYA_DEBUG_ASSERT((desc.type != PHYSICS_BODY_STATIC), "Invalid type given to dynamic body component");
 
-  Transform& transform = world.get<Transform>(entt.get_id());
+  Transform& transform = world.get<Transform>(entt);
 
   desc.position      = transform.position;
   desc.rotation      = transform.rotation;
-  desc.user_data     = (uintptr)entt.get_id();
+  desc.user_data     = (uintptr)entt;
   PhysicsBodyID body = physics_body_create(desc);
 
-  return world.emplace<DynamicBodyComponent>(entt.get_id(), body, enter_func, exit_func);
+  return world.emplace<DynamicBodyComponent>(entt, body, enter_func, exit_func);
 }
 
-NoiseGenerator* entity_add_noise_generator(EntityWorld& world, Entity& entt, const NoiseGeneratorDesc& desc) {
+NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, const NoiseGeneratorDesc& desc) {
   NoiseGenerator* gen = noise_generator_create(desc);
-  return world.emplace<NoiseGenerator*>(entt.get_id(), gen);
+  return world.emplace<NoiseGenerator*>(entt, gen);
 }
 
 TileMap& entity_add_tilemap(EntityWorld& world, 
-                            Entity& entt, 
+                            EntityID& entt, 
                             const Vec2& start_pos, 
                             const Vec2& tile_size, 
                             const IVec2& tiles_count) {
-  TileMap& tilemap = world.emplace<TileMap>(entt.get_id()); 
+  TileMap& tilemap = world.emplace<TileMap>(entt); 
   tilemap_create(tilemap, &world, start_pos, tile_size, tiles_count);
 
   return tilemap;
 }
 
-bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other, const Vec2& normal, void* user_data) {
+bool entity_on_collision_enter(EntityWorld& world, EntityID& entt, EntityID& other, const Vec2& normal, void* user_data) {
   OnCollisionFn coll_func = nullptr;
 
   // Retrieve the function from the correct component
@@ -335,7 +333,7 @@ bool entity_on_collision_enter(EntityWorld& world, Entity& entt, Entity& other, 
   return true;
 }
 
-bool entity_on_collision_exit(EntityWorld& world, Entity& entt, Entity& other, const Vec2& normal, void* user_data) {
+bool entity_on_collision_exit(EntityWorld& world, EntityID& entt, EntityID& other, const Vec2& normal, void* user_data) {
   OnCollisionFn coll_func = nullptr;
 
   // Retrieve the function from the correct component

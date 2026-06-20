@@ -168,7 +168,7 @@ FREYA_API void gui_edit_tile_sprite_component(const char* name, TileSpriteCompon
 FREYA_API void gui_edit_poisson_disk(const char* name, PoissonDiskDesc* disk);
 
 /// Add an entity section identified by `name` to edit the given `entt`.
-FREYA_API void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt);
+FREYA_API void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt);
 
 /// Add an entity world section identified by `name` to edit the given `world`
 FREYA_API void gui_edit_entity_world(const char* name, EntityWorld& world);

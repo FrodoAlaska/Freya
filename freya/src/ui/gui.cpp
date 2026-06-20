@@ -825,7 +825,7 @@ void gui_edit_poisson_disk(const char* name, PoissonDiskDesc* disk) {
   ImGui::PopID(); 
 }
 
-void gui_edit_entity(const char* name, EntityWorld& world, Entity& entt) {
+void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
  
@@ -980,16 +980,16 @@ void gui_edit_entity_world(const char* name, EntityWorld& world) {
   auto view = world.view<EntityID>();
   u32 count = 0;
 
-  for(auto& entt_id : view) {
+  for(auto& entt : view) {
     String name = ("Entity " + std::to_string(count));
-    Entity entt = Entity(entt_id);
-    
     if(entity_has_component<TagComponent>(world, entt)) {
       name = entity_get_component_const<TagComponent>(world, entt).tag;
     }
     
-    gui_edit_entity(name.c_str(), world, entt);
     count++;
+    EntityID entt_id = entt;
+
+    gui_edit_entity(name.c_str(), world, entt_id);
   }
 
   ImGui::PopID(); 

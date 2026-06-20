@@ -2,7 +2,7 @@
 
 ### Major Systems
 
-- Flecs vs. EnTT
+- Reflection
 
 - Misc.
     - Async asset loading using `sokol_fetch`

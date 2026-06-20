@@ -188,7 +188,7 @@ struct Event {
 
   /// The entity given to this event by 
   /// either `EVENT_ENTITY_ADDED` or `EVENT_ENTITY_DESTROYED`.
-  Entity entt;
+  EntityID entt;
 };
 /// Event
 ///---------------------------------------------------------------------------------------------------------------------

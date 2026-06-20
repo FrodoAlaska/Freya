@@ -66,7 +66,7 @@ TileLayer& tilemap_get_layer(TileMap& map, const sizei index) {
   return map.layers[index];
 }
 
-Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
+EntityID& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
   /// @NOTE:
   ///
   /// Even if the index is out of bounds, we simply return the tile at that edge. 
@@ -78,19 +78,19 @@ Entity& tilemap_get_at(TileMap& map, const sizei x_cell, const sizei y_cell, con
   return map.layers[layer].tiles[clamp_int(index, 0, map.layers[layer].tiles.size() - 1)];
 }
 
-Entity& tilemap_get_at(TileMap& map, const Vec2& position, const sizei layer) {
+EntityID& tilemap_get_at(TileMap& map, const Vec2& position, const sizei layer) {
   IVec2 index = tilemap_coords_to_index(map, position);
   return tilemap_get_at(map, index.x, index.y, layer);
 }
 
-Entity& tilemap_get_neighbor(TileMap& map, const Entity& base_tile, const IVec2& offset, const sizei layer) {
+EntityID& tilemap_get_neighbor(TileMap& map, const EntityID& base_tile, const IVec2& offset, const sizei layer) {
   Vec2 offset_pos      = map.tile_size * (Vec2)offset;
   const Vec2& tile_pos = entity_get_component_const<Transform>(*map.ecs, base_tile).position - offset_pos;
 
   return tilemap_get_at(map, tile_pos, layer);
 }
 
-void tilemap_get_neighbors_immediate(TileMap& map, const Entity& base_tile, Array<Entity, 4>& out_tiles, const sizei layer) {
+void tilemap_get_neighbors_immediate(TileMap& map, const EntityID& base_tile, Array<EntityID, 4>& out_tiles, const sizei layer) {
   /// @NOTE: 
   ///
   /// Doing it by hand because I'm lazy and hate double for-loops...
@@ -103,7 +103,7 @@ void tilemap_get_neighbors_immediate(TileMap& map, const Entity& base_tile, Arra
   out_tiles[3] = tilemap_get_neighbor(map, base_tile, IVec2(-1,  0), layer); // Right
 }
 
-void tilemap_get_neighbors_all(TileMap& map, const Entity& base_tile, Array<Entity, 8>& out_tiles, const sizei layer) {
+void tilemap_get_neighbors_all(TileMap& map, const EntityID& base_tile, Array<EntityID, 8>& out_tiles, const sizei layer) {
   /// @NOTE: 
   ///
   /// Just the same story...
@@ -131,14 +131,14 @@ void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Ve
   }
 }
 
-Entity& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
-  Entity& entt = tilemap_get_at(map, x_cell, y_cell, layer);
-  entt         = entity_create(*map.ecs, tilemap_index_to_coords(map, x_cell, y_cell));
+EntityID& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
+  EntityID& entt = tilemap_get_at(map, x_cell, y_cell, layer);
+  entt           = entity_create(*map.ecs, tilemap_index_to_coords(map, x_cell, y_cell));
 
   return entt;
 }
 
-Entity& tilemap_place_at(TileMap& map, const Vec2& position, const sizei layer) {
+EntityID& tilemap_place_at(TileMap& map, const Vec2& position, const sizei layer) {
   IVec2 index = tilemap_coords_to_index(map, position);
   return tilemap_place_at(map, index.x, index.y, layer);
 }

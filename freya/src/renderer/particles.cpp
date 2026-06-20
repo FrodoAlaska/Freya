@@ -82,7 +82,11 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitter
   out_emitter.color = desc.color;
 
   // Timer init
-  timer_create(out_emitter.lifetime, desc.lifetime, false);
+ 
+  TimerDesc timer_desc = {
+    .limit = desc.lifetime, 
+  };
+  timer_create(out_emitter.lifetime, timer_desc);
 }
 
 void particle_emitter_create(ParticleEmitter& out_emitter, const AssetID& config_id) {

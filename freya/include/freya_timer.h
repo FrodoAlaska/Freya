@@ -58,6 +58,16 @@ FREYA_API String perf_timer_to_string(PerfTimer& timer);
 /// Macros
 ///---------------------------------------------------------------------------------------------------------------------
 
+///---------------------------------------------------------------------------------------------------------------------
+/// TimerDesc
+struct TimerDesc {
+  f32 limit = 1.0f; 
+  
+  bool one_shot       = false;
+  bool initial_active = true;
+};
+/// TimerDesc
+///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
 /// Timer 
@@ -83,8 +93,8 @@ struct Timer {
 ///---------------------------------------------------------------------------------------------------------------------
 /// Timer functions
 
-/// Write the values to `out_timer` with the given information.
-FREYA_API void timer_create(Timer& out_timer, const f32 limit, const bool one_shot, const bool initial_active = true);
+/// Write the values to `out_timer` with the information given in `desc`.
+FREYA_API void timer_create(Timer& out_timer, const TimerDesc& desc);
 
 /// Let the given `timer` tick, scaled by `delta_time.
 FREYA_API void timer_update(Timer& timer, const f32 delta_time);
