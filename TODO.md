@@ -2,6 +2,8 @@
 
 ### Major Systems
 
+- Flecs vs. EnTT
+
 - Misc.
     - Async asset loading using `sokol_fetch`
     - Test more shit with compute shaders. Particles, post-processing, and other effects

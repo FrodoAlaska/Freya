@@ -598,6 +598,9 @@ void renderer_queue_texture(const Texture& texture,
   sgp_draw_textured_rect(0, 
                          {dest_pos.x, dest_pos.y, dest_size.x, dest_size.y},
                          {src_pos.x, src_pos.y, src_size.x, src_size.y}); 
+
+  sgp_reset_view(0);
+  sgp_reset_sampler(0);
 }
 
 void renderer_queue_texture(const Texture& texture, const Transform& transform, const Color& tint) {

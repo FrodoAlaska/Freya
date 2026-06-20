@@ -35,7 +35,11 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::physics_world_set_gravity(freya::Vec2(0.0f));
 
   // Assets init
+  
   s_app.group_id = freya::asset_group_create("app_assets");
+
+  freya::asset_group_build(s_app.group_id, "../../assets/assets_list.lua", "assets.frpkg");
+  freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
 
   // Camera init 
 
@@ -49,8 +53,16 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // Entity init
 
-  freya::Entity entt = freya::entity_create(s_app.world, freya::Vec2(10.0f), freya::Vec2(32.0f));
-  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_RED);
+  freya::Entity entt = freya::entity_create(s_app.world, freya::Vec2(32.0f), freya::Vec2(32.0f));
+  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_WHITE);
+
+  freya::Vec2 pos = freya::Vec2(0.0f);
+  for(freya::i32 i = 0; i < 10; i++) {
+    freya::Entity entt = freya::entity_create(s_app.world, pos, freya::Vec2(32.0f));
+    freya::entity_add_sprite(s_app.world, entt, freya::asset_group_get_id(s_app.group_id, "grass"));
+
+    pos.x += 32.0f;
+  }
 
   // Done!
   return true;
