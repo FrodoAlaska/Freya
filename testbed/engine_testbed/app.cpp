@@ -49,14 +49,18 @@ bool app_init(const freya::Args& args, freya::Window* window) {
     .view_bounds = freya::window_get_size(s_app.window), 
     .zoom        = 1.0f,
   };
+
   freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
+  freya::entity_add_tag(s_app.world, cam_entt, "Camera");
 
   // Entity init
 
-  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(32.0f), freya::Vec2(32.0f));
-  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_WHITE);
+  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(48.0f), freya::Vec2(32.0f));
 
-  freya::Vec2 pos = freya::Vec2(0.0f);
+  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_WHITE);
+  freya::entity_add_tag(s_app.world, entt, "Quad");
+
+  freya::Vec2 pos = freya::Vec2(16.0f);
   for(freya::i32 i = 0; i < 10; i++) {
     freya::EntityID entt = freya::entity_create(s_app.world, pos, freya::Vec2(32.0f));
     freya::entity_add_sprite(s_app.world, entt, freya::asset_group_get_id(s_app.group_id, "grass"));

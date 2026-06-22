@@ -299,9 +299,11 @@ void renderer_prepare() {
     sgp_project(0.0f, (f32)s_renderer.main_cam->view_bounds.x, 0.0f, (f32)s_renderer.main_cam->view_bounds.y);
     sgp_push_transform();
 
-    sgp_translate(s_renderer.main_cam->position.x, s_renderer.main_cam->position.y);
-    sgp_rotate(s_renderer.main_cam->rotation);
-    sgp_scale(s_renderer.main_cam->zoom, s_renderer.main_cam->zoom);
+    Camera* camera = s_renderer.main_cam;
+
+    sgp_translate(-camera->position.x, -camera->position.y);
+    sgp_rotate(camera->rotation);
+    sgp_scale(camera->zoom, camera->zoom);
   }
 
   // 
@@ -584,12 +586,12 @@ void renderer_queue_texture(const Texture& texture,
                             const f32 rotation,
                             const Color& tint) {
   sgp_set_color(tint.r, tint.g, tint.b, tint.a);
-  sgp_rotate(rotation);
+  sgp_rotate_at(rotation, dest.position.x, dest.position.y);
 
   Vec2 src_pos  = src.position;
   Vec2 src_size = src.size;
 
-  Vec2 dest_pos  = dest.position;
+  Vec2 dest_pos  = dest.position - (dest.size / 2.0f);
   Vec2 dest_size = dest.size; 
 
   sgp_set_view(0, texture.view);
@@ -619,9 +621,10 @@ void renderer_queue_texture(const Texture& texture, const Transform& transform, 
 
 void renderer_queue_quad(const Transform& transform, const Color& color) {
   sgp_set_color(color.r, color.g, color.b, color.a);
-
-  sgp_rotate(transform.rotation);
-  sgp_draw_filled_rect(transform.position.x, transform.position.y, transform.scale.x, transform.scale.y);
+  sgp_rotate_at(transform.rotation, transform.position.x, transform.position.y);
+  
+  Vec2 center = transform.position - (transform.scale / 2.0f);
+  sgp_draw_filled_rect(center.x, center.y, transform.scale.x, transform.scale.y);
 }
 
 void renderer_queue_line(const Vec2& start, const Vec2& end, const Color& color) {
