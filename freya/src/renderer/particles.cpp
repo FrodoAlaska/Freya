@@ -234,8 +234,8 @@ void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time) {
 
   // Define bounds to use later in the loop
 
-  Vec2 min_bounds = (emitter.position - (emitter.bounds / 2.0f));
-  Vec2 max_bounds = (emitter.position + emitter.bounds);
+  Vec2 min_bounds = Vec2(0.0f);
+  Vec2 max_bounds = emitter.bounds;
 
   // Apply the numarical integrator for each particle 
 
