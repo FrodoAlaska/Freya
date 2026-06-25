@@ -153,6 +153,12 @@ struct ParticleEmitterDesc {
   /// @NOTE: The default scale is set to `Vec2(1.0f, 1.0f)`.
   Vec2 scale                            = Vec2(1.0f);
 
+  /// The bounds that the particles can traverse in. Particles 
+  /// cannot go beyond these bounds at all.
+  ///
+  /// @NOTE: By default, this is set to `Vec2(1024.0f)`.
+  Vec2 bounds                           = Vec2(1024.0f);
+
   /// The texture ID to be used when rendering the particles. 
   ///
   /// @NOTE: This can be set to be invalid to render the 
@@ -199,10 +205,13 @@ struct ParticleEmitterDesc {
 struct ParticleEmitter {
   Vec2 initial_scale    = Vec2(0.0f);
   Vec2 initial_velocity = Vec2(0.0f);
+  Vec2 bounds           = Vec2(0.0f);
 
   Transform transforms[PARTICLES_MAX];
   Vec2 forces[PARTICLES_MAX];
   Vec2 velocities[PARTICLES_MAX];
+
+  Vec2 position = Vec2(0.0f);
 
   i32 particles_count = 0;
   Timer lifetime; 
@@ -297,8 +306,8 @@ FREYA_API void particle_emitter_update(ParticleEmitter& emitter, const f32 delta
 /// Emit the particles of `emitter` at `position`.
 FREYA_API void particle_emitter_emit(ParticleEmitter& emitter, const Vec2& position);
 
-/// Reset the given `emitter` to its initial state, with all particles being positioned at `position`.
-FREYA_API void particle_emitter_reset(ParticleEmitter& emitter, const Vec2& position);
+/// Reset the given `emitter` to its initial state.
+FREYA_API void particle_emitter_reset(ParticleEmitter& emitter);
 
 /// ParticleEmitter functions
 ///---------------------------------------------------------------------------------------------------------------------

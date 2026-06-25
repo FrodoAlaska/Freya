@@ -7,11 +7,10 @@
 /// App
 struct App {
   freya::Window* window;
-  freya::Camera camera;
   freya::AssetGroupID group_id;
 
   freya::EntityWorld ecs; 
-  freya::Entity entt;
+  freya::EntityID entt;
 };
 
 static App s_app;
@@ -35,9 +34,6 @@ static bool on_asset_group_load(const freya::Event& event, const void* dispatche
 /// App functions 
 
 bool app_init(const freya::Args& args, freya::Window* window) {
-  // App init
-  freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
-
   // Window init
   s_app.window = window;
 
@@ -47,21 +43,29 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   // Physics world init
   freya::physics_world_set_gravity(freya::Vec2(0.0f));
 
-  // Camera init
-  
-  freya::CameraDesc cam_desc = {
-    .position    = freya::Vec2(0.0f),
-    .view_bounds = freya::window_get_size(s_app.window), 
-    .zoom        = 1.0f,
-  };
-  freya::camera_create(s_app.camera, cam_desc);
-
   // Assets init
   
   s_app.group_id = freya::asset_group_create("app_assets");
 
   freya::asset_group_build(s_app.group_id, "../../assets/assets_list.lua", "assets.frpkg");
   freya::asset_group_load_package(s_app.group_id, "assets.frpkg");
+  
+  // Renderer init
+  
+  freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
+  
+  freya::renderer_apply_asset_group(s_app.group_id);
+  freya::renderer_sumbit_world(&s_app.ecs);
+  
+  // Camera init
+ 
+  freya::EntityID camera_entt = freya::entity_create(s_app.ecs, freya::Vec2(0.0f));
+
+  freya::CameraDesc cam_desc = {
+    .view_bounds = freya::window_get_size(s_app.window), 
+    .zoom        = 1.0f,
+  };
+  freya::entity_add_camera(s_app.ecs, camera_entt, cam_desc);
 
   // Entity init
   s_app.entt = freya::entity_create(s_app.ecs, freya::Vec2(100.0f));
@@ -109,19 +113,6 @@ void app_update(freya::f32 dt) {
   freya::entity_world_update(s_app.ecs, dt);
 }
 
-void app_render() {
-  // 2D render
-
-  freya::renderer_begin(s_app.camera);
-  freya::entity_world_render(s_app.ecs);
-  freya::renderer_end();
-
-  // UI render
-  
-  freya::ui_renderer_begin();
-  freya::ui_renderer_end();
-}
-
 void app_render_gui() {
   if(!freya::gui_is_active()) {
     return;
@@ -135,8 +126,7 @@ void app_render_gui() {
   // Editor
    
   freya::gui_begin_panel("Editor");
-  freya::gui_edit_camera("Camera", &s_app.camera);
-  freya::gui_edit_entity("Entity", s_app.ecs, s_app.entt);
+  freya::gui_edit_entity_world("World", s_app.ecs);
   freya::gui_end_panel();
 
   freya::gui_end();

@@ -10,9 +10,8 @@ namespace freya { // Start of freya
 
 static void apply_random_distribution(ParticleEmitter& emitter) {
   for(i32 i = 0; i < emitter.particles_count; i++) {
-    Vec2 direction         = Vec2(random_f32(-1.0f, 1.0f), 
+    emitter.velocities[i] *= Vec2(random_f32(-1.0f, 1.0f), 
                                   random_f32(-1.0f, 1.0f));
-    emitter.velocities[i] *= direction;
   }
 }
 
@@ -21,9 +20,8 @@ static void apply_square_distribution(ParticleEmitter& emitter) {
   f32 max = emitter.distribution_radius;
 
   for(i32 i = 0; i < emitter.particles_count; i++) {
-    Vec2 direction         = Vec2(random_f32(min, max), 
+    emitter.velocities[i] *= Vec2(random_f32(min, max), 
                                   random_f32(min, max));
-    emitter.velocities[i] *= direction;
   }
 }
 
@@ -53,6 +51,7 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const ParticleEmitter
   
   out_emitter.initial_scale    = desc.scale;
   out_emitter.initial_velocity = desc.velocity;
+  out_emitter.bounds           = desc.bounds;
 
   for(sizei i = 0; i < desc.count; i++) {
     Transform& transform = out_emitter.transforms[i];
@@ -138,6 +137,21 @@ void particle_emitter_create(ParticleEmitter& out_emitter, const AssetID& config
     lua_pop(lua, 1);
   }
 
+  // Bounds
+  
+  type = lua_getfield(lua, -1, "bounds");
+  if(type != LUA_TNIL) {
+    lua_geti(lua, -1, 1);
+    desc.bounds.x = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+    
+    lua_geti(lua, -1, 2);
+    desc.bounds.y = lua_tonumber(lua, -1); 
+    lua_pop(lua, 1); 
+
+    lua_pop(lua, 1);
+  }
+
   // Color
   
   type = lua_getfield(lua, -1, "color");
@@ -218,15 +232,40 @@ void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time) {
     return;
   }
 
+  // Define bounds to use later in the loop
+
+  Vec2 min_bounds = (emitter.position - (emitter.bounds / 2.0f));
+  Vec2 max_bounds = (emitter.position + emitter.bounds);
+
   // Apply the numarical integrator for each particle 
 
   for(i32 i = 0; i < emitter.particles_count; i++) {
+    // Calculate the acceleration
+
     Vec2 acceleration = emitter.forces[i] * -1.0f; // -1.0f = inverse mass
     acceleration.y   += emitter.gravity_factor;
 
-    emitter.velocities[i]          += acceleration * delta_time;
-    emitter.transforms[i].position += emitter.velocities[i] * delta_time; 
+    // Apply the acceleration and velocities
 
+    Transform& transform = emitter.transforms[i];
+    Vec2& velocity       = emitter.velocities[i];
+
+    // Make sure that we don't go beyond the bounds
+
+    velocity     += acceleration * delta_time;
+    Vec2 next_pos = transform.position + (velocity * delta_time);
+
+    // Only apply the position to the axis that within the bounds
+
+    if((next_pos.x >= min_bounds.x) && (next_pos.x <= max_bounds.x)) {
+      transform.position.x = next_pos.x;
+    }
+
+    if((next_pos.y >= min_bounds.y) && (next_pos.y <= max_bounds.y)) {
+      transform.position.y = next_pos.y;
+    }
+
+    // Reset the forces
     emitter.forces[i] = Vec2(0.0f);
   }
 
@@ -242,7 +281,9 @@ void particle_emitter_update(ParticleEmitter& emitter, const f32 delta_time) {
 }
 
 void particle_emitter_emit(ParticleEmitter& emitter, const Vec2& position) {
-  particle_emitter_reset(emitter, position);
+  emitter.position = (position + (emitter.bounds / 2.0f));
+  
+  particle_emitter_reset(emitter);
   emitter.is_active = true;
 
   // Applying the distribution
@@ -262,12 +303,12 @@ void particle_emitter_emit(ParticleEmitter& emitter, const Vec2& position) {
   }
 }
 
-void particle_emitter_reset(ParticleEmitter& emitter, const Vec2& position) {
+void particle_emitter_reset(ParticleEmitter& emitter) {
   emitter.is_active = false;
   timer_reset(emitter.lifetime);
   
   for(i32 i = 0; i < emitter.particles_count; i++) {
-    emitter.transforms[i].position = position;
+    emitter.transforms[i].position = emitter.position;
     emitter.transforms[i].scale    = emitter.initial_scale;
   }
   

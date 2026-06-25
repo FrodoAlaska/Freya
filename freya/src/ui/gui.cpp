@@ -591,6 +591,7 @@ void gui_edit_particle_emitter(const char* name, ParticleEmitter* emitter) {
   //
 
   ImGui::DragFloat2("Velocity", &emitter->initial_velocity[0], s_gui.big_step);
+  ImGui::DragFloat2("Bounds", &emitter->bounds[0], s_gui.big_step);
   
   ImGui::DragFloat("Lifetime", &emitter->lifetime.limit, s_gui.big_step, 0.0f, 512.0f);
   ImGui::DragFloat("Gravity", &emitter->gravity_factor, s_gui.big_step);
