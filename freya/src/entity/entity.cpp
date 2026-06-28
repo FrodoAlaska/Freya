@@ -228,22 +228,27 @@ Animator& entity_add_animator(EntityWorld& world, EntityID& entt) {
   return world.emplace<Animator>(entt);
 }
 
-SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color) {
+SpriteComponent& entity_add_sprite(EntityWorld& world, 
+                                   EntityID& entt, 
+                                   const AssetID& texture_id, 
+                                   const Vec4& color, 
+                                   const i32 layer) {
   Texture texture = {};
   if(texture_id.get_id() != ASSET_ID_INVALID) {
     texture = asset_group_get_texture(texture_id);
   }
 
-  return world.emplace<SpriteComponent>(entt, texture, color);
+  return world.emplace<SpriteComponent>(entt, texture, color, layer);
 }
 
 TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
                                             EntityID& entt, 
                                             const AssetID& texture_id,
                                             const Rect2D& source, 
-                                            const Vec4& color) {
+                                            const Vec4& color, 
+                                            const i32 layer) {
   Texture texture = asset_group_get_texture(texture_id);
-  return world.emplace<TileSpriteComponent>(entt, texture, source, color);
+  return world.emplace<TileSpriteComponent>(entt, texture, source, color, layer);
 }
 
 ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {

@@ -92,7 +92,17 @@ struct SpriteComponent {
 
   /// The color/tint that will be used 
   /// in the render command. 
-  Vec4 color;
+  ///
+  /// @NOTE: This is `COLOR_WHITE` by default.
+  Vec4 color      = COLOR_WHITE;
+
+  /// The layer associated with the sprite. 
+  /// `-1` indicates that the sprite will be 
+  /// rendered at the very back. The higher 
+  /// the value, the farther to the front the sprite will be drawn.
+  ///
+  /// @NOTE: By default, this value is `-1`.
+  i32 layer       = -1;
 };
 /// SpriteComponent
 /// ----------------------------------------------------------------------
@@ -112,7 +122,15 @@ struct TileSpriteComponent {
   /// in the render command. 
   ///
   /// @NOTE: This is `COLOR_WHITE` by default.
-  Vec4 color                = COLOR_WHITE;
+  Vec4 color            = COLOR_WHITE;
+
+  /// The layer associated with the sprite. 
+  /// `-1` indicates that the sprite will be 
+  /// rendered at the very back. The higher 
+  /// the value, the farther to the front the sprite will be drawn.
+  ///
+  /// @NOTE: By default, this value is `-1`.
+  i32 layer             = -1;
 };
 /// TileSpriteComponent
 /// ----------------------------------------------------------------------
@@ -242,16 +260,21 @@ FREYA_API AnimationComponent& entity_add_animation(EntityWorld& world,
 FREYA_API Animator& entity_add_animator(EntityWorld& world, EntityID& entt);
 
 /// A helper function to add a sprite component to `entt`, using the given
-/// `texture_id` and `color` to give to the render command.
-FREYA_API SpriteComponent& entity_add_sprite(EntityWorld& world, EntityID& entt, const AssetID& texture_id, const Vec4& color = Vec4(1.0f));
+/// `texture_id`, `color`, and `layer` to give to the render command.
+FREYA_API SpriteComponent& entity_add_sprite(EntityWorld& world, 
+                                             EntityID& entt, 
+                                             const AssetID& texture_id, 
+                                             const Vec4& color = Vec4(1.0f), 
+                                             const i32 layer   = -1);
 
 /// A helper function to add a tile sprite component to `entt`, using the given
-/// `texture_id`, `source`, and `color` to give to the render command.
+/// `texture_id`, `source`, `color`, and `layer` to give to the render command.
 FREYA_API TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
                                                       EntityID& entt, 
                                                       const AssetID& texture_id,
                                                       const Rect2D& source, 
-                                                      const Vec4& color = Vec4(1.0f));
+                                                      const Vec4& color = Vec4(1.0f), 
+                                                      const i32 layer   = -1);
 
 /// A helper function to add a particle emitter to `entt` using the information 
 /// in `desc` or in a config file given in `config_id`.

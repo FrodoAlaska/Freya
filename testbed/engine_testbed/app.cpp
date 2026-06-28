@@ -25,6 +25,8 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::renderer_set_clear_color(freya::Vec4(0.1f, 0.1f, 0.1f, 1.0f));
   freya::renderer_sumbit_world(&s_app.world);
 
+  freya::renderer_set_sort(true);
+
   // Window init
   s_app.window = window;
 
@@ -52,21 +54,23 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
   freya::entity_add_tag(s_app.world, cam_entt, "Camera");
-
-  // Entity init
-
-  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(48.0f), freya::Vec2(32.0f));
-
-  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_WHITE);
-  freya::entity_add_tag(s_app.world, entt, "Quad");
+  
+  // Tiles init
 
   freya::Vec2 pos = freya::Vec2(16.0f);
   for(freya::i32 i = 0; i < 10; i++) {
     freya::EntityID entt = freya::entity_create(s_app.world, pos, freya::Vec2(32.0f));
-    freya::entity_add_sprite(s_app.world, entt, freya::asset_group_get_id(s_app.group_id, "grass"));
+    freya::entity_add_sprite(s_app.world, entt, freya::asset_group_get_id(s_app.group_id, "grass"), freya::COLOR_WHITE, 0);
 
     pos.x += 32.0f;
   }
+
+  // Entity init
+
+  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(16.0f), freya::Vec2(32.0f));
+
+  freya::entity_add_sprite(s_app.world, entt, {}, freya::COLOR_WHITE, 1);
+  freya::entity_add_tag(s_app.world, entt, "Quad");
 
   // Done!
   return true;

@@ -34,6 +34,7 @@ struct Renderer {
   EntityWorld* world    = nullptr;
 
   Camera* main_cam = nullptr;
+  bool can_sort    = false;
 };
 
 static Renderer s_renderer;
@@ -335,6 +336,18 @@ void renderer_prepare() {
  
   // Tile sprites
   {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const TileSpriteComponent& a, const TileSpriteComponent& b) {
+        return a.layer > b.layer;
+      };
+
+      s_renderer.world->sort<TileSpriteComponent>(sort_fn);
+    }
+
+    // Render each tile
+
     auto view = world->view<TileSpriteComponent, Transform>();
     for(auto entt : view) {
       const Transform& transform        = view.get<Transform>(entt);
@@ -354,6 +367,18 @@ void renderer_prepare() {
 
   // Sprites
   {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const SpriteComponent& a, const SpriteComponent& b) {
+        return a.layer < b.layer;
+      };
+
+      s_renderer.world->sort<SpriteComponent>(sort_fn);
+    }
+    
+    // Render each sprite
+
     auto view = world->view<SpriteComponent, Transform>();
     for(auto entt : view) {
       const Transform& transform    = view.get<Transform>(entt);
@@ -419,6 +444,9 @@ void renderer_prepare() {
       physics_world_draw_debug();
     }
   }
+
+  // Clean slate
+  s_renderer.can_sort = false;
 }
 
 void renderer_commit() {
@@ -552,6 +580,10 @@ PostProcessPass* renderer_pop_post_process() {
 
 void renderer_set_clear_color(const Color& color) {
   s_renderer.color = color;
+}
+
+void renderer_set_sort(bool sort) {
+  s_renderer.can_sort = sort;
 }
 
 const Color& renderer_get_clear_color() {
