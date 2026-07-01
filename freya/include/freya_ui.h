@@ -83,6 +83,16 @@ FREYA_API void ui_context_update(UIContext* ui_ctx);
 /// Render the given `ui_ctx`.
 FREYA_API void ui_context_render(UIContext* ui_ctx);
 
+/// Enable the given `ui_doc` to push events to the engine.
+///
+/// @NOTE: This will enable events for all documents and elements of the given `ui_ctx`.
+FREYA_API void ui_context_enable_events(UIContext* ui_ctx);
+
+/// Disable the ability of the given `ui_ctx` to push events to the engine.
+///
+/// @NOTE: This will disable events for all documents and elements of the given `ui_ctx`.
+FREYA_API void ui_context_disable_events(UIContext* ui_ctx);
+
 /// If the given flag `enable` is `true`, the `ui_ctx` will be allowed to 
 /// take mouse input.
 FREYA_API void ui_context_enable_mouse_cursor(UIContext* ui_ctx, const bool enable);

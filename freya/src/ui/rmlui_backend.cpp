@@ -778,6 +778,88 @@ void ui_context_render(UIContext* ui_ctx) {
   ui_ctx->Render();
 }
 
+void ui_context_enable_events(UIContext* ui_ctx) {
+  // Enable document events
+
+  ui_ctx->AddEventListener("show", &s_listener);
+  ui_ctx->AddEventListener("hide", &s_listener);
+  ui_ctx->AddEventListener("load", &s_listener);
+  ui_ctx->AddEventListener("unload", &s_listener);
+
+  // Enable input events
+  
+  ui_ctx->AddEventListener("scroll", &s_listener);
+  ui_ctx->AddEventListener("focus", &s_listener);
+  ui_ctx->AddEventListener("blur", &s_listener);
+
+  ui_ctx->AddEventListener("keydown", &s_listener);
+  ui_ctx->AddEventListener("keyup", &s_listener);
+
+  ui_ctx->AddEventListener("click", &s_listener);
+  ui_ctx->AddEventListener("dbclick", &s_listener);
+
+  ui_ctx->AddEventListener("mousedown", &s_listener);
+  ui_ctx->AddEventListener("mousescroll", &s_listener);
+  ui_ctx->AddEventListener("mouseover", &s_listener);
+  ui_ctx->AddEventListener("mouseout", &s_listener);
+  ui_ctx->AddEventListener("mousemove", &s_listener);
+
+  ui_ctx->AddEventListener("dragstart", &s_listener);
+  ui_ctx->AddEventListener("dragend", &s_listener);
+  ui_ctx->AddEventListener("drag", &s_listener);
+
+  ui_ctx->AddEventListener("dragover", &s_listener);
+  ui_ctx->AddEventListener("dragout", &s_listener);
+  ui_ctx->AddEventListener("dragmove", &s_listener);
+  ui_ctx->AddEventListener("dragdrop", &s_listener);
+
+  ui_ctx->AddEventListener("animationend", &s_listener);
+  ui_ctx->AddEventListener("transitionend", &s_listener);
+
+  ui_ctx->AddEventListener("tabchange", &s_listener);
+}
+
+void ui_context_disable_events(UIContext* ui_ctx) {
+  // Disable document events
+
+  ui_ctx->RemoveEventListener("show", &s_listener);
+  ui_ctx->RemoveEventListener("hide", &s_listener);
+  ui_ctx->RemoveEventListener("load", &s_listener);
+  ui_ctx->RemoveEventListener("unload", &s_listener);
+
+  // Disable input events
+  
+  ui_ctx->RemoveEventListener("scroll", &s_listener);
+  ui_ctx->RemoveEventListener("focus", &s_listener);
+  ui_ctx->RemoveEventListener("blur", &s_listener);
+
+  ui_ctx->RemoveEventListener("keydown", &s_listener);
+  ui_ctx->RemoveEventListener("keyup", &s_listener);
+
+  ui_ctx->RemoveEventListener("click", &s_listener);
+  ui_ctx->RemoveEventListener("dbclick", &s_listener);
+
+  ui_ctx->RemoveEventListener("mousedown", &s_listener);
+  ui_ctx->RemoveEventListener("mousescroll", &s_listener);
+  ui_ctx->RemoveEventListener("mouseover", &s_listener);
+  ui_ctx->RemoveEventListener("mouseout", &s_listener);
+  ui_ctx->RemoveEventListener("mousemove", &s_listener);
+
+  ui_ctx->RemoveEventListener("dragstart", &s_listener);
+  ui_ctx->RemoveEventListener("dragend", &s_listener);
+  ui_ctx->RemoveEventListener("drag", &s_listener);
+
+  ui_ctx->RemoveEventListener("dragover", &s_listener);
+  ui_ctx->RemoveEventListener("dragout", &s_listener);
+  ui_ctx->RemoveEventListener("dragmove", &s_listener);
+  ui_ctx->RemoveEventListener("dragdrop", &s_listener);
+
+  ui_ctx->RemoveEventListener("animationend", &s_listener);
+  ui_ctx->RemoveEventListener("transitionend", &s_listener);
+
+  ui_ctx->RemoveEventListener("tabchange", &s_listener);
+}
+
 void ui_context_enable_mouse_cursor(UIContext* ui_ctx, const bool enable) {
   ui_ctx->EnableMouseCursor(enable);
 }
@@ -863,6 +945,8 @@ UIDocument* ui_document_create(UIContext* ui_ctx, const String& maker_name) {
 
 void ui_document_unload(UIDocument* ui_doc) {
   UIContext* ui_ctx = ui_document_get_context(ui_doc);
+
+  ui_document_disable_events(ui_doc);
   ui_ctx->UnloadDocument(ui_doc);
 }
 
