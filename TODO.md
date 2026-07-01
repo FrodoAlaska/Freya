@@ -2,6 +2,9 @@
 
 ### Major Systems
 
+- Switch from RmlUI potentially? Maybe to a combination of fontstatsh, and your own UI system.
+    - UI documentation
+
 - Misc.
     - Async asset loading using `sokol_fetch` and `EnkiTS`
     - Test more shit with compute shaders. Particles, post-processing, and other effects

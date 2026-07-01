@@ -184,10 +184,6 @@ Camera& entity_add_camera(EntityWorld& world, EntityID& entt, CameraDesc& desc) 
   return camera;
 }
 
-TagComponent& entity_add_tag(EntityWorld& world, EntityID& entt, const String& tag) {
-  return world.emplace<TagComponent>(entt, tag);
-}
-
 AudioSourceID& entity_add_audio_source(EntityWorld& world, 
                                        EntityID& entt, 
                                        AudioSourceDesc& desc, 
@@ -201,6 +197,55 @@ AudioSourceID& entity_add_audio_source(EntityWorld& world,
   return world.emplace<AudioSourceID>(entt, audio_source_create(desc));
 }
 
+NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, const NoiseGeneratorDesc& desc) {
+  NoiseGenerator* gen = noise_generator_create(desc);
+  return world.emplace<NoiseGenerator*>(entt, gen);
+}
+
+TileMap& entity_add_tilemap(EntityWorld& world, 
+                            EntityID& entt, 
+                            const Vec2& start_pos, 
+                            const Vec2& tile_size, 
+                            const IVec2& tiles_count) {
+  TileMap& tilemap = world.emplace<TileMap>(entt); 
+  tilemap_create(tilemap, &world, start_pos, tile_size, tiles_count);
+
+  return tilemap;
+}
+
+UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds) {
+  UIContext* ctx = ui_context_create(name, view_bounds);
+  return world.emplace<UIContext*>(entt, ctx);
+}
+
+UIText& entity_add_text(EntityWorld& world, EntityID& entt, UITextDesc& desc) {
+  Transform& transform = world.get<Transform>(entt);
+  UIText& text         = world.emplace<UIText>(entt);
+
+  desc.offset = transform.position;
+  ui_text_create(text, desc);
+
+  return text;
+}
+
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {
+  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
+  particle_emitter_create(emitter, desc);
+  
+  return emitter;
+}
+
+ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const AssetID& config_id) {
+  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
+  particle_emitter_create(emitter, config_id);
+  
+  return emitter;
+}
+
+TagComponent& entity_add_tag(EntityWorld& world, EntityID& entt, const String& tag) {
+  return world.emplace<TagComponent>(entt, tag);
+}
+
 TimerComponent& entity_add_timer(EntityWorld& world, 
                                  EntityID& entt, 
                                  const TimerDesc& desc, 
@@ -210,22 +255,6 @@ TimerComponent& entity_add_timer(EntityWorld& world,
   timer_create(timer, desc);
 
   return world.emplace<TimerComponent>(entt, timer, runout_func, user_data);
-}
-
-UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds) {
-  UIContext* ctx = ui_context_create(name, view_bounds);
-  return world.emplace<UIContext*>(entt, ctx);
-}
-
-AnimationComponent& entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
-  Animation anim; 
-  animation_create(anim, desc);
-
-  return world.emplace<AnimationComponent>(entt, anim, tint);
-}
-
-Animator& entity_add_animator(EntityWorld& world, EntityID& entt) {
-  return world.emplace<Animator>(entt);
 }
 
 SpriteComponent& entity_add_sprite(EntityWorld& world, 
@@ -249,20 +278,6 @@ TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
                                             const i32 layer) {
   Texture texture = asset_group_get_texture(texture_id);
   return world.emplace<TileSpriteComponent>(entt, texture, source, color, layer);
-}
-
-ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {
-  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
-  particle_emitter_create(emitter, desc);
-  
-  return emitter;
-}
-
-ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const AssetID& config_id) {
-  ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
-  particle_emitter_create(emitter, config_id);
-  
-  return emitter;
 }
 
 StaticBodyComponent& entity_add_static_body(EntityWorld& world, 
@@ -298,20 +313,15 @@ DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
   return world.emplace<DynamicBodyComponent>(entt, body, enter_func, exit_func);
 }
 
-NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, const NoiseGeneratorDesc& desc) {
-  NoiseGenerator* gen = noise_generator_create(desc);
-  return world.emplace<NoiseGenerator*>(entt, gen);
+AnimationComponent& entity_add_animation(EntityWorld& world, EntityID& entt, const AnimationDesc& desc, const Vec4& tint) {
+  Animation anim; 
+  animation_create(anim, desc);
+
+  return world.emplace<AnimationComponent>(entt, anim, tint);
 }
 
-TileMap& entity_add_tilemap(EntityWorld& world, 
-                            EntityID& entt, 
-                            const Vec2& start_pos, 
-                            const Vec2& tile_size, 
-                            const IVec2& tiles_count) {
-  TileMap& tilemap = world.emplace<TileMap>(entt); 
-  tilemap_create(tilemap, &world, start_pos, tile_size, tiles_count);
-
-  return tilemap;
+Animator& entity_add_animator(EntityWorld& world, EntityID& entt) {
+  return world.emplace<Animator>(entt);
 }
 
 bool entity_on_collision_enter(EntityWorld& world, EntityID& entt, EntityID& other, const Vec2& normal, void* user_data) {

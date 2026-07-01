@@ -92,6 +92,12 @@ struct Font {
 
   String name;
   DynamicArray<u8> font_data;
+
+  /// The internal ID that will be used to retrieve the font 
+  /// in the renderer.
+  ///
+  /// @NOTE: This MUST NOT BE TOUCHED!!
+  i32 _id = -1;
 };
 /// Font
 ///---------------------------------------------------------------------------------------------------------------------

@@ -7,7 +7,11 @@
 #include "shaders/default_pass_shader.h"
 #include "ui/ui_renderer_impl.h" 
 
+#include "fontstash/fontstash.h"
+
 #include "sokol/sokol_gp.h"
+#include "sokol/sokol_gl.h"
+#include "sokol/sokol_fontstash.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +39,8 @@ struct Renderer {
 
   Camera* main_cam = nullptr;
   bool can_sort    = false;
+
+  FONScontext* fons = nullptr;
 };
 
 static Renderer s_renderer;
@@ -155,6 +161,17 @@ void renderer_init(Window* window) {
 
   sg_setup(&gfx_desc);
   FREYA_ASSERT_LOG(sg_isvalid(), "Failed to initialize the graphics context");
+  
+  // SGL init
+
+  sgl_desc_t gl_desc = {
+    .color_format = SG_PIXELFORMAT_RGBA8,
+    .depth_format = SG_PIXELFORMAT_DEPTH_STENCIL,
+    .sample_count = window_get_samples_count(s_renderer.window),
+  };
+
+  gl_desc.logger.func = sg_logger_func;
+  sgl_setup(gl_desc);
 
   // SGP init
 
@@ -162,6 +179,14 @@ void renderer_init(Window* window) {
   sgp_setup(&gp_desc);
   
   FREYA_ASSERT_LOG(sgp_is_valid(), "Failed to initialize the graphics painter");
+
+  // FONS init
+ 
+  sfons_desc_t fons_desc = {
+    .width  = 512, 
+    .height = 512, 
+  };
+  s_renderer.fons = sfons_create(&fons_desc);
 
   // Default sampler init
 
@@ -245,7 +270,10 @@ void renderer_shutdown() {
 
   // GFX shutdown
 
+  sfons_destroy(s_renderer.fons);
+
   sgp_shutdown();
+  sgl_shutdown();
   sg_shutdown();
 
   // Done!
@@ -256,292 +284,8 @@ void renderer_apply_asset_group(const AssetGroupID& group_id) {
   s_renderer.group_id = group_id;
 }
 
-bool renderer_apply_font(const AssetID& font_id) {
-  return ui_renderer_apply_font(font_id);
-}
-
 void renderer_sumbit_world(EntityWorld* world) {
   s_renderer.world = world;
-}
-
-void renderer_prepare() {
-  FREYA_DEBUG_ASSERT(s_renderer.world, "Invalid EntityWorld found in renderer");
-  FREYA_PROFILE_FUNCTION();
-
-  // Reset the renderer's state 
-  
-  EntityWorld* world = s_renderer.world;
-
-  IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
-  IVec2 size       = window_get_size(s_renderer.window);
-
-  // SGP begin
-
-  sgp_begin(size.x, size.y);
-  sgp_project(0.0f, (f32)frame_size.x, 0.0f, (f32)frame_size.y);
-  sgp_set_blend_mode(SGP_BLENDMODE_BLEND);
-
-  // 
-  // Gather the frame data 
-  //
-
-  // Update the camera data
-  {
-    auto view = world->view<Camera>();
-    for(auto& entt : view) {
-      s_renderer.main_cam = &view.get<Camera>(entt);
-      break;
-    }
-  }
-
-  // Projecting the scene using the camera if it was found 
-
-  if(s_renderer.main_cam) {
-    sgp_project(0.0f, (f32)s_renderer.main_cam->view_bounds.x, 0.0f, (f32)s_renderer.main_cam->view_bounds.y);
-    sgp_push_transform();
-
-    Camera* camera = s_renderer.main_cam;
-
-    sgp_translate(-camera->position.x, -camera->position.y);
-    sgp_rotate(camera->rotation);
-    sgp_scale(camera->zoom, camera->zoom);
-  }
-
-  // 
-  // Prepare the frame 
-  //
-
-  // Clear
-
-  sgp_set_color(s_renderer.color.r, s_renderer.color.g, s_renderer.color.b, s_renderer.color.a);
-  sgp_clear();
-
-  // Either start the post-processing chain if there are 
-  // more than the default pass available, or just prepare 
-  // the default swapchain for normal rendering.
-  
-  if(s_renderer.passes.size() > 1) {
-    PostProcessPass* pass = s_renderer.passes[0];
-
-    sg_begin_pass(&pass->pass);
-    sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
-  }
-  else {
-    swapchain_pass_prepare();
-  }
-
-  // 
-  // Gather the draw calls 
-  //
- 
-  // Tile sprites
-  {
-    // Check if we need to sort the view first
-
-    if(s_renderer.can_sort) {
-      auto sort_fn = [&](const TileSpriteComponent& a, const TileSpriteComponent& b) {
-        return a.layer > b.layer;
-      };
-
-      s_renderer.world->sort<TileSpriteComponent>(sort_fn);
-    }
-
-    // Render each tile
-
-    auto view = world->view<TileSpriteComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform        = view.get<Transform>(entt);
-      const TileSpriteComponent& sprite = view.get<TileSpriteComponent>(entt);
-
-      // Setup the dest rect
-
-      Rect2D dest = {
-        .size     = sprite.source_rect.size * transform.scale,
-        .position = transform.position,
-      };
-
-      // Render a regular quad
-      renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
-    }
-  }
-
-  // Sprites
-  {
-    // Check if we need to sort the view first
-
-    if(s_renderer.can_sort) {
-      auto sort_fn = [&](const SpriteComponent& a, const SpriteComponent& b) {
-        return a.layer < b.layer;
-      };
-
-      s_renderer.world->sort<SpriteComponent>(sort_fn);
-    }
-    
-    // Render each sprite
-
-    auto view = world->view<SpriteComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform    = view.get<Transform>(entt);
-      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
-
-      // Render a texture (if it's a valid)
-
-      if(sprite.texture.id != -1) {
-        renderer_queue_texture(sprite.texture, transform, sprite.color);
-        continue;
-      }
-
-      // Render a regular quad
-      renderer_queue_quad(transform, sprite.color);
-    }
-  }
-  
-  // Animations
-  {
-    auto view = world->view<AnimationComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform     = view.get<Transform>(entt);
-      const AnimationComponent& anim = view.get<AnimationComponent>(entt);
-
-      renderer_queue_animation(anim.animation, transform, anim.tint);
-    }
-  }
-  
-  // Animators
-  {
-    auto view = world->view<Animator, Transform>();
-    for(auto entt : view) {
-      const Transform& transform = view.get<Transform>(entt);
-      const Animator& anim       = view.get<Animator>(entt);
-
-      if(!anim.animations.empty()) {
-        renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
-      }
-    }
-  }
-
-  // ParticleEmitters
-  {
-    auto view = world->view<ParticleEmitter>();
-    for(auto entt : view) {
-      const ParticleEmitter& emitter = view.get<ParticleEmitter>(entt);
-      renderer_queue_particles(emitter);
-    }
-  }
-
-  // UIContext
-  {
-    auto view = world->view<UIContext*>();
-    for(auto entt : view) {
-      UIContext* ctx = view.get<UIContext*>(entt);
-      s_renderer.ui_contexts.emplace_back(ctx);
-    }
-  }
-
-  // Physics (@TODO: Not the best place to put this??)
-  {
-    if(physics_world_is_debug()) {
-      physics_world_draw_debug();
-    }
-  }
-
-  // Clean slate
-  s_renderer.can_sort = false;
-}
-
-void renderer_commit() {
-  FREYA_PROFILE_FUNCTION();
-  
-  // Reset the painter's state
-
-  if(s_renderer.main_cam) {
-    sgp_pop_transform();
-  }
-
-  sgp_reset_blend_mode();
-
-  // End the painter 
-  
-  sgp_flush();
-  sgp_end();
-
-  // Render the contexts
-
-  if(!s_renderer.ui_contexts.empty()) {
-    ui_renderer_prepare();
-  }
-
-  for(auto& ctx : s_renderer.ui_contexts) {
-    ui_context_render(ctx);
-  }
-
-  // End the default post-processing pass if we are 
-  // currently expected to walk that chain 
-
-  if(s_renderer.passes.size() > 1) {
-    sg_end_pass(); // Should be the default post-process pass
-  }
-
-  // Initiate the post-processing pipeline
-
-  PostProcessPass* current_pass = nullptr;
-  for(sizei i = 1; i < s_renderer.passes.size(); i++) { // Skip the default pass
-    // Prepare the pass
-    
-    PostProcessPass* pass = s_renderer.passes[i];
-    sg_begin_pass(&pass->pass);
-    sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
-
-    // Set up the bindings of the pass 
-    sg_bindings bindings = {};
-
-    // Use the outputs of the previous pass
-     
-    PostProcessPass* previous = pass->previous;
-    for(u32 i = 0; i < previous->outputs_count; i++) {
-      bindings.views[i] = previous->outputs[i];
-    }
-
-    bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
-    bindings.samplers[0]       = s_renderer.default_sampler;
-
-    // Apply the bindings and the pipeline
-    
-    sg_apply_pipeline(pass->pipeline);
-    sg_apply_bindings(bindings);
-
-    if(pass->prepare_func) {
-      pass->prepare_func(pass);
-    }
-
-    // Render the screen-space post-process effect
-    sg_draw(0, 6, 1);
-
-    // End the pass
-    sg_end_pass();
-
-    // Set the current pass to render later
-    current_pass = pass; 
-  }
-
-  // Only preapre the default swapchain if we have some 
-  // post-processing passes to go through. If there aren't any, 
-  // then the default swapchain was already prepared at the start of the frame.
-
-  if(current_pass) {
-    swapchain_pass_prepare();
-  }
-
-  // Draw the final image to the swapchain
-  swapchain_pass_commit(current_pass);
-
-  // Done with this frame... 
-  sg_commit();
-
-  // Clean the slate
- 
-  s_renderer.main_cam = nullptr;
-  s_renderer.ui_contexts.clear();
 }
 
 void renderer_push_post_process(PostProcessPass* pass) {
@@ -716,6 +460,338 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
 
     renderer_queue_quad(emitter.transforms[i], emitter.color);
   }
+}
+
+void renderer_prepare() {
+  FREYA_DEBUG_ASSERT(s_renderer.world, "Invalid EntityWorld found in renderer");
+  FREYA_PROFILE_FUNCTION();
+
+  // Reset the renderer's state 
+  
+  EntityWorld* world = s_renderer.world;
+
+  IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
+  IVec2 size       = window_get_size(s_renderer.window);
+
+  // SGP begin
+
+  sgp_begin(size.x, size.y);
+  sgp_project(0.0f, (f32)frame_size.x, 0.0f, (f32)frame_size.y);
+  sgp_set_blend_mode(SGP_BLENDMODE_BLEND);
+
+  // 
+  // Gather the frame data 
+  //
+
+  // Update the camera data
+  {
+    auto view = world->view<Camera>();
+    for(auto& entt : view) {
+      s_renderer.main_cam = &view.get<Camera>(entt);
+      break;
+    }
+  }
+
+  // Projecting the scene using the camera if it was found 
+
+  if(s_renderer.main_cam) {
+    sgp_project(0.0f, (f32)s_renderer.main_cam->view_bounds.x, 0.0f, (f32)s_renderer.main_cam->view_bounds.y);
+    sgp_push_transform();
+
+    Camera* camera = s_renderer.main_cam;
+
+    sgp_translate(-camera->position.x, -camera->position.y);
+    sgp_rotate(camera->rotation);
+    sgp_scale(camera->zoom, camera->zoom);
+  }
+
+  // 
+  // Prepare the frame 
+  //
+
+  // Clear
+
+  sgp_set_color(s_renderer.color.r, s_renderer.color.g, s_renderer.color.b, s_renderer.color.a);
+  sgp_clear();
+
+  // Either start the post-processing chain if there are 
+  // more than the default pass available, or just prepare 
+  // the default swapchain for normal rendering.
+  
+  if(s_renderer.passes.size() > 1) {
+    PostProcessPass* pass = s_renderer.passes[0];
+
+    sg_begin_pass(&pass->pass);
+    sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
+  }
+  else {
+    swapchain_pass_prepare();
+  }
+
+  // 
+  // Gather the draw calls 
+  //
+ 
+  // Tile sprites
+  {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const TileSpriteComponent& a, const TileSpriteComponent& b) {
+        return a.layer > b.layer;
+      };
+
+      s_renderer.world->sort<TileSpriteComponent>(sort_fn);
+    }
+
+    // Render each tile
+
+    auto view = world->view<TileSpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform        = view.get<Transform>(entt);
+      const TileSpriteComponent& sprite = view.get<TileSpriteComponent>(entt);
+
+      // Setup the dest rect
+
+      Rect2D dest = {
+        .size     = sprite.source_rect.size * transform.scale,
+        .position = transform.position,
+      };
+
+      // Render a regular quad
+      renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
+    }
+  }
+
+  // Sprites
+  {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const SpriteComponent& a, const SpriteComponent& b) {
+        return a.layer < b.layer;
+      };
+
+      s_renderer.world->sort<SpriteComponent>(sort_fn);
+    }
+    
+    // Render each sprite
+
+    auto view = world->view<SpriteComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform    = view.get<Transform>(entt);
+      const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
+
+      // Render a texture (if it's a valid)
+
+      if(sprite.texture.id != -1) {
+        renderer_queue_texture(sprite.texture, transform, sprite.color);
+        continue;
+      }
+
+      // Render a regular quad
+      renderer_queue_quad(transform, sprite.color);
+    }
+  }
+  
+  // Animations
+  {
+    auto view = world->view<AnimationComponent, Transform>();
+    for(auto entt : view) {
+      const Transform& transform     = view.get<Transform>(entt);
+      const AnimationComponent& anim = view.get<AnimationComponent>(entt);
+
+      renderer_queue_animation(anim.animation, transform, anim.tint);
+    }
+  }
+  
+  // Animators
+  {
+    auto view = world->view<Animator, Transform>();
+    for(auto entt : view) {
+      const Transform& transform = view.get<Transform>(entt);
+      const Animator& anim       = view.get<Animator>(entt);
+
+      if(!anim.animations.empty()) {
+        renderer_queue_animation(anim.animations[anim.current_animation], transform, Vec4(1.0f));
+      }
+    }
+  }
+
+  // ParticleEmitters
+  {
+    auto view = world->view<ParticleEmitter>();
+    for(auto entt : view) {
+      const ParticleEmitter& emitter = view.get<ParticleEmitter>(entt);
+      renderer_queue_particles(emitter);
+    }
+  }
+
+  // UIText
+  {
+    auto view = world->view<UIText, Transform>();
+    for(auto entt : view) {
+      Transform& transform = view.get<Transform>(entt);
+      UIText& text         = view.get<UIText>(entt);
+
+      // Skip inactive texts
+
+      if(!text.is_active) {
+        continue;
+      }
+      
+      // Calculating the correct color
+
+      IVec4 ucolor  = (IVec4)(text.color * 255.0f);
+      u32 hex_color = sfons_rgba(ucolor.r, ucolor.g, ucolor.b, ucolor.a); 
+
+      // Manage the state of the text
+
+      text.offset = transform.position;
+      ui_text_place(text);
+
+      fonsSetSize(s_renderer.fons, text.size);
+      fonsSetColor(s_renderer.fons, hex_color);
+      fonsSetSpacing(s_renderer.fons, text.spacing);
+      fonsSetBlur(s_renderer.fons, text.blur);
+      fonsSetAlign(s_renderer.fons, text.align);
+      fonsSetFont(s_renderer.fons, text.font->_id);
+
+      // Draw
+
+      sgl_rotate(transform.rotation, 0.0f, 0.0f, 1.0f);
+      fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
+    }
+  }
+
+  // UIContext
+  {
+    auto view = world->view<UIContext*>();
+    for(auto entt : view) {
+      UIContext* ctx = view.get<UIContext*>(entt);
+      s_renderer.ui_contexts.emplace_back(ctx);
+    }
+  }
+
+  // Physics (@TODO: Not the best place to put this??)
+  {
+    if(physics_world_is_debug()) {
+      physics_world_draw_debug();
+    }
+  }
+
+  // Clean slate
+  s_renderer.can_sort = false;
+}
+
+void renderer_commit() {
+  FREYA_PROFILE_FUNCTION();
+  
+  // Reset the painter's state
+
+  if(s_renderer.main_cam) {
+    sgp_pop_transform();
+  }
+
+  sgp_reset_blend_mode();
+
+  // End the painter 
+  
+  sgp_flush();
+  sgp_end();
+ 
+  // End the font painter
+
+  sgl_defaults();
+  sgl_matrix_mode_projection();
+
+  IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
+  sgl_ortho(0.0f, (f32)frame_size.x, (f32)frame_size.y, 0.0f, -1.0f, 1.0f);
+
+  sfons_flush(s_renderer.fons);
+  sgl_draw();
+
+  // Render the contexts
+
+  if(!s_renderer.ui_contexts.empty()) {
+    ui_renderer_prepare();
+  }
+
+  for(auto& ctx : s_renderer.ui_contexts) {
+    ui_context_render(ctx);
+  }
+
+  // End the default post-processing pass if we are 
+  // currently expected to walk that chain 
+
+  if(s_renderer.passes.size() > 1) {
+    sg_end_pass(); // Should be the default post-process pass
+  }
+
+  // Initiate the post-processing pipeline
+
+  PostProcessPass* current_pass = nullptr;
+  for(sizei i = 1; i < s_renderer.passes.size(); i++) { // Skip the default pass
+    // Prepare the pass
+    
+    PostProcessPass* pass = s_renderer.passes[i];
+    sg_begin_pass(&pass->pass);
+    sg_apply_viewport(0, 0, pass->frame_size.x, pass->frame_size.y, true);
+
+    // Set up the bindings of the pass 
+    sg_bindings bindings = {};
+
+    // Use the outputs of the previous pass
+     
+    PostProcessPass* previous = pass->previous;
+    for(u32 i = 0; i < previous->outputs_count; i++) {
+      bindings.views[i] = previous->outputs[i];
+    }
+
+    bindings.vertex_buffers[0] = s_renderer.vertex_buffer;
+    bindings.samplers[0]       = s_renderer.default_sampler;
+
+    // Apply the bindings and the pipeline
+    
+    sg_apply_pipeline(pass->pipeline);
+    sg_apply_bindings(bindings);
+
+    if(pass->prepare_func) {
+      pass->prepare_func(pass);
+    }
+
+    // Render the screen-space post-process effect
+    sg_draw(0, 6, 1);
+
+    // End the pass
+    sg_end_pass();
+
+    // Set the current pass to render later
+    current_pass = pass; 
+  }
+
+  // Only prepare the default swapchain if we have some 
+  // post-processing passes to go through. If there aren't any, 
+  // then the default swapchain was already prepared at the start of the frame.
+
+  if(current_pass) {
+    swapchain_pass_prepare();
+  }
+
+  // Draw the final image to the swapchain
+  swapchain_pass_commit(current_pass);
+
+  // Done with this frame... 
+  sg_commit();
+
+  // Clean the slate
+ 
+  s_renderer.main_cam = nullptr;
+  s_renderer.ui_contexts.clear();
+}
+
+void* renderer_get_font_context() {
+  return s_renderer.fons;
 }
 
 /// Renderer functions

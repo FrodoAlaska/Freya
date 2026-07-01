@@ -1,8 +1,8 @@
 #pragma once
 
-#include "freya_ui.h"
 #include "freya_audio.h"
 #include "freya_gfx.h"
+#include "freya_file.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -36,7 +36,6 @@ enum AssetType {
   ASSET_TYPE_SHADER,
   ASSET_TYPE_FONT,
   ASSET_TYPE_AUDIO_BUFFER,
-  ASSET_TYPE_UI_CONFIG,
   ASSET_TYPE_LUA,
 
   ASSET_TYPES_MAX,
@@ -158,7 +157,6 @@ struct AssetGroup {
   DynamicArray<AudioBufferID> audio_buffers;
   
   DynamicArray<Font*> fonts;
-  DynamicArray<UIConfig> ui_configs;
   DynamicArray<lua_State*> lua_states;
   
   HashMap<String, AssetID> named_ids;
@@ -166,11 +164,11 @@ struct AssetGroup {
   ///
   /// @NOTE/@TEMP:
   ///
-  /// We have 5 watchers here for all the assets that are actually 
+  /// We have 4 watchers here for all the assets that are actually 
   /// read from the disk, as opposed to the assets that are created 
-  /// on the CPU. Currently, the 5 are: textures, fonts, audio buffers, ui configs, and lua files.
+  /// on the CPU. Currently, the 4 are: textures, fonts, audio buffers, and lua files.
   ///
-  Array<FileWatcher*, 5> watchers; // on the wall... no? ASOIAF?
+  Array<FileWatcher*, 4> watchers; // on the wall... no? ASOIAF?
 };
 /// AssetGroup 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -248,10 +246,6 @@ FREYA_API AssetID asset_group_push_font(const AssetGroupID& group_id, const Dyna
 /// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_audio_buffer(const AssetGroupID& group_id, const AudioBufferDesc& audio_desc);
 
-/// Push a new `UIConfig` into `group_id`, using the given `html_source`,
-/// returning a valid `AssetID` to be used later.
-FREYA_API AssetID asset_group_push_ui_config(const AssetGroupID& group_id, const String& html_source);
-
 /// Push a new `sol::state` into `group_id`, using the given `lua_source`,
 /// returning a valid `AssetID` to be used later.
 FREYA_API AssetID asset_group_push_lua_state(const AssetGroupID& group_id, const String& lua_source);
@@ -306,14 +300,6 @@ FREYA_API Font* asset_group_get_font(const AssetID& id);
 ///   2 - the internal group ID is invalid,
 ///   3 - or the internal type does not match this asset.
 FREYA_API const AudioBufferID& asset_group_get_audio_buffer(const AssetID& id);
-
-/// Retrieve a `UIConfig`, using `id`.
-///
-/// @NOTE: This function will assert if the given `id` is either: 
-///   1 - is invalid and was never created before, 
-///   2 - the internal group ID is invalid,
-///   3 - or the internal type does not match this asset.
-FREYA_API UIConfig& asset_group_get_ui_config(const AssetID& id);
 
 /// Retrieve a `lua_State*`, using `id`.
 ///

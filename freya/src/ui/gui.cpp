@@ -792,6 +792,53 @@ FREYA_API void gui_edit_noise_generator(const char* name, NoiseGenerator* gen) {
   ImGui::PopID(); 
 }
 
+void gui_edit_ui_text(const char* name, UIText* text) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  // Anchor 
+  
+  i32 anchor_type              = (i32)text->anchor;
+  const char* anchor_options[] = {
+    "Top-left",
+    "Top-center",
+    "Top-right",
+    
+    "Center-left",
+    "Center",
+    "Center-right",
+    
+    "Bottom-left",
+    "Bottom-center",
+    "Bottom-right",
+  }; 
+
+  if(ImGui::Combo("Anchor", &anchor_type, anchor_options, (i32)(UI_ANCHOR_BOTTOM_RIGHT + 1))) {
+    text->anchor = (UIAnchor)anchor_type; 
+  }
+
+  // Text
+  ImGui::InputText("Text", &text->string);
+
+  // Vectors
+  
+  ImGui::DragFloat2("Offset", &text->offset[0], 0.1f);
+  ImGui::DragFloat2("Canvas bounds", &text->canvas_bounds[0], 0.1f);
+
+  // Font settings
+  
+  ImGui::DragFloat("Size", &text->size, 0.1f);
+  ImGui::DragFloat("Blur", &text->blur, 0.1f);
+  ImGui::DragFloat("Spacing", &text->spacing, 0.1f);
+
+  // Others
+
+  ImGui::ColorEdit4("Color", &text->color[0]);
+  ImGui::Checkbox("Active", &text->is_active); 
+
+  ImGui::PopID(); 
+}
+
 void gui_edit_sprite_component(const char* name, SpriteComponent* sprite) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
@@ -858,6 +905,28 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     }
   }
 
+  // Audio 
+
+  if(entity_has_component<AudioSourceID>(world, entt)) {
+    if(ImGui::TreeNode("Audio source")) {
+      AudioSourceID& source = entity_get_component<AudioSourceID>(world, entt);
+      gui_edit_audio_source("", source);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // UIText 
+
+  if(entity_has_component<UIText>(world, entt)) {
+    if(ImGui::TreeNode("UI Text")) {
+      UIText& text = entity_get_component<UIText>(world, entt);
+      gui_edit_ui_text("", &text);
+
+      ImGui::TreePop();
+    }
+  }
+  
   // Tag
  
   if(entity_has_component<TagComponent>(world, entt)) {
@@ -891,16 +960,6 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     }
   }
 
-  // Audio 
-
-  if(entity_has_component<AudioSourceID>(world, entt)) {
-    if(ImGui::TreeNode("Audio source")) {
-      AudioSourceID& source = entity_get_component<AudioSourceID>(world, entt);
-      gui_edit_audio_source("", source);
-
-      ImGui::TreePop();
-    }
-  }
   
   // Timer 
 

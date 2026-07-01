@@ -8,7 +8,6 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - Gamepad, keyboard, and mouse input support.  
 - A flexible and configurable 2D renderer
 - A fully-fledged audio system with both 2D and 3D spatialized audio.
-- A robust and easy-to-use game UI system, using HTML and CSS to decalre and style widgets.
 - A robust 2D physics engine, using the fantastic Box2D library. 
 - A flexible Entity Component System (ECS) module, using the EnTT library.
 - Integrated ImGui support, featuring an abstracted `gui` layer for editing engine-specific types through a GUI.  
@@ -19,7 +18,8 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 
 - [GLFW](https://github.com/glfw/glfw)
 - [GLM](https://github.com/g-truc/glm)
-- [sokol-gfx](https://github.com/floooh/sokol)
+- [sokol-gfx, sokol-gl, sokol-fontstash](https://github.com/floooh/sokol)
+- [fontstash](https://github.com/memononen/fontstash)
 - [sokol-gp](https://github.com/edubart/sokol_gp)
 - [ImGui](https://github.com/ocornut/imgui)
 - [OpenAL-Soft](https://github.com/kcat/openal-soft)

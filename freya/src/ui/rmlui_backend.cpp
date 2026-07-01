@@ -1240,37 +1240,6 @@ bool ui_element_matches(UIElement* ui_element, const String& selector) {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
-/// UIText functions
-
-UIText* ui_text_create(UIDocument* ui_doc, const String& text) {
-  FREYA_DEBUG_ASSERT(ui_doc, "An invalid UIDocument given to ui_text_create");
-  return (UIText*)ui_doc->CreateTextNode(text).get();
-}
-
-void ui_text_add_line(UIText* ui_text, const Vec2& line_offset, const String& line_text) {
-  ui_text->AddLine(Rml::Vector2f(line_offset.x, line_offset.y), line_text);
-}
-
-void ui_text_clear_lines(UIText* ui_text) {
-  ui_text->ClearLines();
-}
-
-void ui_text_set_string(UIText* ui_text, const String& str) {
-  ui_text->SetText(str);
-}
-
-const String& ui_text_get_string(UIText* ui_text) {
-  return ui_text->GetText();
-}
-
-const sizei ui_text_get_width(UIText* ui_text) {
-  return (sizei)Rml::ElementUtilities::GetStringWidth(ui_text, ui_text_get_string(ui_text));
-}
-
-/// UIText functions
-///---------------------------------------------------------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
 /// UIProgress functions
 
 void ui_progress_set_value(UIProgress* ui_progress, const f32 value) {

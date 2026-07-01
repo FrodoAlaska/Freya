@@ -11,4 +11,11 @@
 #endif
 
 #include "sokol_gfx.h"
+#include "sokol_gl.h"
 #include "sokol_gp.h"
+
+#define FONTSTASH_IMPLEMENTATION
+#include "fontstash/fontstash.h"
+
+#define SOKOL_FONTSTASH_IMPL
+#include "sokol_fontstash.h"

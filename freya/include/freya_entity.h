@@ -3,6 +3,7 @@
 #include "freya_physics.h"
 #include "freya_noise.h"
 #include "freya_animation.h"
+#include "freya_ui.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -224,9 +225,6 @@ FREYA_API Comp& entity_add_component(EntityWorld& world, EntityID& entt, Args&&.
 /// However, the rest of the memebers of `desc` must be filled by the caller.
 FREYA_API Camera& entity_add_camera(EntityWorld& world, EntityID& entt, CameraDesc& desc);
 
-/// A helper function to add a tag to `entt` using the given `tag`.
-FREYA_API TagComponent& entity_add_tag(EntityWorld& world, EntityID& entt, const String& tag);
-
 /// A helper function to add an audio source to `entt`, using the information 
 /// in `desc`, and the `audio_buffer_id` as the main buffer.
 ///
@@ -238,6 +236,36 @@ FREYA_API AudioSourceID& entity_add_audio_source(EntityWorld& world,
                                                  AudioSourceDesc& desc, 
                                                  const AssetID& audio_buffer_id);
 
+/// A helper function to add a noise generator to `entt`, using the information 
+/// in `desc`, mirroring the `noise_generator_create` function.
+FREYA_API NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, const NoiseGeneratorDesc& desc);
+
+/// A helper function to add a tile map component to `entt`, using the given 
+/// `start_pos`, `tile_size`, and `tiles_count`, mirroring the `tilemap_create` function.
+FREYA_API TileMap& entity_add_tilemap(EntityWorld& world, 
+                                      EntityID& entt, 
+                                      const Vec2& start_pos, 
+                                      const Vec2& tile_size, 
+                                      const IVec2& tiles_count);
+
+/// A helper function to add a UI context to `entt` using the given `name` and `view_bounds`.
+FREYA_API UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds);
+
+/// A helper function to add a UI text to `entt`, using the information 
+/// in `desc`, mirroring the `ui_text_create` function.
+///
+/// @NOTE: The position of the given `entt` will be used as the 
+/// `offset` member of the `desc`.
+FREYA_API UIText& entity_add_text(EntityWorld& world, EntityID& entt, UITextDesc& desc);
+
+/// A helper function to add a particle emitter to `entt` using the information 
+/// in `desc` or in a config file given in `config_id`.
+FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc);
+FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const AssetID& config_id);
+
+/// A helper function to add a tag to `entt` using the given `tag`.
+FREYA_API TagComponent& entity_add_tag(EntityWorld& world, EntityID& entt, const String& tag);
+
 /// A helper function to add a timer component to `entt`, using the given `desc`,
 /// mirroring the `timer_create` function, and the `runout_func` and `user_data`.
 FREYA_API TimerComponent& entity_add_timer(EntityWorld& world, 
@@ -245,19 +273,6 @@ FREYA_API TimerComponent& entity_add_timer(EntityWorld& world,
                                            const TimerDesc& desc, 
                                            const OnTimerRunoutFn& runout_func, 
                                            void* user_data = nullptr);
-
-/// A helper function to add a UI context to `entt` using the given `name` and `view_bounds`.
-FREYA_API UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds);
-
-/// A helper function to add an animation component to `entt`, using the given 
-/// `desc` and `tint`.
-FREYA_API AnimationComponent& entity_add_animation(EntityWorld& world, 
-                                                   EntityID& entt, 
-                                                   const AnimationDesc& desc, 
-                                                   const Vec4& tint = Vec4(1.0f));
-
-/// A helper function to add an animator component to `entt`.
-FREYA_API Animator& entity_add_animator(EntityWorld& world, EntityID& entt);
 
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id`, `color`, and `layer` to give to the render command.
@@ -275,11 +290,6 @@ FREYA_API TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world,
                                                       const Rect2D& source, 
                                                       const Vec4& color = Vec4(1.0f), 
                                                       const i32 layer   = -1);
-
-/// A helper function to add a particle emitter to `entt` using the information 
-/// in `desc` or in a config file given in `config_id`.
-FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc);
-FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const AssetID& config_id);
 
 /// A helper function to add a static body to `entt`, using the information 
 /// in `desc`, and `enter_func`, and `exit_func`, to call later on collision events. 
@@ -308,17 +318,15 @@ FREYA_API DynamicBodyComponent& entity_add_dynamic_body(EntityWorld& world,
                                                         const OnCollisionFn& enter_func = nullptr, 
                                                         const OnCollisionFn& exit_func  = nullptr);
 
-/// A helper function to add a noise generator to `entt`, using the information 
-/// in `desc`, mirroring the `noise_generator_create` function.
-FREYA_API NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, const NoiseGeneratorDesc& desc);
+/// A helper function to add an animation component to `entt`, using the given 
+/// `desc` and `tint`.
+FREYA_API AnimationComponent& entity_add_animation(EntityWorld& world, 
+                                                   EntityID& entt, 
+                                                   const AnimationDesc& desc, 
+                                                   const Vec4& tint = Vec4(1.0f));
 
-/// A helper function to add a tile map component to `entt`, using the given 
-/// `start_pos`, `tile_size`, and `tiles_count`, mirroring the `tilemap_create` function.
-FREYA_API TileMap& entity_add_tilemap(EntityWorld& world, 
-                                      EntityID& entt, 
-                                      const Vec2& start_pos, 
-                                      const Vec2& tile_size, 
-                                      const IVec2& tiles_count);
+/// A helper function to add an animator component to `entt`.
+FREYA_API Animator& entity_add_animator(EntityWorld& world, EntityID& entt);
 
 /// A helper function to call the on enter collision function for the given `entt` if it's available, 
 /// passing in `other` and `normal`, and returning `true` if the function was successfully called, and `false` otherwise

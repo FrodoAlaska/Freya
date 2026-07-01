@@ -327,32 +327,12 @@ FREYA_API void renderer_shutdown();
 /// will use the default `ASSET_CACHE_ID` group instead.
 FREYA_API void renderer_apply_asset_group(const AssetGroupID& group_id);
 
-/// Apply the internal font of the renderer to the font retrieved 
-/// from given asset ID `font_id`, returning `true` on success and `false` on failure.
-///
-/// @NOTE: This function _MUST_ be called before 
-FREYA_API bool renderer_apply_font(const AssetID& font_id);
-
 /// Sumbit the given `world` to be renderer in this frame. 
 ///
 /// @NOTE: This function _MUST_ be called at least once during 
 /// the application's runtime. Otherwise, when the engine calls `renderer_prepare`, 
 /// the application will assert due to an invalid current world.
 FREYA_API void renderer_sumbit_world(EntityWorld* world);
-
-/// Set up the internal render buffers of the renderer using the 
-/// `EntityWorld` that was sumbitted using `renderer_sumbit_world`.
-///
-/// @NOTE: The application does NOT need to call this function. This is 
-/// only required to be called by the engine.
-FREYA_API void renderer_prepare();
-
-/// Commit and render all of the objects sumbitted to the renderer 
-/// and present the last image to the swapchain.
-///
-/// @NOTE: The application does NOT need to call this function. This is 
-/// only required to be called by the engine.
-FREYA_API void renderer_commit();
 
 /// Push the given `pass` to the back of the current post-process chain.
 FREYA_API void renderer_push_post_process(PostProcessPass* pass);
@@ -421,6 +401,27 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
+
+///
+/// Internal functions 
+///
+
+/// Set up the internal render buffers of the renderer using the 
+/// `EntityWorld` that was sumbitted using `renderer_sumbit_world`.
+///
+/// @NOTE: The application does NOT need to call this function. This is 
+/// only required to be called by the engine.
+FREYA_API void renderer_prepare();
+
+/// Commit and render all of the objects sumbitted to the renderer 
+/// and present the last image to the swapchain.
+///
+/// @NOTE: The application does NOT need to call this function. This is 
+/// only required to be called by the engine.
+FREYA_API void renderer_commit();
+
+/// Get the internal font context that could be used anywhere else.
+FREYA_API void* renderer_get_font_context();
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

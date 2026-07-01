@@ -42,11 +42,10 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::renderer_sumbit_world(&s_app.world);
   
   freya::renderer_apply_asset_group(s_app.group_id);
-  freya::renderer_apply_font(freya::asset_group_get_id(s_app.group_id, "HeavyDataNerdFont"));
 
   // Camera entity init
  
-  freya::Entity cam_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
+  freya::EntityID cam_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
 
   freya::CameraDesc cam_desc = {
     .view_bounds = freya::window_get_size(s_app.window), 
@@ -54,18 +53,22 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   };
   freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
 
-  // UI context init
+  // Text entity init
 
-  freya::Entity ctx_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
-  freya::UIContext* ctx  = freya::entity_add_ui_context(s_app.world, ctx_entt, "main", cam_desc.view_bounds);
+  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(32.0f));
 
-  // UI document load
+  freya::UITextDesc text_desc = {
+    .string = "Help me",
 
-  const freya::AssetID& cfg_id  = freya::asset_group_get_id(s_app.group_id, "game_hud");
-  const freya::UIConfig& ui_cfg = freya::asset_group_get_ui_config(cfg_id);
+    .font_id   = freya::asset_group_get_id(s_app.group_id, "HeavyDataNerdFont"),
+    .font_size = 32.0f,
 
-  freya::UIDocument* ui_doc = freya::ui_document_load_from_memory(ctx, ui_cfg);
-  freya::ui_document_show(ui_doc);
+    .anchor = freya::UI_ANCHOR_BOTTOM_LEFT,
+
+    .canvas_bounds = freya::window_get_size(s_app.window),
+    .color         = freya::COLOR_YELLOW,
+  };
+  freya::entity_add_text(s_app.world, entt, text_desc);
 
   // Done!
   return true;
@@ -102,6 +105,7 @@ void app_render_gui() {
 
   freya::gui_begin(); 
   freya::gui_debug_info();
+  freya::gui_edit_entity_world("World", s_app.world);
   freya::gui_end();
 }
 

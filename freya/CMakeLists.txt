@@ -30,6 +30,7 @@ set(FREYA_SOURCES
   # UI
   ${FREYA_SRC_DIR}/ui/gui.cpp
   ${FREYA_SRC_DIR}/ui/rmlui_backend.cpp
+  ${FREYA_SRC_DIR}/ui/ui_text.cpp
 
   # Filesystem
   ${FREYA_SRC_DIR}/filesystem/file.cpp
@@ -47,7 +48,6 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/freya_assets/loaders/texture_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/font_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/audio_loader.cpp
-  ${FREYA_SRC_DIR}/freya_assets/loaders/ui_config_loader.cpp
   ${FREYA_SRC_DIR}/freya_assets/loaders/lua_state_loader.cpp
  
   # Renderer
