@@ -8,8 +8,8 @@ int main(int argc, char** argv) {
     .gui_fn      = app_render_gui, 
 
     .window_title  = "UI Testbed", 
-    .window_width  = 1600, 
-    .window_height = 900, 
+    .window_width  = 1280, 
+    .window_height = 720, 
     .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_RESIZABLE | freya::WINDOW_FLAGS_CENTER_MOUSE),
 
     .args_values = argv, 

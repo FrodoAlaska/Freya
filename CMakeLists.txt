@@ -48,14 +48,6 @@ FetchContent_Declare(
   URL https://github.com/erincatto/box2d/archive/refs/tags/v3.1.1.zip
 )
 
-# RmlUI (fork)
-
-FetchContent_Declare(
-  rmlui 
-  GIT_REPOSITORY https://github.com/FrodoAlaska/RmlUi.git
-  GIT_TAG        f6875a7c13fddd23e79b378065211eaeef5f9509 
-)
-
 # LUA (fork, because it's CMake-based)
 
 FetchContent_Declare(
@@ -77,7 +69,7 @@ FetchContent_Declare(
   URL https://github.com/wolfpld/tracy/archive/refs/tags/v0.13.1.zip
 )
 
-FetchContent_MakeAvailable(glm box2d rmlui imgui lua tracy)
+FetchContent_MakeAvailable(glm box2d imgui lua tracy)
 
 if(NOT DEFINED EMSCRIPTEN) # These libraries are not required when building for the web
   # GLFW
@@ -121,7 +113,6 @@ set(FREYA_INCLUDES
   ${glm_SOURCE_DIR}
   ${OpenAL_SOURCE_DIR}/include
   ${box2d_SOURCE_DIR}/public
-  ${rmlui_SOURCE_DIR}/Include
   ${lua_SOURCE_DIR}/lua-5.4.7/include
 
   ${imgui_SOURCE_DIR}
@@ -133,8 +124,6 @@ set(FREYA_INCLUDES
 
 set(FREYA_COMMON_LIBRARIES 
   box2d
-  rmlui
-  rmlui_debugger
   lua_static
 )
 

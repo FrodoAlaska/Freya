@@ -29,7 +29,6 @@ set(FREYA_SOURCES
 
   # UI
   ${FREYA_SRC_DIR}/ui/gui.cpp
-  ${FREYA_SRC_DIR}/ui/rmlui_backend.cpp
   ${FREYA_SRC_DIR}/ui/ui_text.cpp
 
   # Filesystem
@@ -56,9 +55,6 @@ set(FREYA_SOURCES
   ${FREYA_SRC_DIR}/renderer/color.cpp
   ${FREYA_SRC_DIR}/renderer/post_process.cpp
   ${FREYA_SRC_DIR}/renderer/renderer.cpp
-
-  # Renderer/UI
-  ${FREYA_SRC_DIR}/renderer/ui/ui_renderer_impl.cpp
   
   # Renderer/post-process effects
   ${FREYA_SRC_DIR}/renderer/post_process_effects/blur_pass.cpp

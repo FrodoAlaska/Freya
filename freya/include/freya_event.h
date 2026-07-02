@@ -51,42 +51,6 @@ enum EventType {
   
   EVENT_ASSET_GROUP_LOADED,
 
-  /// UI events
-  
-  EVENT_UI_DOCUMENT_LOADED,
-  EVENT_UI_DOCUMENT_UNLOADED,
-
-  EVENT_UI_DOCUMENT_SHOWN,
-  EVENT_UI_DOCUMENT_HIDDEN,
-
-  EVENT_UI_ELEMENT_FOCUSED,
-  EVENT_UI_ELEMENT_BLURRED,
-
-  EVENT_UI_ELEMENT_CLICKED, 
-  EVENT_UI_ELEMENT_DOUBLE_CLICKED, 
-  EVENT_UI_ELEMENT_SCROLLED, 
-  EVENT_UI_ELEMENT_ENTERED,
-  EVENT_UI_ELEMENT_EXITED,
-  EVENT_UI_ELEMENT_MOUSE_DOWN,
-  EVENT_UI_ELEMENT_MOUSE_MOVED,
-  EVENT_UI_ELEMENT_KEY_DOWN,
-  EVENT_UI_ELEMENT_KEY_UP,
-  
-  EVENT_UI_ELEMENT_DRAG_STARTED,
-  EVENT_UI_ELEMENT_DRAG_ENDED,
-  EVENT_UI_ELEMENT_DRAGED,
-
-  EVENT_UI_ELEMENT_DRAG_ENTERED,
-  EVENT_UI_ELEMENT_DRAG_EXITED,
-  
-  EVENT_UI_ELEMENT_DRAG_MOVED,
-  EVENT_UI_ELEMENT_DRAG_DROPPED,
-  
-  EVENT_UI_ELEMENT_ANIMATION_ENDED,
-  EVENT_UI_ELEMENT_TRANSITION_ENDED,
-  
-  EVENT_UI_ELEMENT_TAB_CHANGED,
-
   /// Physics events
 
   EVENT_PHYSICS_CONTACT_ADDED,
@@ -160,21 +124,6 @@ struct Event {
 
   /// The asset group ID sent with the `EVENT_ASSET_GROUP_LOADED` event.
   AssetGroupID group_id;
-  
-  /// The UI element given to this event upon any 
-  /// UI-related event initiation.
-  UIElement* element;
-  
-  /// The UI element given to this event upon any 
-  /// UI dragging operation.
-  ///
-  /// @NOTE: Both the `dragged_element` and `element` are 
-  /// valid on any drag-related events.
-  UIElement* dragged_element;
-
-  /// The index of the tab that was changed into 
-  /// upon the dispatch of the `EVENT_UI_ELEMENT_TAB_CHANGED` event.
-  i32 tab_index;
 
   /// The collision data given to this event 
   /// by either `EVENT_PHYSICS_CONTACT_ADDED` or

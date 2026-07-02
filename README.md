@@ -24,7 +24,6 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - [ImGui](https://github.com/ocornut/imgui)
 - [OpenAL-Soft](https://github.com/kcat/openal-soft)
 - [Box2D](https://github.com/erincatto/box2d)
-- [RmlUi](https://github.com/mikke89/RmlUi) 
 - [EnTT](https://github.com/skypjack/entt)
 - [stb](https://github.com/nothings/stb)
 - [dr_libs](https://github.com/mackron/dr_libs)

@@ -58,12 +58,10 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(32.0f));
 
   freya::UITextDesc text_desc = {
-    .string = "Help me",
+    .string = "To be yourself is all that you can do",
 
-    .font_id   = freya::asset_group_get_id(s_app.group_id, "HeavyDataNerdFont"),
-    .font_size = 32.0f,
-
-    .anchor = freya::UI_ANCHOR_BOTTOM_LEFT,
+    .font_id = freya::asset_group_get_id(s_app.group_id, "IosevkaNerdFont-Bold"),
+    .anchor  = freya::UI_ANCHOR_CENTER,
 
     .canvas_bounds = freya::window_get_size(s_app.window),
     .color         = freya::COLOR_YELLOW,

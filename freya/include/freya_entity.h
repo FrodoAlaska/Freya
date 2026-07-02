@@ -248,14 +248,11 @@ FREYA_API TileMap& entity_add_tilemap(EntityWorld& world,
                                       const Vec2& tile_size, 
                                       const IVec2& tiles_count);
 
-/// A helper function to add a UI context to `entt` using the given `name` and `view_bounds`.
-FREYA_API UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds);
-
 /// A helper function to add a UI text to `entt`, using the information 
 /// in `desc`, mirroring the `ui_text_create` function.
 ///
 /// @NOTE: The position of the given `entt` will be used as the 
-/// `offset` member of the `desc`.
+/// `offset` member of the `desc`, and the scale will be used for the `font_size`.
 FREYA_API UIText& entity_add_text(EntityWorld& world, EntityID& entt, UITextDesc& desc);
 
 /// A helper function to add a particle emitter to `entt` using the information 

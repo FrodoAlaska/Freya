@@ -5,7 +5,6 @@
 #include "freya_physics.h"
 
 #include "shaders/default_pass_shader.h"
-#include "ui/ui_renderer_impl.h" 
 
 #include "fontstash/fontstash.h"
 
@@ -32,7 +31,6 @@ struct Renderer {
   sg_pass pass;
 
   sg_pipeline pipeline;
-  DynamicArray<UIContext*> ui_contexts;
 
   AssetGroupID group_id = ASSET_CACHE_ID;
   EntityWorld* world    = nullptr;
@@ -250,9 +248,6 @@ void renderer_init(Window* window) {
   event_register(EVENT_WINDOW_FRAMEBUFFER_RESIZED, window_resized_callback);
   event_register(EVENT_WINDOW_FULLSCREEN, window_resized_callback);
 
-  // UI renderer init
-  ui_renderer_init(s_renderer.window); 
-
   // Done!
   FREYA_LOG_INFO("Successfully initialized the renderer context");
 }
@@ -264,9 +259,6 @@ void renderer_shutdown() {
     post_process_destroy(pass);
   }
   s_renderer.passes.clear();
-
-  // UI renderer shutdown
-  ui_renderer_shutdown();
 
   // GFX shutdown
 
@@ -648,7 +640,7 @@ void renderer_prepare() {
       // Manage the state of the text
 
       text.offset = transform.position;
-      ui_text_place(text);
+      text.size   = transform.scale.x;
 
       fonsSetSize(s_renderer.fons, text.size);
       fonsSetColor(s_renderer.fons, hex_color);
@@ -657,19 +649,12 @@ void renderer_prepare() {
       fonsSetAlign(s_renderer.fons, text.align);
       fonsSetFont(s_renderer.fons, text.font->_id);
 
+      ui_text_place(text);
+
       // Draw
 
       sgl_rotate(transform.rotation, 0.0f, 0.0f, 1.0f);
       fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
-    }
-  }
-
-  // UIContext
-  {
-    auto view = world->view<UIContext*>();
-    for(auto entt : view) {
-      UIContext* ctx = view.get<UIContext*>(entt);
-      s_renderer.ui_contexts.emplace_back(ctx);
     }
   }
 
@@ -710,16 +695,6 @@ void renderer_commit() {
 
   sfons_flush(s_renderer.fons);
   sgl_draw();
-
-  // Render the contexts
-
-  if(!s_renderer.ui_contexts.empty()) {
-    ui_renderer_prepare();
-  }
-
-  for(auto& ctx : s_renderer.ui_contexts) {
-    ui_context_render(ctx);
-  }
 
   // End the default post-processing pass if we are 
   // currently expected to walk that chain 
@@ -785,9 +760,7 @@ void renderer_commit() {
   sg_commit();
 
   // Clean the slate
- 
   s_renderer.main_cam = nullptr;
-  s_renderer.ui_contexts.clear();
 }
 
 void* renderer_get_font_context() {

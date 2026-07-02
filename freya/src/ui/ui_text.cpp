@@ -59,8 +59,8 @@ void ui_text_place(UIText& text) {
   Vec2 bounds        = text.canvas_bounds;
   Vec2 bounds_center = text.canvas_bounds / 2.0f;
   
-  Vec2 text_center = text.bounds / 2.0f;
-  Vec2 padding     = Vec2(10.0f);
+  Vec2 padding = Vec2(10.0f);
+  measure_bounds(text, padding);
 
   switch(text.anchor) {
     case UI_ANCHOR_TOP_LEFT:  
@@ -115,9 +115,8 @@ void ui_text_place(UIText& text) {
 
   // Place the text correctly
   
-  measure_bounds(text, padding);
   text.position.y += text.bounds.y; 
-  text.position   += text.offset; 
+  text.position   += text.offset;
 }
 
 /// UIText functions

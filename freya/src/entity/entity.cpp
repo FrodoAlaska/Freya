@@ -87,17 +87,6 @@ void entity_world_update(EntityWorld& world, const f32 delta_time) {
       particle_emitter_update(emitter, delta_time);
     }
   }
-
-  // UIContext
-  {
-    FREYA_PROFILE_FUNCTION_NAMED("entity_world_update(UIContext)");
-
-    auto view = world.view<UIContext*>();
-    for(auto entt : view) {
-      UIContext* ctx = view.get<UIContext*>(entt);
-      ui_context_update(ctx);
-    }
-  }
 }
 
 /// EntityWorld functions
@@ -164,11 +153,6 @@ void entity_destroy(EntityWorld& world, EntityID& entt) {
     Animator& anim = entity_get_component<Animator>(world, entt);
     animator_clear(anim);
   }
-  
-  if(entity_has_component<UIContext*>(world, entt)) {
-    UIContext* ctx = entity_get_component<UIContext*>(world, entt);
-    ui_context_destroy(ctx);
-  }
 
   // Destroy the entity in the world
   world.destroy(entt); 
@@ -213,16 +197,13 @@ TileMap& entity_add_tilemap(EntityWorld& world,
   return tilemap;
 }
 
-UIContext* entity_add_ui_context(EntityWorld& world, EntityID& entt, const String& name, const IVec2& view_bounds) {
-  UIContext* ctx = ui_context_create(name, view_bounds);
-  return world.emplace<UIContext*>(entt, ctx);
-}
-
 UIText& entity_add_text(EntityWorld& world, EntityID& entt, UITextDesc& desc) {
   Transform& transform = world.get<Transform>(entt);
   UIText& text         = world.emplace<UIText>(entt);
 
-  desc.offset = transform.position;
+  desc.offset    = transform.position;
+  desc.font_size = transform.scale.x;
+
   ui_text_create(text, desc);
 
   return text;

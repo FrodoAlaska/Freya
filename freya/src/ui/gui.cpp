@@ -815,27 +815,36 @@ void gui_edit_ui_text(const char* name, UIText* text) {
 
   if(ImGui::Combo("Anchor", &anchor_type, anchor_options, (i32)(UI_ANCHOR_BOTTOM_RIGHT + 1))) {
     text->anchor = (UIAnchor)anchor_type; 
+    ui_text_place(*text);
   }
 
   // Text
-  ImGui::InputText("Text", &text->string);
+  
+  bool changed = ImGui::InputText("Text", &text->string);
 
   // Vectors
   
-  ImGui::DragFloat2("Offset", &text->offset[0], 0.1f);
-  ImGui::DragFloat2("Canvas bounds", &text->canvas_bounds[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Offset", &text->offset[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Canvas bounds", &text->canvas_bounds[0], 0.1f);
 
   // Font settings
   
-  ImGui::DragFloat("Size", &text->size, 0.1f);
+  changed = changed || ImGui::DragFloat("Size", &text->size, 0.1f);
   ImGui::DragFloat("Blur", &text->blur, 0.1f);
-  ImGui::DragFloat("Spacing", &text->spacing, 0.1f);
+  changed = changed || ImGui::DragFloat("Spacing", &text->spacing, 0.1f);
 
   // Others
 
   ImGui::ColorEdit4("Color", &text->color[0]);
   ImGui::Checkbox("Active", &text->is_active); 
 
+  // Update the position of the text if anything changed
+
+  if(changed) {
+    ui_text_place(*text);
+  }
+
+  ImGui::Text("%0.3f, %0.3f", text->position.x, text->position.y);
   ImGui::PopID(); 
 }
 
