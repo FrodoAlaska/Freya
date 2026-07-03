@@ -619,6 +619,19 @@ void renderer_prepare() {
     }
   }
 
+  // Physics (@TODO: Not the best place to put this??)
+  {
+    if(physics_world_is_debug()) {
+      physics_world_draw_debug();
+    }
+  }
+
+  // Reset the camera's view
+
+  if(s_renderer.main_cam) {
+    sgp_pop_transform();
+  }
+
   // UIText
   {
     auto view = world->view<UIText, Transform>();
@@ -708,13 +721,6 @@ void renderer_prepare() {
     }
   }
 
-  // Physics (@TODO: Not the best place to put this??)
-  {
-    if(physics_world_is_debug()) {
-      physics_world_draw_debug();
-    }
-  }
-
   // Clean slate
   s_renderer.can_sort = false;
 }
@@ -723,11 +729,6 @@ void renderer_commit() {
   FREYA_PROFILE_FUNCTION();
   
   // Reset the painter's state
-
-  if(s_renderer.main_cam) {
-    sgp_pop_transform();
-  }
-
   sgp_reset_blend_mode();
 
   // End the painter 
