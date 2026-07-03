@@ -70,13 +70,14 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // UI sprite entity init
 
-  entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::window_get_size(s_app.window));
+  entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(32.0f));
 
   freya::UISpriteDesc sprite_desc = {
     .texture_id = {},
     .anchor     = freya::UI_ANCHOR_TOP_LEFT,
 
     .canvas_bounds = freya::window_get_size(s_app.window),
+    .padding       = freya::Vec2(10.0f),
   };
   freya::entity_add_ui_sprite(s_app.world, entt, sprite_desc);
 

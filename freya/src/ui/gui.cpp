@@ -890,6 +890,7 @@ void gui_edit_ui_sprite(const char* name, UISprite* sprite) {
 
   changed = changed || ImGui::DragFloat2("Offset", &sprite->offset[0], 0.1f);
   changed = changed || ImGui::DragFloat2("Canvas bounds", &sprite->canvas_bounds[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Padding", &sprite->padding[0], 0.1f);
 
   // Others
 
@@ -901,6 +902,11 @@ void gui_edit_ui_sprite(const char* name, UISprite* sprite) {
   if(changed) {
     ui_sprite_place(*sprite);
   }
+
+  // Other variables
+
+  ImGui::NewLine();
+  ImGui::Text("Position: %0.3f, %0.3f", sprite->position.x, sprite->position.y);
   
   ImGui::PopID(); 
 }

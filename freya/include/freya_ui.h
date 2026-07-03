@@ -119,15 +119,20 @@ struct UISpriteDesc {
   /// its anchor point based on this.
   Vec2 canvas_bounds;
 
-  /// The extra offset to be applied to the text UI element.
+  /// The extra offset to be applied to the sprite UI element.
   ///
   /// @NOTE: This is set to `Vec2(0.0f, 0.0f)` by default.
-  Vec2 offset = Vec2(0.0f);
+  Vec2 offset  = Vec2(0.0f);
+
+  /// The extra padding to be applied around the borders of the UI element.
+  ///
+  /// @NOTE: This is set to `Vec2(0.0f, 0.0f)` by default.
+  Vec2 padding = Vec2(0.0f);
 
   /// The color of the text UI element.
   ///
   /// @NOTE: This is set to `Vec4(1.0f, 1.0f, 1.0f, 1.0f)` by default.
-  Vec4 color  = Vec4(1.0f);
+  Vec4 color   = Vec4(1.0f);
 
   /// The layer associated with the UI sprite. 
   /// `-1` indicates that the sprite will be 
@@ -135,7 +140,7 @@ struct UISpriteDesc {
   /// to the front the sprite will be drawn.
   ///
   /// @NOTE: By default, this value is `-1`.
-  i32 layer   = -1;
+  i32 layer    = -1;
 };
 /// UISpriteDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -147,7 +152,7 @@ struct UISprite {
   UIAnchor anchor; 
 
   Vec2 position, offset, size; 
-  Vec2 canvas_bounds; 
+  Vec2 canvas_bounds, padding; 
 
   Vec4 color;
   i32 layer;
