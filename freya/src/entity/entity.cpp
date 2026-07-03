@@ -205,8 +205,18 @@ UIText& entity_add_text(EntityWorld& world, EntityID& entt, UITextDesc& desc) {
   desc.font_size = transform.scale.x;
 
   ui_text_create(text, desc);
-
   return text;
+}
+
+UISprite& entity_add_ui_sprite(EntityWorld& world, EntityID& entt, UISpriteDesc& desc) {
+  Transform& transform = world.get<Transform>(entt);
+  UISprite& sprite     = world.emplace<UISprite>(entt);
+
+  desc.offset = transform.position;
+  desc.size   = transform.scale;
+
+  ui_sprite_create(sprite, desc);
+  return sprite;
 }
 
 ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {

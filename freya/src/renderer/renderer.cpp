@@ -657,6 +657,56 @@ void renderer_prepare() {
       fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
     }
   }
+  
+  // UISprite
+  {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const UISprite& a, const UISprite& b) {
+        return a.layer < b.layer;
+      };
+
+      s_renderer.world->sort<UISprite>(sort_fn);
+    }
+
+    // Render each UI sprite
+    
+    auto view = world->view<UISprite, Transform>();
+    for(auto entt : view) {
+      Transform& transform = view.get<Transform>(entt);
+      UISprite& sprite     = view.get<UISprite>(entt);
+
+      // Skip inactive texts
+
+      if(!sprite.is_active) {
+        continue;
+      }
+
+      // Apply the settings of the transform to the sprite      
+
+      sprite.offset = transform.position;
+      sprite.size   = transform.scale;
+      
+      ui_sprite_place(sprite);
+      
+      // Render a texture (if it's a valid)
+
+      Transform sprite_trans = {
+        .position = sprite.position,
+        .scale    = sprite.size, 
+        .rotation = transform.rotation,
+      };
+
+      if(sprite.texture.id != -1) {
+        renderer_queue_texture(sprite.texture, sprite_trans, sprite.color);
+        continue;
+      }
+
+      // Render a regular quad
+      renderer_queue_quad(sprite_trans, sprite.color);
+    }
+  }
 
   // Physics (@TODO: Not the best place to put this??)
   {

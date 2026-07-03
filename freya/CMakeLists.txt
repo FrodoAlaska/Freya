@@ -30,6 +30,7 @@ set(FREYA_SOURCES
   # UI
   ${FREYA_SRC_DIR}/ui/gui.cpp
   ${FREYA_SRC_DIR}/ui/ui_text.cpp
+  ${FREYA_SRC_DIR}/ui/ui_sprite.cpp
 
   # Filesystem
   ${FREYA_SRC_DIR}/filesystem/file.cpp

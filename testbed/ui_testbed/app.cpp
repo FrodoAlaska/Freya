@@ -68,6 +68,18 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   };
   freya::entity_add_text(s_app.world, entt, text_desc);
 
+  // UI sprite entity init
+
+  entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::window_get_size(s_app.window));
+
+  freya::UISpriteDesc sprite_desc = {
+    .texture_id = {},
+    .anchor     = freya::UI_ANCHOR_TOP_LEFT,
+
+    .canvas_bounds = freya::window_get_size(s_app.window),
+  };
+  freya::entity_add_ui_sprite(s_app.world, entt, sprite_desc);
+
   // Done!
   return true;
 }

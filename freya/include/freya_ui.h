@@ -103,6 +103,61 @@ struct UIText {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// UISpriteDesc
+struct UISpriteDesc {
+  /// The ID of the texture to be used later.
+  AssetID texture_id;
+
+  /// The anchor point of the text UI element.
+  UIAnchor anchor;
+
+  /// The size/scale of the sprite. 
+  Vec2 size;
+
+  /// The bounds of the canvas that the text will 
+  /// be placed on. The UI element will calculate 
+  /// its anchor point based on this.
+  Vec2 canvas_bounds;
+
+  /// The extra offset to be applied to the text UI element.
+  ///
+  /// @NOTE: This is set to `Vec2(0.0f, 0.0f)` by default.
+  Vec2 offset = Vec2(0.0f);
+
+  /// The color of the text UI element.
+  ///
+  /// @NOTE: This is set to `Vec4(1.0f, 1.0f, 1.0f, 1.0f)` by default.
+  Vec4 color  = Vec4(1.0f);
+
+  /// The layer associated with the UI sprite. 
+  /// `-1` indicates that the sprite will be 
+  /// rendered at the very back. The higher the value, the farther 
+  /// to the front the sprite will be drawn.
+  ///
+  /// @NOTE: By default, this value is `-1`.
+  i32 layer   = -1;
+};
+/// UISpriteDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UISprite
+struct UISprite {
+  Texture texture;
+  UIAnchor anchor; 
+
+  Vec2 position, offset, size; 
+  Vec2 canvas_bounds; 
+
+  Vec4 color;
+  i32 layer;
+
+  bool is_active;
+};
+/// UISprite
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// UIText functions
 
 /// Fill in the information of `out_text` using the given `desc`.
@@ -113,6 +168,19 @@ FREYA_API void ui_text_create(UIText& out_text, const UITextDesc& desc);
 FREYA_API void ui_text_place(UIText& text);
 
 /// UIText functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UISprite functions
+
+/// Fill in the information of `out_sprite` using the given `desc`.
+FREYA_API void ui_sprite_create(UISprite& out_sprite, const UISpriteDesc& desc);
+
+/// Using the `anchor` member, place the given `sprite` according to 
+/// the `canvas_bounds` in the correct position.
+FREYA_API void ui_sprite_place(UISprite& sprite);
+
+/// UISprite functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya

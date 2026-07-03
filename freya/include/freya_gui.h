@@ -161,6 +161,9 @@ FREYA_API void gui_edit_noise_generator(const char* name, NoiseGenerator* gen);
 /// Add a UI text section identified by `name` to edit the given `text`.
 FREYA_API void gui_edit_ui_text(const char* name, UIText* text);
 
+/// Add a UI sprite section identified by `name` to edit the given `sprite`.
+FREYA_API void gui_edit_ui_sprite(const char* name, UISprite* sprite);
+
 /// Add a sprite component section identified by `name` to edit the given `sprite`.
 FREYA_API void gui_edit_sprite_component(const char* name, SpriteComponent* sprite);
 

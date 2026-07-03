@@ -819,7 +819,6 @@ void gui_edit_ui_text(const char* name, UIText* text) {
   }
 
   // Text
-  
   bool changed = ImGui::InputText("Text", &text->string);
 
   // Vectors
@@ -844,7 +843,65 @@ void gui_edit_ui_text(const char* name, UIText* text) {
     ui_text_place(*text);
   }
 
-  ImGui::Text("%0.3f, %0.3f", text->position.x, text->position.y);
+  // Other variables
+
+  ImGui::NewLine();
+  ImGui::Text("Position: %0.3f, %0.3f", text->position.x, text->position.y);
+  ImGui::Text("Bounds: %0.3f, %0.3f", text->bounds.x, text->bounds.y);
+  
+  ImGui::PopID(); 
+}
+
+void gui_edit_ui_sprite(const char* name, UISprite* sprite) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  // Anchor 
+  
+  i32 anchor_type              = (i32)sprite->anchor;
+  const char* anchor_options[] = {
+    "Top-left",
+    "Top-center",
+    "Top-right",
+    
+    "Center-left",
+    "Center",
+    "Center-right",
+    
+    "Bottom-left",
+    "Bottom-center",
+    "Bottom-right",
+  }; 
+
+  if(ImGui::Combo("Anchor", &anchor_type, anchor_options, (i32)(UI_ANCHOR_BOTTOM_RIGHT + 1))) {
+    sprite->anchor = (UIAnchor)anchor_type; 
+    ui_sprite_place(*sprite);
+  }
+
+  // Layer
+  
+  if(ImGui::DragInt("Layer", &sprite->layer, 1, -1, 10)) {
+    renderer_set_sort(true);
+  }
+
+  // Vectors
+ 
+  bool changed = false;
+
+  changed = changed || ImGui::DragFloat2("Offset", &sprite->offset[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Canvas bounds", &sprite->canvas_bounds[0], 0.1f);
+
+  // Others
+
+  ImGui::ColorEdit4("Color", &sprite->color[0]);
+  ImGui::Checkbox("Active", &sprite->is_active); 
+
+  // Update the position of the sprite if anything changed
+
+  if(changed) {
+    ui_sprite_place(*sprite);
+  }
+  
   ImGui::PopID(); 
 }
 
@@ -931,6 +988,17 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     if(ImGui::TreeNode("UI Text")) {
       UIText& text = entity_get_component<UIText>(world, entt);
       gui_edit_ui_text("", &text);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // UISprite 
+
+  if(entity_has_component<UISprite>(world, entt)) {
+    if(ImGui::TreeNode("UI Sprite")) {
+      UISprite& sprite = entity_get_component<UISprite>(world, entt);
+      gui_edit_ui_sprite("", &sprite);
 
       ImGui::TreePop();
     }
