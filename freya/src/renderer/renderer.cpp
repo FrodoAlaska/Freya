@@ -662,7 +662,9 @@ void renderer_prepare() {
       fonsSetAlign(s_renderer.fons, text.align);
       fonsSetFont(s_renderer.fons, text.font->_id);
 
-      ui_text_place(text);
+      if(text.is_sticky) {
+        ui_text_place(text);
+      }
 
       // Draw
 

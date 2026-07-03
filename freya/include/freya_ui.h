@@ -78,6 +78,13 @@ struct UITextDesc {
   ///
   /// @NOTE: This is set to `Vec4(1.0f, 1.0f, 1.0f, 1.0f)` by default.
   Vec4 color      = Vec4(1.0f);
+
+  /// Indicates whether the text is allowed to move freely 
+  /// or must only stick to one place, even if it was moved by 
+  /// another element. 
+  ///
+  /// @NOTE: This is set to `true` by default.
+  bool is_sticky  = true;
 };
 /// UITextDesc
 /// ----------------------------------------------------------------------
@@ -97,7 +104,7 @@ struct UIText {
   f32 size, blur, spacing;
 
   Vec4 color;
-  bool is_active;
+  bool is_active, is_sticky;
 };
 /// UIText
 ///---------------------------------------------------------------------------------------------------------------------

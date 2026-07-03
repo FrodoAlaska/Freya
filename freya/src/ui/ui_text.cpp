@@ -52,6 +52,8 @@ void ui_text_create(UIText& out_text, const UITextDesc& desc) {
   out_text.canvas_bounds = desc.canvas_bounds;
 
   out_text.is_active = true;
+  out_text.is_sticky = desc.is_sticky;
+
   ui_text_place(out_text);
 }
 
