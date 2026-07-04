@@ -16,12 +16,13 @@ void animation_create(Animation& out_anim, const AnimationDesc& desc) {
   // Frames init
 
   IVec2 tex_size = out_anim.texture.size;
-
+  
   out_anim.frames_count  = (tex_size.x / out_anim.frame_size.x) - 1;
-  out_anim.current_frame = desc.is_reversed ? out_anim.frames_count : 0;
-  out_anim.direction     = desc.is_reversed ? -1 : 1;
-  out_anim.start_row     = desc.start_row;
   out_anim.loops         = 0;
+
+  out_anim.start         = desc.start;
+  out_anim.direction     = desc.direction;
+  out_anim.current_frame = desc.start;
 
   // Animation logic init
 
@@ -61,13 +62,16 @@ void animation_update(Animation& anim, const f32 delta_time) {
 
   anim.src_rect = Rect2D {
     .size     = anim.frame_size,
-    .position = Vec2(anim.current_frame, anim.start_row) * anim.frame_size, 
+    .position = (Vec2)(anim.current_frame) * anim.frame_size, 
   };
 
   // The animation is not done yet... defer the 
   // other logic for when it is 
 
-  if(anim.current_frame >= 0 && anim.current_frame < anim.frames_count) {
+  bool x_done = (anim.current_frame.x >= 0 && anim.current_frame.x < anim.frames_count);
+  bool y_done = (anim.current_frame.y >= 0 && anim.current_frame.y < anim.frames_count);
+
+  if(x_done && y_done) {
     return;
   }
 
@@ -78,7 +82,7 @@ void animation_update(Animation& anim, const f32 delta_time) {
     return;
   }
   else if(anim.can_loop) {
-    anim.current_frame = 0;
+    anim.current_frame = anim.start;
   }
   else if(anim.can_alternate) {
     anim.direction *= -1;
@@ -87,11 +91,13 @@ void animation_update(Animation& anim, const f32 delta_time) {
   anim.loops++;
 
   // Clamp the animation frames for safety
-  anim.current_frame = clamp_int(anim.current_frame, 0, anim.frames_count);
+  
+  anim.current_frame.x = clamp_int(anim.current_frame.x, 0, anim.frames_count);
+  anim.current_frame.y = clamp_int(anim.current_frame.y, 0, anim.frames_count);
 }
 
 void animation_reset(Animation& anim) {
-  anim.current_frame = 0;
+  anim.current_frame = anim.start;
   anim.loops         = 0;
   anim.counter       = 0.0f;
   anim.is_active     = true;

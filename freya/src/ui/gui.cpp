@@ -546,13 +546,16 @@ void gui_edit_animation(const char* name, Animation* anim) {
   ImGui::SeparatorText(name); 
   ImGui::PushID(name); 
   
-  ImGui::DragInt("Current frame", &anim->current_frame, s_gui.small_step, 0, anim->frames_count);
-  ImGui::DragInt("Direction", &anim->direction, s_gui.small_step, -1, 1);
+  ImGui::DragInt2("Current frame", &anim->current_frame[0], s_gui.small_step, 0, anim->frames_count);
+  ImGui::DragInt2("Direction", &anim->direction[0], s_gui.small_step, -1, 1);
   ImGui::DragFloat("Speed", &anim->flip_speed, s_gui.small_step, 0.0f);
   
   ImGui::Checkbox("Active", &anim->is_active);
   ImGui::Checkbox("Loop", &anim->can_loop);
   ImGui::Checkbox("Alternate", &anim->can_alternate);
+
+  ImGui::NewLine();
+  ImGui::Text("Counter: %0.3f", anim->counter);
   
   ImGui::PopID(); 
 }

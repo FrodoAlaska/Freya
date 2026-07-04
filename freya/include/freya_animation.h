@@ -22,14 +22,26 @@ struct AnimationDesc {
   /// The speed of the animation. 
   f32 flip_speed;
 
-  /// The index of the starting row 
-  /// of the animation. 
+  /// The index in both the X- and Y-axis of 
+  /// the starting frame. 
   ///
   /// This can be used if a texture 
   /// includes multiple animations. 
   ///
-  /// @NOTE: The default values is `0`.
-  i32 start_row      = 0;
+  /// @NOTE: The default values is `IVec2(0)`.
+  IVec2 start        = IVec2(0);
+
+  /// The direction the animation will take as it plays. 
+  /// It can start from the top-left and go to the 
+  /// top-right, or start from the bottom-right and go 
+  /// to the top-left. 
+  ///
+  /// A negative `-1` direction can also be set to play 
+  /// the animation in reverse in any axis.
+  ///
+  /// @NOTE: The default values is `IVec2(1, 0)`, 
+  /// playing an animation from the top-left to the top-right.
+  IVec2 direction    = IVec2(1, 0);
 
   /// Indicates whether the animation 
   /// can loop to the beginning when finished.
@@ -42,12 +54,6 @@ struct AnimationDesc {
   ///
   /// @NOTE: The default value is `true`.
   bool can_alternate = false;
-
-  /// Indicates whether to play the animation 
-  /// in reverse order
-  ///
-  /// @NOTE: The default value is `false`.
-  bool is_reversed   = false;
 };
 /// AnimationDesc
 ///---------------------------------------------------------------------------------------------------------------------
@@ -58,8 +64,8 @@ struct Animation {
   Texture texture; 
   Vec2 frame_size;
 
-  i32 current_frame, frames_count;
-  i32 direction, start_row, loops;
+  i32 loops, frames_count;
+  IVec2 current_frame, start, direction;
 
   f32 counter, flip_speed;
   bool is_active, can_loop, can_alternate;
