@@ -454,6 +454,27 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
   }
 }
 
+void renderer_queue_text(UIText& text) {
+  // Calculating the correct color
+
+  IVec4 ucolor  = (IVec4)(text.color * 255.0f);
+  u32 hex_color = sfons_rgba(ucolor.r, ucolor.g, ucolor.b, ucolor.a); 
+
+  fonsSetSize(s_renderer.fons, text.size);
+  fonsSetColor(s_renderer.fons, hex_color);
+  fonsSetSpacing(s_renderer.fons, text.spacing);
+  fonsSetBlur(s_renderer.fons, text.blur);
+  fonsSetAlign(s_renderer.fons, text.align);
+  fonsSetFont(s_renderer.fons, text.font->_id);
+
+  if(text.is_sticky) {
+    ui_text_place(text);
+  }
+
+  // Draw
+  fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
+}
+
 void renderer_prepare() {
   FREYA_DEBUG_ASSERT(s_renderer.world, "Invalid EntityWorld found in renderer");
   FREYA_PROFILE_FUNCTION();
@@ -634,6 +655,18 @@ void renderer_prepare() {
 
   // UIText
   {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const UIText& a, const UIText& b) {
+        return a.layer < b.layer;
+      };
+
+      s_renderer.world->sort<UIText>(sort_fn);
+    }
+
+    // Render each UI sprite
+    
     auto view = world->view<UIText, Transform>();
     for(auto entt : view) {
       Transform& transform = view.get<Transform>(entt);
@@ -644,32 +677,16 @@ void renderer_prepare() {
       if(!text.is_active) {
         continue;
       }
-      
-      // Calculating the correct color
-
-      IVec4 ucolor  = (IVec4)(text.color * 255.0f);
-      u32 hex_color = sfons_rgba(ucolor.r, ucolor.g, ucolor.b, ucolor.a); 
 
       // Manage the state of the text
 
       text.offset = transform.position;
       text.size   = transform.scale.x;
 
-      fonsSetSize(s_renderer.fons, text.size);
-      fonsSetColor(s_renderer.fons, hex_color);
-      fonsSetSpacing(s_renderer.fons, text.spacing);
-      fonsSetBlur(s_renderer.fons, text.blur);
-      fonsSetAlign(s_renderer.fons, text.align);
-      fonsSetFont(s_renderer.fons, text.font->_id);
-
-      if(text.is_sticky) {
-        ui_text_place(text);
-      }
-
-      // Draw
-
+      // Draw 
+      
       sgl_rotate(transform.rotation, 0.0f, 0.0f, 1.0f);
-      fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
+      renderer_queue_text(text);
     }
   }
   
@@ -692,7 +709,7 @@ void renderer_prepare() {
       Transform& transform = view.get<Transform>(entt);
       UISprite& sprite     = view.get<UISprite>(entt);
 
-      // Skip inactive texts
+      // Skip inactive sprites
 
       if(!sprite.is_active) {
         continue;
@@ -722,6 +739,70 @@ void renderer_prepare() {
       renderer_queue_quad(sprite_trans, sprite.color);
     }
   }
+  
+  // UIButton
+  {
+    // Check if we need to sort the view first
+
+    if(s_renderer.can_sort) {
+      auto sort_fn = [&](const UIButton& a, const UIButton& b) {
+        return a.layer < b.layer;
+      };
+
+      s_renderer.world->sort<UIButton>(sort_fn);
+    }
+
+    // Render each UI button
+    
+    auto view = world->view<UIButton, Transform>();
+    for(auto entt : view) {
+      Transform& transform = view.get<Transform>(entt);
+      UIButton& button     = view.get<UIButton>(entt);
+
+      // Skip inactive buttons
+
+      if(!button.is_active) {
+        continue;
+      }
+
+      // Apply the settings of the transform to the button      
+
+      button.offset = transform.position;
+
+      button.size.x = transform.scale.x;
+      button.size.y = transform.scale.y;
+      
+      ui_button_place(button);
+
+      // Render the outline
+      
+      Transform button_trans = {
+        .position = button.position,
+        .scale    = Vec2(button.size) + button.size.z, 
+        .rotation = transform.rotation,
+      };
+      renderer_queue_quad(button_trans, button.outline_color);
+      
+      // Render the texture itself
+
+      button_trans = {
+        .position = button.position,
+        .scale    = Vec2(button.size), 
+        .rotation = transform.rotation,
+      };
+
+      if(button.texture.id != -1) { // Render the texture
+        renderer_queue_texture(button.texture, button_trans, button.color);
+      }
+      else { // Render a regular quad
+        renderer_queue_quad(button_trans, button.color);
+      }
+
+      // Render the text 
+      renderer_queue_text(button.text);
+    }
+  }
+
 
   // Clean slate
   s_renderer.can_sort = false;

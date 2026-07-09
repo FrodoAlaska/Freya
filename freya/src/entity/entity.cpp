@@ -219,6 +219,17 @@ UISprite& entity_add_ui_sprite(EntityWorld& world, EntityID& entt, UISpriteDesc&
   return sprite;
 }
 
+UIButton& entity_add_ui_button(EntityWorld& world, EntityID& entt, UIButtonDesc& desc) {
+  Transform& transform = world.get<Transform>(entt);
+  UIButton& button     = world.emplace<UIButton>(entt);
+
+  desc.offset = transform.position;
+  desc.size   = transform.scale;
+
+  ui_button_create(button, desc);
+  return button;
+}
+
 ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {
   ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
   particle_emitter_create(emitter, desc);

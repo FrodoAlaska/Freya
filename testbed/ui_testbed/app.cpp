@@ -10,6 +10,7 @@ struct App {
   freya::AssetGroupID group_id;
 
   freya::EntityWorld world;
+  freya::EntityID entt;
 };
 
 static App s_app;
@@ -52,34 +53,25 @@ bool app_init(const freya::Args& args, freya::Window* window) {
     .zoom        = 1.0f,
   };
   freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
+  
+  // UI button init
 
-  // Text entity init
+  s_app.entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(96.0f, 64.0f));
 
-  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(32.0f));
-
-  freya::UITextDesc text_desc = {
-    .string = "To be yourself is all that you can do",
-
-    .font_id = freya::asset_group_get_id(s_app.group_id, "IosevkaNerdFont-Bold"),
-    .anchor  = freya::UI_ANCHOR_CENTER,
-
-    .canvas_bounds = freya::window_get_size(s_app.window),
-    .color         = freya::COLOR_YELLOW,
-  };
-  freya::entity_add_text(s_app.world, entt, text_desc);
-
-  // UI sprite entity init
-
-  entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(32.0f));
-
-  freya::UISpriteDesc sprite_desc = {
+  freya::UIButtonDesc button_desc = {
     .texture_id = {},
-    .anchor     = freya::UI_ANCHOR_TOP_LEFT,
+
+    .string = "Quit",
+
+    .font_id   = freya::asset_group_get_id(s_app.group_id, "IosevkaNerdFont-Bold"),
+    .font_size = 32.0f,
+
+    .anchor  = freya::UI_ANCHOR_CENTER,
 
     .canvas_bounds = freya::window_get_size(s_app.window),
     .padding       = freya::Vec2(10.0f),
   };
-  freya::entity_add_ui_sprite(s_app.world, entt, sprite_desc);
+  freya::entity_add_ui_button(s_app.world, s_app.entt, button_desc);
 
   // Done!
   return true;
@@ -103,6 +95,14 @@ void app_update(freya::f32 dt) {
 
   if(freya::input_key_pressed(freya::KEY_F1)) {
     freya::gui_toggle_active();
+  }
+
+  // Check if the button is pressed
+
+  freya::UIButton& button = freya::entity_get_component<freya::UIButton>(s_app.world, s_app.entt);
+  if(freya::ui_button_pressed(button)) {
+    freya::event_dispatch(freya::Event{.type = freya::EVENT_APP_QUIT});
+    return;
   }
 
   // Update the world 

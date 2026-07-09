@@ -164,6 +164,9 @@ FREYA_API void gui_edit_ui_text(const char* name, UIText* text);
 /// Add a UI sprite section identified by `name` to edit the given `sprite`.
 FREYA_API void gui_edit_ui_sprite(const char* name, UISprite* sprite);
 
+/// Add a UI button section identified by `name` to edit the given `button`.
+FREYA_API void gui_edit_ui_button(const char* name, UIButton* button);
+
 /// Add a sprite component section identified by `name` to edit the given `sprite`.
 FREYA_API void gui_edit_sprite_component(const char* name, SpriteComponent* sprite);
 

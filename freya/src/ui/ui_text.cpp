@@ -10,18 +10,18 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Private functions
 
-static void measure_bounds(UIText& text, const Vec2& padding) {
+static void measure_bounds(UIText& text) {
   FONScontext* fons = (FONScontext*)renderer_get_font_context();
 
   // Get the horizontal bounds
   
   f32 bounds;
-  fonsTextBounds(fons, padding.x, padding.y, text.string.c_str(), nullptr, &bounds);
+  fonsTextBounds(fons, text.padding.x, text.padding.y, text.string.c_str(), nullptr, &bounds);
 
   // Get the vertical bounds
 
   f32 min, max;
-  fonsLineBounds(fons, padding.y, &min, &max);
+  fonsLineBounds(fons, text.padding.y, &min, &max);
 
   // Set the text's bounds
 
@@ -50,6 +50,9 @@ void ui_text_create(UIText& out_text, const UITextDesc& desc) {
   out_text.color  = desc.color;
 
   out_text.canvas_bounds = desc.canvas_bounds;
+  out_text.padding       = desc.padding;
+
+  out_text.layer = desc.layer;
 
   out_text.is_active = true;
   out_text.is_sticky = desc.is_sticky;
@@ -61,28 +64,27 @@ void ui_text_place(UIText& text) {
   Vec2 bounds        = text.canvas_bounds;
   Vec2 bounds_center = text.canvas_bounds / 2.0f;
   
-  Vec2 padding = Vec2(10.0f);
-  measure_bounds(text, padding);
+  measure_bounds(text);
 
   switch(text.anchor) {
     case UI_ANCHOR_TOP_LEFT:  
-      text.position = padding;
+      text.position = text.padding;
       text.align    = (FONS_ALIGN_LEFT | FONS_ALIGN_BASELINE);
       break;
     case UI_ANCHOR_TOP_CENTER:
       text.position.x = bounds_center.x; 
-      text.position.y = padding.y; 
+      text.position.y = text.padding.y; 
       
       text.align = (FONS_ALIGN_CENTER | FONS_ALIGN_BASELINE);
       break;
     case UI_ANCHOR_TOP_RIGHT:
-      text.position.x = bounds.x - padding.x; 
-      text.position.y = padding.y;  
+      text.position.x = bounds.x - text.padding.x; 
+      text.position.y = text.padding.y;  
       
       text.align = (FONS_ALIGN_RIGHT | FONS_ALIGN_BASELINE);
       break;
     case UI_ANCHOR_CENTER_LEFT:  
-      text.position.x = padding.x;
+      text.position.x = text.padding.x;
       text.position.y = bounds_center.y; 
       
       text.align = (FONS_ALIGN_LEFT | FONS_ALIGN_BASELINE);
@@ -92,25 +94,25 @@ void ui_text_place(UIText& text) {
       text.align    = (FONS_ALIGN_CENTER | FONS_ALIGN_BASELINE);
       break;
     case UI_ANCHOR_CENTER_RIGHT:
-      text.position.x = bounds.x - padding.x; 
+      text.position.x = bounds.x - text.padding.x; 
       text.position.y = bounds_center.y; 
       
       text.align = (FONS_ALIGN_RIGHT | FONS_ALIGN_BASELINE);
       break;
     case UI_ANCHOR_BOTTOM_LEFT:  
-      text.position.x = padding.x;
-      text.position.y = bounds.y - padding.y; 
+      text.position.x = text.padding.x;
+      text.position.y = bounds.y - text.padding.y; 
       
       text.align = (FONS_ALIGN_LEFT | FONS_ALIGN_BOTTOM);
       break;
     case UI_ANCHOR_BOTTOM_CENTER:
       text.position.x = bounds_center.x;
-      text.position.y = bounds.y - padding.y; 
+      text.position.y = bounds.y - text.padding.y; 
       
       text.align = (FONS_ALIGN_CENTER | FONS_ALIGN_BOTTOM);
       break;
     case UI_ANCHOR_BOTTOM_RIGHT:
-      text.position = bounds - padding; 
+      text.position = bounds - text.padding; 
       text.align    = (FONS_ALIGN_RIGHT | FONS_ALIGN_BOTTOM);
       break;
   }

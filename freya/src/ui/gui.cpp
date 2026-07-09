@@ -827,6 +827,7 @@ void gui_edit_ui_text(const char* name, UIText* text) {
   // Vectors
   
   changed = changed || ImGui::DragFloat2("Offset", &text->offset[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Padding", &text->padding[0], 0.1f);
   changed = changed || ImGui::DragFloat2("Canvas bounds", &text->canvas_bounds[0], 0.1f);
 
   // Font settings
@@ -910,6 +911,80 @@ void gui_edit_ui_sprite(const char* name, UISprite* sprite) {
 
   ImGui::NewLine();
   ImGui::Text("Position: %0.3f, %0.3f", sprite->position.x, sprite->position.y);
+  
+  ImGui::PopID(); 
+}
+
+void gui_edit_ui_button(const char* name, UIButton* button) {
+  ImGui::SeparatorText(name); 
+  ImGui::PushID(name); 
+  
+  // Anchor 
+  
+  i32 anchor_type              = (i32)button->anchor;
+  const char* anchor_options[] = {
+    "Top-left",
+    "Top-center",
+    "Top-right",
+    
+    "Center-left",
+    "Center",
+    "Center-right",
+    
+    "Bottom-left",
+    "Bottom-center",
+    "Bottom-right",
+  }; 
+
+  if(ImGui::Combo("Anchor", &anchor_type, anchor_options, (i32)(UI_ANCHOR_BOTTOM_RIGHT + 1))) {
+    button->anchor = (UIAnchor)anchor_type; 
+    ui_button_place(*button);
+  }
+
+  // Text
+  bool changed = ImGui::InputText("Text", &button->text.string);
+
+  // Layer
+  
+  if(ImGui::DragInt("Layer", &button->layer, 1, -1, 10)) {
+    renderer_set_sort(true);
+  }
+
+  // Vectors
+  
+  changed = changed || ImGui::DragFloat2("Size", &button->size[0], 0.1f);
+  
+  changed = changed || ImGui::DragFloat2("Offset", &button->offset[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Canvas bounds", &button->canvas_bounds[0], 0.1f);
+  changed = changed || ImGui::DragFloat2("Padding", &button->padding[0], 0.1f);
+
+  // Font settings
+  
+  changed = changed || ImGui::DragFloat("Font size", &button->text.size, 0.1f);
+  changed = changed || ImGui::DragFloat("Spacing", &button->text.spacing, 0.1f);
+
+  // Others
+  
+  changed = changed || ImGui::DragFloat("Outline thickness", &button->size.z, 0.1f);
+
+  ImGui::ColorEdit4("Color", &button->color[0]);
+  ImGui::ColorEdit4("Outline color", &button->outline_color[0]);
+  ImGui::ColorEdit4("Text color", &button->text.color[0]);
+  
+  button->text.is_active = ImGui::Checkbox("Active", &button->is_active);
+
+  // Update the position of the button if anything changed
+
+  if(changed) {
+    ui_button_place(*button);
+  }
+
+  // Other variables
+
+  ImGui::NewLine();
+  ImGui::Text("Position: %0.3f, %0.3f", button->position.x, button->position.y);
+  ImGui::Text("Size: %0.3f, %0.3f", button->size.x, button->size.y);
+  ImGui::Text("Text bounds: %0.3f, %0.3f", button->text.bounds.x, button->text.bounds.y);
   
   ImGui::PopID(); 
 }
@@ -1008,6 +1083,17 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     if(ImGui::TreeNode("UI Sprite")) {
       UISprite& sprite = entity_get_component<UISprite>(world, entt);
       gui_edit_ui_sprite("", &sprite);
+
+      ImGui::TreePop();
+    }
+  }
+  
+  // UIButton 
+
+  if(entity_has_component<UIButton>(world, entt)) {
+    if(ImGui::TreeNode("UI button")) {
+      UIButton& button = entity_get_component<UIButton>(world, entt);
+      gui_edit_ui_button("", &button);
 
       ImGui::TreePop();
     }

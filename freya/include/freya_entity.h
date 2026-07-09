@@ -262,6 +262,13 @@ FREYA_API UIText& entity_add_text(EntityWorld& world, EntityID& entt, UITextDesc
 /// `offset` member of the `desc`, and the scale will be used for the `size`.
 FREYA_API UISprite& entity_add_ui_sprite(EntityWorld& world, EntityID& entt, UISpriteDesc& desc);
 
+/// A helper function to add a UI button to `entt`, using the information 
+/// in `desc`, mirroring the `ui_button_create` function.
+///
+/// @NOTE: The position of the given `entt` will be used as the 
+/// `offset` member of the `desc`, and the scale will be used for the `size` of the button.
+FREYA_API UIButton& entity_add_ui_button(EntityWorld& world, EntityID& entt, UIButtonDesc& desc);
+
 /// A helper function to add a particle emitter to `entt` using the information 
 /// in `desc` or in a config file given in `config_id`.
 FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc);

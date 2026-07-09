@@ -39,7 +39,8 @@ enum UIAnchor {
 };
 /// UIAnchor
 ///---------------------------------------------------------------------------------------------------------------------
-/// ----------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// UITextDesc
 struct UITextDesc {
   /// The string to be set on the text UI element.
@@ -74,10 +75,23 @@ struct UITextDesc {
   /// @NOTE: This is set to `Vec2(0.0f, 0.0f)` by default.
   Vec2 offset     = Vec2(0.0f);
 
+  /// The text padding to be applied to the button UI element. 
+  ///
+  /// @NOTE: This is set to `Vec2(0.0f)` by default.
+  Vec2 padding    = Vec2(0.0f); 
+
   /// The color of the text UI element.
   ///
-  /// @NOTE: This is set to `Vec4(1.0f, 1.0f, 1.0f, 1.0f)` by default.
-  Vec4 color      = Vec4(1.0f);
+  /// @NOTE: This is set to `Color(1.0f, 1.0f, 1.0f, 1.0f)` by default.
+  Color color     = COLOR_WHITE;
+
+  /// The layer associated with the UI sprite. 
+  /// `-1` indicates that the sprite will be 
+  /// rendered at the very back. The higher the value, the farther 
+  /// to the front the sprite will be drawn.
+  ///
+  /// @NOTE: By default, this value is `-1`.
+  i32 layer       = -1;
 
   /// Indicates whether the text is allowed to move freely 
   /// or must only stick to one place, even if it was moved by 
@@ -87,26 +101,6 @@ struct UITextDesc {
   bool is_sticky  = true;
 };
 /// UITextDesc
-/// ----------------------------------------------------------------------
-
-///---------------------------------------------------------------------------------------------------------------------
-/// UIText
-struct UIText {
-  UIAnchor anchor;
-  int align = 0;
-
-  Vec2 position, offset, bounds;
-  Vec2 canvas_bounds;
-
-  String string;
-  Font* font;
-
-  f32 size, blur, spacing;
-
-  Vec4 color;
-  bool is_active, is_sticky;
-};
-/// UIText
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -138,8 +132,8 @@ struct UISpriteDesc {
 
   /// The color of the text UI element.
   ///
-  /// @NOTE: This is set to `Vec4(1.0f, 1.0f, 1.0f, 1.0f)` by default.
-  Vec4 color   = Vec4(1.0f);
+  /// @NOTE: This is set to `Color(1.0f, 1.0f, 1.0f, 1.0f)` by default.
+  Color color  = COLOR_WHITE;
 
   /// The layer associated with the UI sprite. 
   /// `-1` indicates that the sprite will be 
@@ -153,6 +147,96 @@ struct UISpriteDesc {
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
+/// UIButtonDesc
+struct UIButtonDesc {
+  /// The ID of the texture to use with the button. 
+  /// If the ID is not set, then the default white texture will be used.
+  AssetID texture_id; 
+  
+  /// The string of the button.
+  String string; 
+  
+  /// The ID of a font to be used later.
+  AssetID font_id; 
+  
+  /// The total size of the font of the button's text UI element.
+  f32 font_size;
+  
+  /// The anchor point of the button UI element.
+  UIAnchor anchor; 
+
+  /// The size of the whole button 
+  Vec2 size;
+
+  /// The bounds of the canvas that the text will 
+  /// be placed on. The UI element will calculate 
+  /// its anchor point based on this.
+  Vec2 canvas_bounds;
+
+  /// The extra offset to be applied to the button UI element.
+  ///
+  /// @NOTE: This is set to `Vec2(0.0f, 0.0f)` by default.
+  Vec2 offset           = Vec2(0.0f);
+
+  /// The text padding to be applied to the button UI element. 
+  ///
+  /// @NOTE: This is set to `Vec2(0.0f)` by default.
+  Vec2 padding          = Vec2(0.0f); 
+  
+  /// The color of the button UI element.
+  ///
+  /// @NOTE: This is set to `Color(1.0f, 1.0f, 1.0f, 1.0f)` by default.
+  Color color           = COLOR_WHITE;
+  
+  /// The outline color of the button UI element.
+  ///
+  /// @NOTE: This is set to `Color(0.0f, 0.0f, 0.0f, 1.0f)` by default.
+  Color outline_color   = COLOR_BLACK;
+  
+  /// The color of text of the button UI element.
+  ///
+  /// @NOTE: This is set to `Color(0.0f, 0.0f, 0.0f, 1.0f)` by default.
+  Color text_color      = COLOR_BLACK;
+ 
+  /// The thickness of the button's outline.
+  ///
+  /// @NOTE: This is set to `0.0f` by default.
+  f32 outline_thickness = 0.0f;
+
+  /// The layer associated with the UI sprite. 
+  /// `-1` indicates that the sprite will be 
+  /// rendered at the very back. The higher the value, the farther 
+  /// to the front the sprite will be drawn.
+  ///
+  /// @NOTE: By default, this value is `-1`.
+  i32 layer             = -1;
+};
+/// UIButtonDesc
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIText
+struct UIText {
+  UIAnchor anchor;
+  i32 align = 0;
+
+  Vec2 position, offset, bounds;
+  Vec2 canvas_bounds, padding;
+
+  String string;
+  Font* font;
+
+  f32 size, blur, spacing;
+
+  Color color;
+  i32 layer;
+
+  bool is_active, is_sticky;
+};
+/// UIText
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
 /// UISprite
 struct UISprite {
   Texture texture;
@@ -161,12 +245,36 @@ struct UISprite {
   Vec2 position, offset, size; 
   Vec2 canvas_bounds, padding; 
 
-  Vec4 color;
+  Color color;
   i32 layer;
 
   bool is_active;
 };
 /// UISprite
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIButton
+struct UIButton {
+  UIAnchor anchor; 
+
+  Vec2 position, offset; 
+  Vec2 canvas_bounds, padding; 
+
+  // X = width, 
+  // Y = height, 
+  // Z = thickness
+  Vec3 size;
+
+  Texture texture;
+  UIText text;
+
+  Color color, outline_color; 
+  i32 layer; 
+
+  bool is_active;
+};
+/// UIButton
 ///---------------------------------------------------------------------------------------------------------------------
 
 ///---------------------------------------------------------------------------------------------------------------------
@@ -193,6 +301,25 @@ FREYA_API void ui_sprite_create(UISprite& out_sprite, const UISpriteDesc& desc);
 FREYA_API void ui_sprite_place(UISprite& sprite);
 
 /// UISprite functions
+///---------------------------------------------------------------------------------------------------------------------
+
+///---------------------------------------------------------------------------------------------------------------------
+/// UIButton functions
+
+/// Fill in the information of `out_button` using the given `desc`.
+FREYA_API void ui_button_create(UIButton& out_button, const UIButtonDesc& desc);
+
+/// Using the `anchor` member, place the given `button` according to 
+/// the `canvas_bounds` in the correct position.
+FREYA_API void ui_button_place(UIButton& button);
+
+/// Check if the given `button` is currently being hovered over.
+FREYA_API bool ui_button_hovered(UIButton& button);
+
+/// Check if the given `button` was pressed.
+FREYA_API bool ui_button_pressed(UIButton& button);
+
+/// UIButton functions
 ///---------------------------------------------------------------------------------------------------------------------
 
 } // End of freya

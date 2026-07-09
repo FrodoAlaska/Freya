@@ -402,6 +402,9 @@ FREYA_API void renderer_queue_animation(const Animation& anim, const Transform& 
 /// Queue particles using the given `emitter`.
 FREYA_API void renderer_queue_particles(const ParticleEmitter& emitter);
 
+/// Queue a text using the given `text`
+FREYA_API void renderer_queue_text(UIText& text);
+
 ///
 /// Internal functions 
 ///
