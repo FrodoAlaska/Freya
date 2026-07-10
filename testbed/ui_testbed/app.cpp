@@ -56,20 +56,22 @@ bool app_init(const freya::Args& args, freya::Window* window) {
   
   // UI button init
 
-  s_app.entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(96.0f, 64.0f));
+  s_app.entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(80.0f, 40.0f));
 
   freya::UIButtonDesc button_desc = {
     .texture_id = {},
 
     .string = "Quit",
 
-    .font_id   = freya::asset_group_get_id(s_app.group_id, "IosevkaNerdFont-Bold"),
-    .font_size = 32.0f,
+    .font_id   = freya::asset_group_get_id(s_app.group_id, "bit5x3"),
+    .font_size = 16.0f,
 
-    .anchor  = freya::UI_ANCHOR_CENTER,
+    .anchor  = freya::UI_ANCHOR_TOP_LEFT,
 
     .canvas_bounds = freya::window_get_size(s_app.window),
     .padding       = freya::Vec2(10.0f),
+
+    .outline_thickness = 5.0f,
   };
   freya::entity_add_ui_button(s_app.world, s_app.entt, button_desc);
 

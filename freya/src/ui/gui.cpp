@@ -984,6 +984,9 @@ void gui_edit_ui_button(const char* name, UIButton* button) {
   ImGui::NewLine();
   ImGui::Text("Position: %0.3f, %0.3f", button->position.x, button->position.y);
   ImGui::Text("Size: %0.3f, %0.3f", button->size.x, button->size.y);
+
+  ImGui::NewLine();
+  ImGui::Text("Text position: %0.3f, %0.3f", button->text.position.x, button->text.position.y);
   ImGui::Text("Text bounds: %0.3f, %0.3f", button->text.bounds.x, button->text.bounds.y);
   
   ImGui::PopID(); 

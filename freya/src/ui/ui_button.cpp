@@ -2,6 +2,8 @@
 #include "freya_render.h"
 #include "freya_input.h"
 
+#include "fontstash/fontstash.h"
+
 //////////////////////////////////////////////////////////////////////////
 
 namespace freya { // Start of freya
@@ -41,6 +43,8 @@ void ui_button_create(UIButton& out_button, const UIButtonDesc& desc) {
     .offset = desc.offset, 
     .color  = desc.text_color, 
     .layer  = desc.layer,
+
+    .is_sticky = false,
   };
   ui_text_create(out_button.text, text_desc);
 
@@ -55,32 +59,53 @@ void ui_button_place(UIButton& button) {
   button.text.offset  = button.offset;
   button.text.padding = button.padding;
 
-  ui_text_place(button.text);
-
   // Adjust the button after the text
+
+  Vec2 half_size     = Vec2(button.size) / 2.0f;
+  Vec2 bounds_center = button.text.bounds / 2.0f;
+
+  Vec2 half_canvas = (button.canvas_bounds / 2.0f);
 
   switch(button.anchor) {
     case UI_ANCHOR_TOP_LEFT:  
+      button.position = half_size + button.padding;
       break;
     case UI_ANCHOR_TOP_CENTER:
+      button.position.x = half_canvas.x;
+      button.position.y = half_size.y + button.padding.y;
       break;
     case UI_ANCHOR_TOP_RIGHT:
+      button.position.x = button.canvas_bounds.x - button.padding.x - half_size.x;
+      button.position.y = half_size.y + button.padding.y;
       break;
     case UI_ANCHOR_CENTER_LEFT:  
+      button.position.x = half_size.x + button.padding.x;
+      button.position.y = half_size.y + half_canvas.y;
       break;
     case UI_ANCHOR_CENTER:
-      button.position.x = button.text.position.x;
-      button.position.y = (button.text.position.y - button.padding.y);
+      button.position = half_size + half_canvas;
       break;
     case UI_ANCHOR_CENTER_RIGHT:
+      button.position.x = button.canvas_bounds.x - button.padding.x - half_size.x;
+      button.position.y = half_size.y + half_canvas.y;
       break;
     case UI_ANCHOR_BOTTOM_LEFT:  
+      button.position.x = half_size.x + button.padding.x;
+      button.position.y = button.canvas_bounds.y - button.padding.y - half_size.y;
       break;
     case UI_ANCHOR_BOTTOM_CENTER:
+      button.position.x = half_size.x + half_canvas.x;
+      button.position.y = button.canvas_bounds.y - button.padding.y - half_size.y;
       break;
     case UI_ANCHOR_BOTTOM_RIGHT:
+      button.position = button.canvas_bounds - button.padding - half_size;
       break;
   }
+  
+  // Adjust the text
+
+  button.text.position = button.position;
+  button.text.align    = (FONS_ALIGN_CENTER | FONS_ALIGN_MIDDLE);
 }
 
 bool ui_button_hovered(UIButton& button) {

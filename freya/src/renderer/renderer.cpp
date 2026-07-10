@@ -765,6 +765,10 @@ void renderer_prepare() {
         continue;
       }
 
+      // Some states change when the button is hovered 
+      // so make sure to check for it before anything 
+      ui_button_hovered(button);
+
       // Apply the settings of the transform to the button      
 
       button.offset = transform.position;
