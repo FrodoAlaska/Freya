@@ -24,8 +24,6 @@ endif()
 ############################################################
 include(FetchContent)
 
-# set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
-
 if(WIN32)
   if(USE_STATIC_MSVC_RUNTIME_LIBRARY)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING FORCE)

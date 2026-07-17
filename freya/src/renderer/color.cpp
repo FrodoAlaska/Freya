@@ -1,4 +1,5 @@
 #include "freya_gfx.h"
+#include "freya_logger.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -7,7 +8,7 @@ namespace freya { // Start of freya
 ///---------------------------------------------------------------------------------------------------------------------
 /// Color functions
 
-Color color_hex_to_rgb(const u32 hex_color) {
+Color color_hex_to_rgb(u32 hex_color) {
   Color color;
 
   color.r = (hex_color & 0xFF000000) / 255.0f;
@@ -18,16 +19,7 @@ Color color_hex_to_rgb(const u32 hex_color) {
   return color;
 }
 
-u32 color_rgb_to_hex(const Color& rgb) {
-  IVec4 irgb = (IVec4(rgb) * 255); // Converting to hex
-
-  return ((irgb.r & 0xFF) << 24) + 
-         ((irgb.g & 0xFF) << 16) +
-         ((irgb.b & 0xFF) << 8)  +
-         ((irgb.a & 0xFF));
-}
-
-void color_lerp(Color& color, const Color& other, const f32 delta) {
+void color_lerp(Color& color, const Color& other, f32 delta) {
   color = vec4_lerp(color, other, delta);
 }
 

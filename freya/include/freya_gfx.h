@@ -108,15 +108,10 @@ struct Font {
 /// Return a new RGB `Color` from the given `hex_color`. 
 ///
 /// @NOTE: The given hex color should be arranged as follows: `0xRRGGBBAA`.
-FREYA_API Color color_hex_to_rgb(const u32 hex_color);
-
-/// Return a new HEX value from the given `rgb` color.
-///
-/// @NOTE: The returned hex color will be arranged as follows: `0xRRGGBBAA`.
-FREYA_API u32 color_rgb_to_hex(const Color& rgb);
+FREYA_API Color color_hex_to_rgb(u32 hex_color);
 
 /// Lerp the given `color` towards `other` by `delta`.
-FREYA_API void color_lerp(Color& color, const Color& other, const f32 delta);
+FREYA_API void color_lerp(Color& color, const Color& other, f32 delta);
 
 /// Use smoothstep to interpolate the given `color` towards `other` by `amount`.
 FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount);

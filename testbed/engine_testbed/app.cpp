@@ -57,18 +57,8 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // Entity init
 
-  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(100.0f), freya::Vec2(2.5f));
-
-  freya::AnimationDesc anim_desc = {
-    .texture_id = freya::asset_group_get_id(s_app.group_id, "items"),
-
-    .frame_size = freya::Vec2(32.0f),
-    .flip_speed = 0.5f,
-
-    .start     = freya::IVec2(1, 0),
-    .direction = freya::IVec2(0, 1),
-  };
-  freya::entity_add_animation(s_app.world, entt, anim_desc);
+  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(100.0f), freya::Vec2(32.0f));
+  freya::entity_add_sprite(s_app.world, entt, {}, freya::color_hex_to_rgb(0x19bfb1));
 
   // Done!
   return true;
