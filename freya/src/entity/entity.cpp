@@ -263,23 +263,24 @@ SpriteComponent& entity_add_sprite(EntityWorld& world,
                                    EntityID& entt, 
                                    const AssetID& texture_id, 
                                    const Vec4& color, 
+                                   const Rect2D& source, 
                                    const i32 layer) {
+  // Get the correct texture
+
   Texture texture = {};
   if(texture_id.get_id() != ASSET_ID_INVALID) {
     texture = asset_group_get_texture(texture_id);
   }
+  
+  // Setup the source rect if it's not 
+ 
+  Rect2D src_rect = source;
+  if(source.size.x == 0.0f && source.size.y == 0.0f) {
+    src_rect.size = texture.size; 
+  }
 
-  return world.emplace<SpriteComponent>(entt, texture, color, layer);
-}
-
-TileSpriteComponent& entity_add_tile_sprite(EntityWorld& world, 
-                                            EntityID& entt, 
-                                            const AssetID& texture_id,
-                                            const Rect2D& source, 
-                                            const Vec4& color, 
-                                            const i32 layer) {
-  Texture texture = asset_group_get_texture(texture_id);
-  return world.emplace<TileSpriteComponent>(entt, texture, source, color, layer);
+  // Done!
+  return world.emplace<SpriteComponent>(entt, texture, src_rect, color, layer);
 }
 
 StaticBodyComponent& entity_add_static_body(EntityWorld& world, 

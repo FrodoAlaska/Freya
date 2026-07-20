@@ -1000,19 +1000,6 @@ void gui_edit_sprite_component(const char* name, SpriteComponent* sprite) {
     renderer_set_sort(true);
   }
 
-  ImGui::ColorEdit4("Tint", &sprite->color[0]);
-  
-  ImGui::PopID(); 
-}
-
-void gui_edit_tile_sprite_component(const char* name, TileSpriteComponent* sprite) {
-  ImGui::SeparatorText(name); 
-  ImGui::PushID(name); 
-   
-  if(ImGui::DragInt("Layer", &sprite->layer, 1, -1, 10)) {
-    renderer_set_sort(true);
-  }
-
   ImGui::DragFloat2("Source size", &sprite->source_rect.size[0], s_gui.big_step);
   ImGui::DragFloat2("Source position", &sprite->source_rect.position[0], s_gui.big_step);
 
@@ -1175,17 +1162,6 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     if(ImGui::TreeNode("Sprite")) {
       SpriteComponent& sprite = entity_get_component<SpriteComponent>(world, entt);
       gui_edit_sprite_component("", &sprite);
-
-      ImGui::TreePop();
-    }
-  }
-  
-  // Tile sprites
-
-  if(entity_has_component<TileSpriteComponent>(world, entt)) {
-    if(ImGui::TreeNode("Tile sprite")) {
-      TileSpriteComponent& sprite = entity_get_component<TileSpriteComponent>(world, entt);
-      gui_edit_tile_sprite_component("", &sprite);
 
       ImGui::TreePop();
     }

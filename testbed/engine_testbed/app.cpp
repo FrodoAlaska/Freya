@@ -57,8 +57,12 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 
   // Entity init
 
-  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(100.0f), freya::Vec2(32.0f));
-  freya::entity_add_sprite(s_app.world, entt, {}, freya::color_hex_to_rgb(0x19bfb1));
+  freya::EntityID entt = freya::entity_create(s_app.world, freya::Vec2(100.0f), freya::Vec2(128.0f));
+
+  freya::AssetID tex_id  = freya::asset_group_get_id(s_app.group_id, "frodo");
+  freya::Rect2D src_rect = {};
+
+  freya::entity_add_sprite(s_app.world, entt, tex_id, freya::COLOR_WHITE, src_rect);
 
   // Done!
   return true;

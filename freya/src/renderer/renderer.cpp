@@ -544,37 +544,6 @@ void renderer_prepare() {
   // 
   // Gather the draw calls 
   //
- 
-  // Tile sprites
-  {
-    // Check if we need to sort the view first
-
-    if(s_renderer.can_sort) {
-      auto sort_fn = [&](const TileSpriteComponent& a, const TileSpriteComponent& b) {
-        return a.layer > b.layer;
-      };
-
-      s_renderer.world->sort<TileSpriteComponent>(sort_fn);
-    }
-
-    // Render each tile
-
-    auto view = world->view<TileSpriteComponent, Transform>();
-    for(auto entt : view) {
-      const Transform& transform        = view.get<Transform>(entt);
-      const TileSpriteComponent& sprite = view.get<TileSpriteComponent>(entt);
-
-      // Setup the dest rect
-
-      Rect2D dest = {
-        .size     = sprite.source_rect.size * transform.scale,
-        .position = transform.position,
-      };
-
-      // Render a regular quad
-      renderer_queue_texture(sprite.texture_atlas, sprite.source_rect, dest, transform.rotation, sprite.color);
-    }
-  }
 
   // Sprites
   {
@@ -595,10 +564,17 @@ void renderer_prepare() {
       const Transform& transform    = view.get<Transform>(entt);
       const SpriteComponent& sprite = view.get<SpriteComponent>(entt);
 
+      // Setup the dest rect
+
+      Rect2D dest = {
+        .size     = transform.scale,
+        .position = transform.position,
+      };
+
       // Render a texture (if it's a valid)
 
       if(sprite.texture.id != -1) {
-        renderer_queue_texture(sprite.texture, transform, sprite.color);
+        renderer_queue_texture(sprite.texture, sprite.source_rect, dest, transform.rotation, sprite.color);
         continue;
       }
 
