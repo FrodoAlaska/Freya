@@ -23,9 +23,9 @@ struct InputState {
   bool current_mouse_state[MOUSE_BUTTONS_MAX];
   bool previous_mouse_state[MOUSE_BUTTONS_MAX];
 
-  f32 mouse_position_x, mouse_position_y;
-  f32 mouse_offset_x, mouse_offset_y; 
-  f32 scroll_value;
+  Vec2 mouse_position;
+  Vec2 mouse_offset; 
+  Vec2 scroll_value;
 
   bool cursor_entered;
 
@@ -60,11 +60,8 @@ static bool key_callback(const Event& event, const void* dispatcher, const void*
 static bool mouse_callback(const Event& event, const void* dispatcher, const void* listener) {
   switch(event.type) {
     case EVENT_MOUSE_MOVED:
-      s_input.mouse_position_x = event.mouse_pos_x;
-      s_input.mouse_position_y = event.mouse_pos_y;
-
-      s_input.mouse_offset_x = event.mouse_offset_x;
-      s_input.mouse_offset_y = event.mouse_offset_y;
+      s_input.mouse_position = event.mouse_position;
+      s_input.mouse_offset   = event.mouse_offset;
     return true;
     case EVENT_MOUSE_ENTER: 
       s_input.cursor_entered = true;
@@ -191,14 +188,14 @@ const bool input_button_up(const MouseButton button) {
 }
 
 Vec2 input_mouse_position() {
-  return Vec2(s_input.mouse_position_x, s_input.mouse_position_y);
+  return s_input.mouse_position;
 }
 
 Vec2 input_mouse_offset() {
-  return Vec2(s_input.mouse_offset_x, s_input.mouse_offset_y);
+  return s_input.mouse_offset;
 }
 
-f32 input_mouse_scroll_value() {
+Vec2 input_mouse_scroll_value() {
   return s_input.scroll_value;
 }
 

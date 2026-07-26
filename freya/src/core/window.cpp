@@ -18,7 +18,7 @@ struct Window {
   GLFWwindow* handle  = nullptr;
   GLFWcursor* cursor  = nullptr;
 
-  IVec2 size, old_size; 
+  IVec2 size, frame_size, old_size; 
   WindowFlags flags;
   i32 samples;
 
@@ -45,45 +45,22 @@ static void error_callback(int err_code, const char* desc) {
 }
 
 static void window_pos_callback(GLFWwindow* handle, int xpos, int ypos) {
-  Window* window     = (Window*)glfwGetWindowUserPointer(handle);
+  Window* window = (Window*)glfwGetWindowUserPointer(handle);
+
   window->position.x = xpos;
   window->position.y = ypos;
   
   event_dispatch(Event {
-    .type = EVENT_WINDOW_MOVED, 
-
-    .window_new_pos_x = xpos,
-    .window_new_pos_y = ypos,
+    .type            = EVENT_WINDOW_MOVED, 
+    .window_position = window->position,
   });
 }
 
 static void window_maxmize_callback(GLFWwindow* handle, int maximized) {
-  // Retrieving the size
-
-  i32 width, height;
-  glfwGetFramebufferSize(handle, &width, &height);
-  
-  Window* window = (Window*)glfwGetWindowUserPointer(handle);
-  window->size.x = width;
-  window->size.y = height;
- 
-  // Setting the event type accordingly
-
-  EventType type; 
-  if(maximized) {
-    type = EVENT_WINDOW_MAXIMIZED;
-  }
-  else {
-    type = EVENT_WINDOW_MINIMIZED;
-  }
-
   // Dispatch an event
 
   event_dispatch(Event {
-    .type = type,
-
-    .window_framebuffer_width  = width,
-    .window_framebuffer_height = height,
+    .type = maximized ? EVENT_WINDOW_MAXIMIZED : EVENT_WINDOW_MINIMIZED,
   });
 }
 
@@ -92,35 +69,39 @@ static void window_focus_callback(GLFWwindow* handle, int focused) {
   window->is_focused = focused;
 
   event_dispatch(Event {
-    .type = EVENT_WINDOW_FOCUSED, 
-
+    .type             = EVENT_WINDOW_FOCUSED, 
     .window_has_focus = window->is_focused,
   });
 }
 
 static void window_framebuffer_resize_callback(GLFWwindow* handle, int width, int height) {
   Window* window = (Window*)glfwGetWindowUserPointer(handle);
-  window->size.x = width;
-  window->size.y = height;
+
+  window->frame_size.x = width;
+  window->frame_size.y = height;
   
   event_dispatch(Event {
-    .type = EVENT_WINDOW_FRAMEBUFFER_RESIZED, 
-
-    .window_framebuffer_width  = width,
-    .window_framebuffer_height = height,
+    .type                    = EVENT_WINDOW_FRAMEBUFFER_RESIZED, 
+    .window_framebuffer_size = window->frame_size,
   });
 }
 
 static void window_resize_callback(GLFWwindow* handle, int width, int height) {
   Window* window = (Window*)glfwGetWindowUserPointer(handle);
+
+  // Set the client size
+
   window->size.x = width;
   window->size.y = height;
-  
-  event_dispatch(Event {
-    .type = EVENT_WINDOW_RESIZED, 
 
-    .window_new_width  = width,
-    .window_new_height = height,
+  // Set the frame size
+  glfwGetFramebufferSize(window->handle, &window->frame_size.x, &window->frame_size.y);
+
+  // Fire the event
+
+  event_dispatch(Event {
+    .type        = EVENT_WINDOW_RESIZED, 
+    .window_size = window->size,
   });
 }
 
@@ -182,11 +163,9 @@ void cursor_pos_callback(GLFWwindow* handle, double xpos, double ypos) {
 
   event_dispatch(Event {
     .type = EVENT_MOUSE_MOVED, 
-    .mouse_pos_x = window->mouse_position.x, 
-    .mouse_pos_y = window->mouse_position.y, 
-    
-    .mouse_offset_x = window->mouse_offset.x,
-    .mouse_offset_y = window->mouse_offset.y,
+
+    .mouse_position = window->mouse_position, 
+    .mouse_offset   = window->mouse_offset,
   });
 }
 
@@ -199,7 +178,7 @@ void cursor_enter_callback(GLFWwindow* window, int entered) {
 void scroll_wheel_callback(GLFWwindow* window, double xoffset, double yoffset) {
   event_dispatch(Event {
     .type               = EVENT_MOUSE_SCROLL_WHEEL, 
-    .mouse_scroll_value = (f32)yoffset,
+    .mouse_scroll_value = Vec2((f32)xoffset, (f32)yoffset),
   });
 }
 
@@ -384,6 +363,7 @@ Window* window_open(const WindowDesc& desc) {
   // Querying data from the GLFW window
   
   glfwGetWindowPos(window->handle, &window->position.x, &window->position.y); 
+  glfwGetFramebufferSize(window->handle, &window->frame_size.x, &window->frame_size.y); 
 
   f64 mouse_pos_x, mouse_pos_y;
   glfwGetCursorPos(window->handle, &mouse_pos_x, &mouse_pos_y);
@@ -453,10 +433,7 @@ const IVec2 window_get_size(const Window* window) {
 }
 
 const IVec2 window_get_framebuffer_size(const Window* window) {
-  i32 width, height;
-  glfwGetFramebufferSize(window->handle, &width, &height);
-
-  return IVec2(width, height);
+  return window->frame_size;
 }
 
 void* window_get_handle(const Window* window) {
@@ -522,17 +499,13 @@ void window_set_fullscreen(Window* window, const bool fullscreen) {
   
   // Firing an event for the internal systems
  
-  i32 framebuffer_width, framebuffer_height;
-  glfwGetFramebufferSize(window->handle, &framebuffer_width, &framebuffer_height);
+  glfwGetFramebufferSize(window->handle, &window->frame_size.x, &window->frame_size.y);
 
   Event event = {
     .type = EVENT_WINDOW_FULLSCREEN, 
     
-    .window_new_width  = video_mode->width, 
-    .window_new_height = video_mode->height,
-    
-    .window_framebuffer_width  = framebuffer_width,
-    .window_framebuffer_height = framebuffer_height,
+    .window_size             = Vec2(video_mode->width, video_mode->height), 
+    .window_framebuffer_size = window->frame_size,
 
     .window_is_fullscreen = fullscreen,
   };

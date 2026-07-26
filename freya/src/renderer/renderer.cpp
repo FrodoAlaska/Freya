@@ -3,14 +3,19 @@
 #include "freya_event.h"
 #include "freya_entity.h"
 #include "freya_physics.h"
+#include "freya_input.h"
 
 #include "shaders/default_pass_shader.h"
 
 #include "fontstash/fontstash.h"
+#include "clay/clay.h"
 
-#include "sokol/sokol_gp.h"
 #include "sokol/sokol_gl.h"
+#include "sokol/sokol_gp.h"
 #include "sokol/sokol_fontstash.h"
+
+#define SOKOL_CLAY_NO_SOKOL_APP
+#include "sokol/sokol_clay.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -38,7 +43,8 @@ struct Renderer {
   Camera* main_cam = nullptr;
   bool can_sort    = false;
 
-  FONScontext* fons = nullptr;
+  Clay_RenderCommandArray clay_commands;
+  DynamicArray<sclay_font_t> clay_fonts; 
 };
 
 static Renderer s_renderer;
@@ -51,14 +57,12 @@ static Renderer s_renderer;
 static bool window_resized_callback(const Event& event, const void* dispatcher, const void* listener) {
   // Resize each render pass
   
-  IVec2 new_size = IVec2(event.window_framebuffer_width, event.window_framebuffer_height);
-
   for(PostProcessPass* pass : s_renderer.passes) {
     if(!pass->resize_func) {
       continue;
     }
     
-    pass->resize_func(pass, new_size);
+    pass->resize_func(pass, event.window_framebuffer_size);
   }
 
   // Done!
@@ -87,6 +91,10 @@ static void sg_logger_func(const char* tag,
       FREYA_LOG_INFO("[SOKOL-INFO]: %s - (%i, %s)", msg, line, filename); 
       break;
   }
+}
+
+static void clay_error_func(Clay_ErrorData error) {
+  FREYA_LOG_ERROR("[CLAY-ERROR]: %i, %.*s", (i32)error.errorType, error.errorText.length, error.errorText.chars);
 }
 
 /// Callbacks
@@ -178,13 +186,17 @@ void renderer_init(Window* window) {
   
   FREYA_ASSERT_LOG(sgp_is_valid(), "Failed to initialize the graphics painter");
 
-  // FONS init
- 
-  sfons_desc_t fons_desc = {
-    .width  = 512, 
-    .height = 512, 
-  };
-  s_renderer.fons = sfons_create(&fons_desc);
+  // Clay init
+
+  sclay_setup();
+
+  u64 total_mem_size  = Clay_MinMemorySize();
+  Clay_Arena clay_mem = Clay_CreateArenaWithCapacityAndMemory(total_mem_size, memory_allocate(total_mem_size));
+  
+  IVec2 window_size = window_get_size(window);
+
+  Clay_Initialize(clay_mem, Clay_Dimensions{(f32)window_size.x, (f32)window_size.y}, (Clay_ErrorHandler)clay_error_func);
+  Clay_SetMeasureTextFunction(sclay_measure_text, NULL);
 
   // Default sampler init
 
@@ -258,12 +270,13 @@ void renderer_shutdown() {
   for(PostProcessPass* pass : s_renderer.passes) {
     post_process_destroy(pass);
   }
+
   s_renderer.passes.clear();
+  s_renderer.clay_fonts.clear();
 
   // GFX shutdown
 
-  sfons_destroy(s_renderer.fons);
-
+  sclay_shutdown();
   sgp_shutdown();
   sgl_shutdown();
   sg_shutdown();
@@ -455,24 +468,24 @@ void renderer_queue_particles(const ParticleEmitter& emitter) {
 }
 
 void renderer_queue_text(UIText& text) {
-  // Calculating the correct color
-
-  IVec4 ucolor  = (IVec4)(text.color * 255.0f);
-  u32 hex_color = sfons_rgba(ucolor.r, ucolor.g, ucolor.b, ucolor.a); 
-
-  fonsSetSize(s_renderer.fons, text.size);
-  fonsSetColor(s_renderer.fons, hex_color);
-  fonsSetSpacing(s_renderer.fons, text.spacing);
-  fonsSetBlur(s_renderer.fons, text.blur);
-  fonsSetAlign(s_renderer.fons, text.align);
-  fonsSetFont(s_renderer.fons, text.font->_id);
-
-  if(text.is_sticky) {
-    ui_text_place(text);
-  }
-
-  // Draw
-  fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
+  // // Calculating the correct color
+  //
+  // IVec4 ucolor  = (IVec4)(text.color * 255.0f);
+  // u32 hex_color = sfons_rgba(ucolor.r, ucolor.g, ucolor.b, ucolor.a); 
+  //
+  // fonsSetSize(s_renderer.fons, text.size);
+  // fonsSetColor(s_renderer.fons, hex_color);
+  // fonsSetSpacing(s_renderer.fons, text.spacing);
+  // fonsSetBlur(s_renderer.fons, text.blur);
+  // fonsSetAlign(s_renderer.fons, text.align);
+  // fonsSetFont(s_renderer.fons, text.font->_id);
+  //
+  // if(text.is_sticky) {
+  //   ui_text_place(text);
+  // }
+  //
+  // // Draw
+  // fonsDrawText(s_renderer.fons, text.position.x, text.position.y, text.string.c_str(), nullptr);
 }
 
 void renderer_prepare() {
@@ -629,160 +642,36 @@ void renderer_prepare() {
     sgp_pop_transform();
   }
 
-  // UIText
+  // UILayout
   {
-    // Check if we need to sort the view first
+    // Setup the Clay frame
 
-    if(s_renderer.can_sort) {
-      auto sort_fn = [&](const UIText& a, const UIText& b) {
-        return a.layer < b.layer;
-      };
+    Clay_Dimensions dime_size = {(f32)size.x, (f32)size.y};
+    sclay_set_layout_dimensions(dime_size, 1.0f); // @TOOD (Renderer/UI): Maybe have a configurable DPI?
 
-      s_renderer.world->sort<UIText>(sort_fn);
-    }
-
-    // Render each UI sprite
+    // Set the mouse status of Clay
     
-    auto view = world->view<UIText, Transform>();
+    Vec2 mouse_pos    = input_mouse_position();
+    Vec2 scroll_value = input_mouse_scroll_value(); 
+
+    f32 dt = clock_get_delta_time();
+
+    Clay_SetPointerState(Clay_Vector2{mouse_pos.x, mouse_pos.y}, input_button_down(MOUSE_BUTTON_LEFT));
+    Clay_UpdateScrollContainers(true, Clay_Vector2{scroll_value.x, scroll_value.y}, dt);
+
+    // Begin laying things out
+
+    Clay_BeginLayout();
+
+    auto view = world->view<UILayoutComponent>();
     for(auto entt : view) {
-      Transform& transform = view.get<Transform>(entt);
-      UIText& text         = view.get<UIText>(entt);
-
-      // Skip inactive texts
-
-      if(!text.is_active) {
-        continue;
-      }
-
-      // Manage the state of the text
-
-      text.offset = transform.position;
-      text.size   = transform.scale.x;
-
-      // Draw 
-      
-      sgl_rotate(transform.rotation, 0.0f, 0.0f, 1.0f);
-      renderer_queue_text(text);
+      UILayoutComponent& layout = view.get<UILayoutComponent>(entt);
+      layout.layout_func(*world, entt, layout.user_data);
     }
+
+    // Update the commands for later
+    s_renderer.clay_commands = Clay_EndLayout(dt);
   }
-  
-  // UISprite
-  {
-    // Check if we need to sort the view first
-
-    if(s_renderer.can_sort) {
-      auto sort_fn = [&](const UISprite& a, const UISprite& b) {
-        return a.layer < b.layer;
-      };
-
-      s_renderer.world->sort<UISprite>(sort_fn);
-    }
-
-    // Render each UI sprite
-    
-    auto view = world->view<UISprite, Transform>();
-    for(auto entt : view) {
-      Transform& transform = view.get<Transform>(entt);
-      UISprite& sprite     = view.get<UISprite>(entt);
-
-      // Skip inactive sprites
-
-      if(!sprite.is_active) {
-        continue;
-      }
-
-      // Apply the settings of the transform to the sprite      
-
-      sprite.offset = transform.position;
-      sprite.size   = transform.scale;
-      
-      ui_sprite_place(sprite);
-      
-      // Render a texture (if it's a valid)
-
-      Transform sprite_trans = {
-        .position = sprite.position,
-        .scale    = sprite.size, 
-        .rotation = transform.rotation,
-      };
-
-      if(sprite.texture.id != -1) {
-        renderer_queue_texture(sprite.texture, sprite_trans, sprite.color);
-        continue;
-      }
-
-      // Render a regular quad
-      renderer_queue_quad(sprite_trans, sprite.color);
-    }
-  }
-  
-  // UIButton
-  {
-    // Check if we need to sort the view first
-
-    if(s_renderer.can_sort) {
-      auto sort_fn = [&](const UIButton& a, const UIButton& b) {
-        return a.layer < b.layer;
-      };
-
-      s_renderer.world->sort<UIButton>(sort_fn);
-    }
-
-    // Render each UI button
-    
-    auto view = world->view<UIButton, Transform>();
-    for(auto entt : view) {
-      Transform& transform = view.get<Transform>(entt);
-      UIButton& button     = view.get<UIButton>(entt);
-
-      // Skip inactive buttons
-
-      if(!button.is_active) {
-        continue;
-      }
-
-      // Some states change when the button is hovered 
-      // so make sure to check for it before anything 
-      ui_button_hovered(button);
-
-      // Apply the settings of the transform to the button      
-
-      button.offset = transform.position;
-
-      button.size.x = transform.scale.x;
-      button.size.y = transform.scale.y;
-      
-      ui_button_place(button);
-
-      // Render the outline
-      
-      Transform button_trans = {
-        .position = button.position,
-        .scale    = Vec2(button.size) + button.size.z, 
-        .rotation = transform.rotation,
-      };
-      renderer_queue_quad(button_trans, button.outline_color);
-      
-      // Render the texture itself
-
-      button_trans = {
-        .position = button.position,
-        .scale    = Vec2(button.size), 
-        .rotation = transform.rotation,
-      };
-
-      if(button.texture.id != -1) { // Render the texture
-        renderer_queue_texture(button.texture, button_trans, button.color);
-      }
-      else { // Render a regular quad
-        renderer_queue_quad(button_trans, button.color);
-      }
-
-      // Render the text 
-      renderer_queue_text(button.text);
-    }
-  }
-
 
   // Clean slate
   s_renderer.can_sort = false;
@@ -802,12 +691,10 @@ void renderer_commit() {
   // End the font painter
 
   sgl_defaults();
-  sgl_matrix_mode_projection();
+  sgl_matrix_mode_modelview();
+  sgl_load_identity();
 
-  IVec2 frame_size = window_get_framebuffer_size(s_renderer.window);
-  sgl_ortho(0.0f, (f32)frame_size.x, (f32)frame_size.y, 0.0f, -1.0f, 1.0f);
-
-  sfons_flush(s_renderer.fons);
+  sclay_render(s_renderer.clay_commands, s_renderer.clay_fonts.data());
   sgl_draw();
 
   // End the default post-processing pass if we are 
@@ -877,8 +764,14 @@ void renderer_commit() {
   s_renderer.main_cam = nullptr;
 }
 
-void* renderer_get_font_context() {
-  return s_renderer.fons;
+i32 renderer_add_font(Font* font) {
+  i32 id = sclay_add_font_mem((u8*)font->font_data.data(), font->font_data.size());
+  if(id == FONS_INVALID) {
+    return id;
+  }
+
+  s_renderer.clay_fonts.emplace_back(id);
+  return id;
 }
 
 /// Renderer functions

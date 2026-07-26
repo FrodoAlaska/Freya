@@ -11,7 +11,7 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - A robust 2D physics engine, using the fantastic Box2D library. 
 - A flexible Entity Component System (ECS) module, using the EnTT library.
 - Integrated ImGui support, featuring an abstracted `gui` layer for editing engine-specific types through a GUI.  
-- A durable, but simple noise generation module for both 2D and 3D.
+- A durable, but simple noise generation module
 - A simple tile map system for easily editing and adding tile maps.
 
 ### Dependencies:
@@ -21,6 +21,7 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - [sokol-gfx, sokol-gl, sokol-fontstash](https://github.com/floooh/sokol)
 - [fontstash](https://github.com/memononen/fontstash)
 - [sokol-gp](https://github.com/edubart/sokol_gp)
+- [Clay](https://github.com/nicbarker/clay)
 - [ImGui](https://github.com/ocornut/imgui)
 - [OpenAL-Soft](https://github.com/kcat/openal-soft)
 - [Box2D](https://github.com/erincatto/box2d)

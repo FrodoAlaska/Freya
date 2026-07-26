@@ -49,10 +49,17 @@ const EntityID ENTITY_NULL = entt::null;
 
 /// Called when the physics body of `entt` is collided with `other` in the physics world, 
 /// passing in the generated `normal` from the collision, and `user_data`.
-using OnCollisionFn = std::function<void(EntityWorld& world, EntityID& entt, EntityID& other, const Vec2& normal, void* user_data)>;
+using OnCollisionFn   = std::function<void(EntityWorld& world, 
+                                           EntityID& entt, 
+                                           EntityID& other, 
+                                           const Vec2& normal, 
+                                           void* user_data)>;
 
 /// Called when the timer of `entt` has runout, passing in `user_data`.
 using OnTimerRunoutFn = std::function<void(EntityWorld& world, EntityID& entt, void* user_data)>;
+
+/// Called inside UI frames to setup layout, taking in `world`, `entt`, and `user_data`.
+using OnUILayoutFn    = std::function<void(EntityWorld& world, EntityID& entt, void* user_data)>;
 
 /// Callbacks
 /// ----------------------------------------------------------------------
@@ -79,6 +86,18 @@ struct TimerComponent {
   void* user_data             = nullptr;
 };
 /// TimerComponent
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// UILayoutComponent
+struct UILayoutComponent {
+  /// The layout callback to be called on UI frames. 
+  OnUILayoutFn layout_func = nullptr; 
+
+  /// The user data to be passed into `layout_func`.
+  void* user_data          = nullptr;
+};
+/// UILayoutComponent
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -260,6 +279,13 @@ FREYA_API TimerComponent& entity_add_timer(EntityWorld& world,
                                            const TimerDesc& desc, 
                                            const OnTimerRunoutFn& runout_func, 
                                            void* user_data = nullptr);
+
+/// A helper function to add a UI layout component to `entt`, with the `layout_func` 
+/// that will be called in UI frames, passing in `user_data`.
+FREYA_API UILayoutComponent& entity_add_ui_layout(EntityWorld& world, 
+                                                  EntityID& entt, 
+                                                  const OnUILayoutFn& layout_func, 
+                                                  void* user_data = nullptr);
 
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id`, `source`, `color`, and `layer` to give to the render command.

@@ -15,7 +15,13 @@
 #include "sokol_gp.h"
 
 #define FONTSTASH_IMPLEMENTATION
-#include "fontstash/fontstash.h"
 
-#define SOKOL_FONTSTASH_IMPL
+#include "fontstash/fontstash.h"
 #include "sokol_fontstash.h"
+
+#define CLAY_IMPLEMENTATION
+#include "clay/clay.h"
+
+#define SOKOL_CLAY_NO_SOKOL_APP
+#define SOKOL_CLAY_IMPL
+#include "sokol_clay.h"

@@ -11,22 +11,22 @@ namespace freya { // Start of freya
 /// Private functions
 
 static void measure_bounds(UIText& text) {
-  FONScontext* fons = (FONScontext*)renderer_get_font_context();
-
-  // Get the horizontal bounds
-  
-  f32 bounds;
-  fonsTextBounds(fons, text.padding.x, text.padding.y, text.string.c_str(), nullptr, &bounds);
-
-  // Get the vertical bounds
-
-  f32 min, max;
-  fonsLineBounds(fons, text.padding.y, &min, &max);
-
-  // Set the text's bounds
-
-  text.bounds.x = bounds;
-  text.bounds.y = max;
+  // FONScontext* fons = (FONScontext*)renderer_get_font_context();
+  //
+  // // Get the horizontal bounds
+  // 
+  // f32 bounds;
+  // fonsTextBounds(fons, text.padding.x, text.padding.y, text.string.c_str(), nullptr, &bounds);
+  //
+  // // Get the vertical bounds
+  //
+  // f32 min, max;
+  // fonsLineBounds(fons, text.padding.y, &min, &max);
+  //
+  // // Set the text's bounds
+  //
+  // text.bounds.x = bounds;
+  // text.bounds.y = max;
 }
 
 /// Private functions

@@ -423,8 +423,8 @@ FREYA_API void renderer_prepare();
 /// only required to be called by the engine.
 FREYA_API void renderer_commit();
 
-/// Get the internal font context that could be used anywhere else.
-FREYA_API void* renderer_get_font_context();
+/// Internally add the given `font` to the renderer and get back a result.
+FREYA_API i32 renderer_add_font(Font* font);
 
 /// Renderer functions
 ///---------------------------------------------------------------------------------------------------------------------

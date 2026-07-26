@@ -146,7 +146,7 @@ set(LIBS_SOURCES
 
 ### Final Build ###
 ############################################################
-add_library(${PROJECT_NAME} ${FREYA_BUILD_TYPE} ${FREYA_SOURCES} ${FREYA_HEADERS} ${LIBS_SOURCES})
+add_library(${PROJECT_NAME} ${FREYA_BUILD_TYPE} ${LIBS_SOURCES} ${FREYA_SOURCES} ${FREYA_HEADERS})
 ############################################################
 
 ### Linking ###

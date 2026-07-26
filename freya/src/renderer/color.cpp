@@ -27,6 +27,15 @@ void color_slerp(Color& color, const Color& other, const Color& amount) {
   color = vec4_smoothstep(color, other, amount);
 }
 
+Clay_Color color_convert_clay(const Color& color) {
+  return Clay_Color{
+    .r = (color.r * 255.0f), 
+    .g = (color.g * 255.0f), 
+    .b = (color.b * 255.0f), 
+    .a = (color.a * 255.0f), 
+  };
+}
+
 /// Color functions
 ///---------------------------------------------------------------------------------------------------------------------
 

@@ -76,16 +76,16 @@ struct Event {
   EventType type;
   
   /// New poisition of the window.
-  i32 window_new_pos_x, window_new_pos_y;
+  IVec2 window_position;
 
   /// The current focus state of the window.
   bool window_has_focus;       
 
   /// The window's new size.
-  i32 window_new_width, window_new_height;        
+  IVec2 window_size;
 
   /// The window's new size of the framebuffer.
-  i32 window_framebuffer_width, window_framebuffer_height; 
+  IVec2 window_framebuffer_size; 
  
   /// The window's new fullscreen state.
   bool window_is_fullscreen;
@@ -102,10 +102,10 @@ struct Event {
   i32 key_modifier;
   
   /// The current mouse position (relative to the screen). 
-  f32 mouse_pos_x, mouse_pos_y;    
+  Vec2 mouse_position;
   
   /// By how much did the mouse move since the last frame? 
-  f32 mouse_offset_x, mouse_offset_y; 
+  Vec2 mouse_offset;
    
   /// The mouse button that was just pressed.
   i32 mouse_button_pressed; 
@@ -114,7 +114,7 @@ struct Event {
   i32 mouse_button_released;
  
   /// The value the scroll mouse's wheel moved by. 
-  f32 mouse_scroll_value; 
+  Vec2 mouse_scroll_value; 
 
   /// Is the mouse cursor currently visible?
   bool cursor_shown;

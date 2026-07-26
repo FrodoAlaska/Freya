@@ -292,7 +292,7 @@ FREYA_API Vec2 input_mouse_position();
 FREYA_API Vec2 input_mouse_offset();
 
 /// Get the mouse's scroll wheel value.
-FREYA_API f32 input_mouse_scroll_value();
+FREYA_API Vec2 input_mouse_scroll_value();
 
 /// Enable/disable the mouse cursor.
 FREYA_API void input_cursor_show(const bool show);

@@ -259,6 +259,13 @@ TimerComponent& entity_add_timer(EntityWorld& world,
   return world.emplace<TimerComponent>(entt, timer, runout_func, user_data);
 }
 
+UILayoutComponent& entity_add_ui_layout(EntityWorld& world, 
+                                        EntityID& entt, 
+                                        const OnUILayoutFn& layout_func, 
+                                        void* user_data) {
+  return world.emplace<UILayoutComponent>(entt, layout_func, user_data);
+}
+
 SpriteComponent& entity_add_sprite(EntityWorld& world, 
                                    EntityID& entt, 
                                    const AssetID& texture_id, 
