@@ -18,10 +18,3 @@
 
 #include "fontstash/fontstash.h"
 #include "sokol_fontstash.h"
-
-#define CLAY_IMPLEMENTATION
-#include "clay/clay.h"
-
-#define SOKOL_CLAY_NO_SOKOL_APP
-#define SOKOL_CLAY_IMPL
-#include "sokol_clay.h"

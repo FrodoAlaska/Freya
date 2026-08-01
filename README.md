@@ -21,7 +21,6 @@ A very capable, yet simple 2D game engine made entirely for hobby purposes. It i
 - [sokol-gfx, sokol-gl, sokol-fontstash](https://github.com/floooh/sokol)
 - [fontstash](https://github.com/memononen/fontstash)
 - [sokol-gp](https://github.com/edubart/sokol_gp)
-- [Clay](https://github.com/nicbarker/clay)
 - [ImGui](https://github.com/ocornut/imgui)
 - [OpenAL-Soft](https://github.com/kcat/openal-soft)
 - [Box2D](https://github.com/erincatto/box2d)

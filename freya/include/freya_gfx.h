@@ -4,7 +4,6 @@
 #include "freya_memory.h"
 
 #include "sokol/sokol_gfx.h"
-#include "clay/clay.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -116,9 +115,6 @@ FREYA_API void color_lerp(Color& color, const Color& other, f32 delta);
 
 /// Use smoothstep to interpolate the given `color` towards `other` by `amount`.
 FREYA_API void color_slerp(Color& color, const Color& other, const Color& amount);
-
-/// Convert the given `color` to a Clay color.
-FREYA_API Clay_Color color_convert_clay(const Color& color);
 
 /// Color functions
 ///---------------------------------------------------------------------------------------------------------------------

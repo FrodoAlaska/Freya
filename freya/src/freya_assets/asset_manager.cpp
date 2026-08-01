@@ -775,8 +775,10 @@ AssetID asset_group_push_font(const AssetGroupID& group_id, const DynamicArray<u
   
   // Allocate a new font
  
+  FONScontext* fons = (FONScontext*)renderer_get_font_context();
+
   Font* font = new Font{name, font_data};
-  font->_id  = renderer_add_font(font);
+  font->_id  = fonsAddFontMem(fons, font->name.c_str(), (u8*)font->font_data.data(), font->font_data.size(), false);
 
   // Check for errors
 
@@ -793,7 +795,6 @@ AssetID asset_group_push_font(const AssetGroupID& group_id, const DynamicArray<u
   // Some useful debug info
   
   FREYA_LOG_DEBUG("Group \'%s\' pushed a font:", group.name.c_str());
-  FREYA_LOG_DEBUG("     ID        = %i", font->_id);
   FREYA_LOG_DEBUG("     Data size = %zu", font_data.size());
 
   // Done!

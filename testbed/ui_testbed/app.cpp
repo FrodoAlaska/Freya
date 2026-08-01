@@ -18,41 +18,6 @@ static App s_app;
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
-/// Private functions
-
-static void menu_layout(freya::EntityWorld& world, freya::EntityID& entt, void* user_data) {
-  // Menu 
- 
-  Clay_ElementDeclaration container_dec = {
-    .layout = {
-      .sizing  = {CLAY_SIZING_GROW(0), CLAY_SIZING_GROW(0)},
-      .padding = CLAY_PADDING_ALL(16),
-
-      .layoutDirection = CLAY_TOP_TO_BOTTOM,
-    },
-
-    .backgroundColor = freya::color_convert_clay(freya::Color(0.0f, 1.0f, 0.0f, 1.0f)),
-  };
-  CLAY(CLAY_ID("Container"), container_dec) {
-   //  // Title 
-   // 
-   //  Clay_TextElementConfig title_dec = {
-   //    .textColor = freya::color_convert_clay(freya::COLOR_WHITE),
-   //
-   //    .fontId   = 0,
-   //    .fontSize = 50,
-   //  };
-   //  CLAY_TEXT(CLAY_STRING("The Freya Game Engine"), title_dec);
-
-    // Buttons
-    //
-  }
-}
-
-/// Private functions
-/// ----------------------------------------------------------------------
-
-/// ----------------------------------------------------------------------
 /// App functions 
 
 bool app_init(const freya::Args& args, freya::Window* window) {
@@ -88,11 +53,27 @@ bool app_init(const freya::Args& args, freya::Window* window) {
     .zoom        = 1.0f,
   };
   freya::entity_add_camera(s_app.world, cam_entt, cam_desc);
-
-  // UI layout 
   
-  freya::EntityID ui_entt = freya::entity_create(s_app.world, freya::Vec2(0.0f));
-  freya::entity_add_ui_layout(s_app.world, ui_entt, menu_layout);
+  // UI button init
+
+  s_app.entt = freya::entity_create(s_app.world, freya::Vec2(0.0f), freya::Vec2(80.0f, 40.0f));
+
+  freya::UIButtonDesc button_desc = {
+    .texture_id = {},
+
+    .string = "Quit",
+
+    .font_id   = freya::asset_group_get_id(s_app.group_id, "bit5x3"),
+    .font_size = 16.0f,
+
+    .anchor  = freya::UI_ANCHOR_TOP_LEFT,
+
+    .canvas_bounds = freya::window_get_size(s_app.window),
+    .padding       = freya::Vec2(10.0f),
+
+    .outline_thickness = 5.0f,
+  };
+  freya::entity_add_ui_button(s_app.world, s_app.entt, button_desc);
 
   // Done!
   return true;
@@ -101,7 +82,6 @@ bool app_init(const freya::Args& args, freya::Window* window) {
 void app_shutdown() {
   freya::entity_world_clear(s_app.world);
   freya::asset_group_destroy(s_app.group_id);
-
   freya::gui_shutdown();
 }
 
@@ -119,6 +99,14 @@ void app_update(freya::f32 dt) {
     freya::gui_toggle_active();
   }
 
+  // Check if the button is pressed
+
+  freya::UIButton& button = freya::entity_get_component<freya::UIButton>(s_app.world, s_app.entt);
+  if(freya::ui_button_pressed(button)) {
+    freya::event_dispatch(freya::Event{.type = freya::EVENT_APP_QUIT});
+    return;
+  }
+
   // Update the world 
   freya::entity_world_update(s_app.world, dt);
 }
@@ -129,10 +117,8 @@ void app_render_gui() {
   }
 
   freya::gui_begin(); 
-
   freya::gui_debug_info();
   freya::gui_edit_entity_world("World", s_app.world);
-
   freya::gui_end();
 }
 
