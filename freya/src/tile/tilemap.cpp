@@ -133,7 +133,7 @@ void tilemap_select_rect(TileMap& map, const Rect2D& select_box, DynamicArray<Ve
 
 EntityID& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell, const sizei layer) {
   EntityID& entt = tilemap_get_at(map, x_cell, y_cell, layer);
-  entt           = entity_create(*map.ecs, tilemap_index_to_coords(map, x_cell, y_cell));
+  entt           = entity_create(*map.ecs, tilemap_index_to_coords(map, x_cell, y_cell), map.tile_size);
 
   return entt;
 }
