@@ -236,12 +236,11 @@ FREYA_API AudioSourceID& entity_add_audio_source(EntityWorld& world,
 FREYA_API NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, const NoiseGeneratorDesc& desc);
 
 /// A helper function to add a tile map component to `entt`, using the given 
-/// `start_pos`, `tile_size`, and `tiles_count`, mirroring the `tilemap_create` function.
-FREYA_API TileMap& entity_add_tilemap(EntityWorld& world, 
-                                      EntityID& entt, 
-                                      const Vec2& start_pos, 
-                                      const Vec2& tile_size, 
-                                      const IVec2& tiles_count);
+/// the `tiles_count` to give to the `tile_create` function that gets called internally.
+///
+/// @NOTE: The start position and the size of the tiles is taken from the entity's position 
+/// and scale respectively.
+FREYA_API TileMap& entity_add_tilemap(EntityWorld& world, EntityID& entt, const IVec2& tiles_count);
 
 /// A helper function to add a UI text to `entt`, using the information 
 /// in `desc`, mirroring the `ui_text_create` function.

@@ -1,7 +1,8 @@
 # TODO
 
-- Use `sokol_clay` for better UI
+- Maybe a Freya logo?
 
+- Also, perhaps a library for dynamic code reloading
 - Async asset loading using `sokol_fetch` and `EnkiTS`
 - Test more shit with compute shaders. Particles, post-processing, and other effects
 - A more detecated LUA layer

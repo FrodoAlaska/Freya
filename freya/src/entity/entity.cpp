@@ -186,14 +186,11 @@ NoiseGenerator* entity_add_noise_generator(EntityWorld& world, EntityID& entt, c
   return world.emplace<NoiseGenerator*>(entt, gen);
 }
 
-TileMap& entity_add_tilemap(EntityWorld& world, 
-                            EntityID& entt, 
-                            const Vec2& start_pos, 
-                            const Vec2& tile_size, 
-                            const IVec2& tiles_count) {
-  TileMap& tilemap = world.emplace<TileMap>(entt); 
-  tilemap_create(tilemap, &world, start_pos, tile_size, tiles_count);
+TileMap& entity_add_tilemap(EntityWorld& world, EntityID& entt, const IVec2& tiles_count) {
+  TileMap& tilemap     = world.emplace<TileMap>(entt); 
+  Transform& transform = world.get<Transform>(entt);
 
+  tilemap_create(tilemap, &world, transform.position, transform.scale, tiles_count);
   return tilemap;
 }
 
