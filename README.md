@@ -1,4 +1,4 @@
-![logo](https://github.com/FrodoAlaska/Freya/blob/master/img/freya-logo-transparent.png) 
+![logo](https://github.com/FrodoAlaska/Freya/blob/master/img/freya-logo.png) 
 
 # The Freya Game Engine
 
@@ -225,3 +225,7 @@ int engine_main(int argc, char* argv[]) {
 FREYA_MAIN(engine_main)
 
 ```
+
+## Projects 
+
+[Osiris](https://github.com/FrodoAlaska/Osiris): A simple 2D terrain generator
