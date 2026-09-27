@@ -1,7 +1,5 @@
 # TODO
 
-- Maybe a Freya logo?
-
 ## Additional Modules
 
 - A tweening module using the `tweeny` library. It'll be a good and cheap way of making animations
