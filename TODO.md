@@ -2,11 +2,21 @@
 
 - Maybe a Freya logo?
 
+## Additional Modules
+
+- A tweening module using the `tweeny` library. It'll be a good and cheap way of making animations
 - Also, perhaps a library for dynamic code reloading
-- Async asset loading using `sokol_fetch` and `EnkiTS`
-- Test more shit with compute shaders. Particles, post-processing, and other effects
-- A more detecated LUA layer
 - Memory arenas and custom allocaters
+
+## Tests
+
+- Test more shit with compute shaders. Particles, post-processing, and other effects
+
+## Improvements
+
+- Async asset loading using `sokol_fetch` and `EnkiTS`
+- Improve the UI module
+- A more detecated LUA layer
 
 ## Fixes 
 
