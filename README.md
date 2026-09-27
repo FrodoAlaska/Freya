@@ -1,4 +1,4 @@
-![logo](https://github.com/FrodoAlaska/CrossingTheLine/blob/master/img/freya-logo.png) 
+![logo](https://github.com/FrodoAlaska/Freya/blob/master/img/freya-logo.png) 
 
 # The Freya Game Engine
 
