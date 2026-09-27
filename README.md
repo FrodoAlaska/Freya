@@ -1,6 +1,6 @@
-![logo](https://github.com/FrodoAlaska/Freya/blob/master/img/freya-logo.png) 
-
 # The Freya Game Engine
+
+![logo](https://github.com/FrodoAlaska/Freya/blob/master/img/freya-logo.png) 
 
 A very capable, yet simple 2D game engine made entirely for hobby purposes. It is full of features that target 2D games/applications, with no plans to target 3D _any_ time soon. It is _purely_ a 2D game engine. It currently fully supports *Windows*, *Linux*, and the *Web*.
 
