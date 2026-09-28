@@ -61,6 +61,9 @@ using OnTimerRunoutFn = std::function<void(EntityWorld& world, EntityID& entt, v
 /// Called inside UI frames to setup layout, taking in `world`, `entt`, and `user_data`.
 using OnUILayoutFn    = std::function<void(EntityWorld& world, EntityID& entt, void* user_data)>;
 
+/// Called inside GUI frames to to setup the entity's GUI panel, taking in `world`, `entt`, and `user_data`.
+using OnGUIFn         = std::function<void(EntityWorld& world, EntityID& entt, void* user_data)>;
+
 /// Callbacks
 /// ----------------------------------------------------------------------
 
@@ -98,6 +101,17 @@ struct UILayoutComponent {
   void* user_data          = nullptr;
 };
 /// UILayoutComponent
+/// ----------------------------------------------------------------------
+
+/// ----------------------------------------------------------------------
+/// GUIComponent
+struct GUIComponent {
+  String name;
+  void* user_data;
+
+  OnGUIFn gui_func = nullptr;
+};
+/// GUIComponent
 /// ----------------------------------------------------------------------
 
 /// ----------------------------------------------------------------------
@@ -263,6 +277,24 @@ FREYA_API UISprite& entity_add_ui_sprite(EntityWorld& world, EntityID& entt, UIS
 /// `offset` member of the `desc`, and the scale will be used for the `size` of the button.
 FREYA_API UIButton& entity_add_ui_button(EntityWorld& world, EntityID& entt, UIButtonDesc& desc);
 
+/// A helper function to add a UI layout component to `entt`, with the `layout_func` 
+/// that will be called in UI frames, passing in `user_data`.
+FREYA_API UILayoutComponent& entity_add_ui_layout(EntityWorld& world, 
+                                                  EntityID& entt, 
+                                                  const OnUILayoutFn& layout_func, 
+                                                  void* user_data = nullptr);
+
+/// A helper function to add a GUI component that will be called on GUI frames. 
+/// The `name` will be used to identify the header inside the entity's panel, calling 
+/// `gui_func` to populate the header, and passing in `user_data`.
+///
+/// @NOTE: This can be used to add extra information to the entity's GUI panel.
+FREYA_API GUIComponent& entity_add_gui(EntityWorld& world, 
+                                       EntityID& entt, 
+                                       const String& name, 
+                                       const OnGUIFn& gui_func, 
+                                       void* user_data = nullptr);
+
 /// A helper function to add a particle emitter to `entt` using the information 
 /// in `desc` or in a config file given in `config_id`.
 FREYA_API ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc);
@@ -278,13 +310,6 @@ FREYA_API TimerComponent& entity_add_timer(EntityWorld& world,
                                            const TimerDesc& desc, 
                                            const OnTimerRunoutFn& runout_func, 
                                            void* user_data = nullptr);
-
-/// A helper function to add a UI layout component to `entt`, with the `layout_func` 
-/// that will be called in UI frames, passing in `user_data`.
-FREYA_API UILayoutComponent& entity_add_ui_layout(EntityWorld& world, 
-                                                  EntityID& entt, 
-                                                  const OnUILayoutFn& layout_func, 
-                                                  void* user_data = nullptr);
 
 /// A helper function to add a sprite component to `entt`, using the given
 /// `texture_id`, `source`, `color`, and `layer` to give to the render command.

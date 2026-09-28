@@ -24,3 +24,13 @@
 
 - The way file watchers work in the asset group sucks. A bunch of allocations for no reason _at all_. Please fix.
 - Check all `@TEMP` and `@TODO` in the codebase...
+
+## Projects 
+
+- Pattern: Game -> Tool -> Game -> Tool -> etc...
+
+- A simple Breakout game with actual interesting design and cool post-processing effects 
+- A video player, using the `pl_mpeg` library 
+- A simple solitare game
+- A particle editor 
+- A 2D cave generation visualizer 

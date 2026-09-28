@@ -1189,6 +1189,16 @@ void gui_edit_entity(const char* name, EntityWorld& world, EntityID& entt) {
     }
   }
 
+  // Custom 
+
+  if(entity_has_component<GUIComponent>(world, entt)) {
+    GUIComponent& gui = entity_get_component<GUIComponent>(world, entt);
+    if(ImGui::TreeNode(gui.name.c_str())) {
+      gui.gui_func(world, entt, gui.user_data);
+      ImGui::TreePop();
+    }
+  }
+
   ImGui::PopID(); 
 }
 

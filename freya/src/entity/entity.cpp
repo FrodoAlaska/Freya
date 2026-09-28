@@ -227,6 +227,21 @@ UIButton& entity_add_ui_button(EntityWorld& world, EntityID& entt, UIButtonDesc&
   return button;
 }
 
+UILayoutComponent& entity_add_ui_layout(EntityWorld& world, 
+                                        EntityID& entt, 
+                                        const OnUILayoutFn& layout_func, 
+                                        void* user_data) {
+  return world.emplace<UILayoutComponent>(entt, layout_func, user_data);
+}
+
+GUIComponent& entity_add_gui(EntityWorld& world, 
+                             EntityID& entt, 
+                             const String& name, 
+                             const OnGUIFn& gui_func, 
+                             void* user_data) {
+  return world.emplace<GUIComponent>(entt, name, user_data, gui_func);
+}
+
 ParticleEmitter& entity_add_particle_emitter(EntityWorld& world, EntityID& entt, const ParticleEmitterDesc& desc) {
   ParticleEmitter& emitter = world.emplace<ParticleEmitter>(entt); 
   particle_emitter_create(emitter, desc);
@@ -254,13 +269,6 @@ TimerComponent& entity_add_timer(EntityWorld& world,
   timer_create(timer, desc);
 
   return world.emplace<TimerComponent>(entt, timer, runout_func, user_data);
-}
-
-UILayoutComponent& entity_add_ui_layout(EntityWorld& world, 
-                                        EntityID& entt, 
-                                        const OnUILayoutFn& layout_func, 
-                                        void* user_data) {
-  return world.emplace<UILayoutComponent>(entt, layout_func, user_data);
 }
 
 SpriteComponent& entity_add_sprite(EntityWorld& world, 
