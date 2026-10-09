@@ -2,19 +2,20 @@
 
 # The Freya Game Engine
 
-A very capable, yet simple 2D game engine made entirely for hobby purposes. It is full of features that target 2D games/applications, with no plans to target 3D _any_ time soon. It is _purely_ a 2D game engine. It currently fully supports *Windows*, *Linux*, and the *Web*.
+A very capable, yet simple 2D game engine for all your 2D game needs. It is full of features that target 2D games/applications, with no plans to target 3D _any_ time soon. It currently fully supports *Windows*, *Linux*, and the *Web*, with plans to support Android in the future.
 
 ## Features 
 
 - Cross-platform window creation with OpenGL4.3 and GLES3 using SOKOL.  
 - Gamepad, keyboard, and mouse input support.  
-- A flexible and configurable 2D renderer
+- A flexible and configurable 2D renderer, supporting animations, custom post-processing effects, and much more.
 - A fully-fledged audio system with both 2D and 3D spatialized audio.
 - A robust 2D physics engine, using the fantastic Box2D library. 
 - A flexible Entity Component System (ECS) module, using the EnTT library.
 - Integrated ImGui support, featuring an abstracted `gui` layer for editing engine-specific types through a GUI.  
 - A durable, but simple noise generation module
 - A simple tile map system for easily editing and adding tile maps.
+- Basic `Lua` integration for custom scripts and text-based data.
 
 ### Dependencies:
 

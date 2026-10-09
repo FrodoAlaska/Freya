@@ -3,7 +3,7 @@
 ## Additional Modules
 
 - A tweening module using the `tweeny` library. It'll be a good and cheap way of making animations
-- Also, perhaps a library for dynamic code reloading
+- Also, perhaps a library for dynamic code reloading (try this [library](https://github.com/fungos/cr))
 - Memory arenas and custom allocaters
 
 ## Tests
