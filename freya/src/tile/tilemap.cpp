@@ -9,7 +9,9 @@ namespace freya { // Start of freya
 /// TileMap functions
 
 void tilemap_create(TileMap& out_map, EntityWorld* ecs, const Vec2& start_position, const Vec2& tile_size, const IVec2& tiles_count) {
-  out_map.tile_size   = tile_size;
+  out_map.tile_size      = tile_size;
+  out_map.start_position = start_position;
+
   out_map.tiles_count = tiles_count;
   out_map.ecs         = ecs;
 }
@@ -135,7 +137,7 @@ EntityID& tilemap_place_at(TileMap& map, const sizei x_cell, const sizei y_cell,
   Vec2 position = tilemap_index_to_coords(map, x_cell, y_cell) + (map.tile_size / 2.0f);
 
   EntityID& entt = tilemap_get_at(map, x_cell, y_cell, layer);
-  entt           = entity_create(*map.ecs, position, map.tile_size);
+  entt           = entity_create(*map.ecs, map.start_position + position, map.tile_size);
 
   return entt;
 }

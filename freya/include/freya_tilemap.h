@@ -20,9 +20,10 @@ struct TileLayer {
 struct TileMap {
   EntityWorld* ecs; // @TODO (TileMap): This is super fucking dumb. Don't do this...
 
-  Vec2 tile_size    = Vec2(0.0f);
-  IVec2 tiles_count = IVec2(0);
+  Vec2 tile_size      = Vec2(0.0f);
+  Vec2 start_position = Vec2(0.0f);
 
+  IVec2 tiles_count = IVec2(0);
   DynamicArray<TileLayer> layers;
 };
 /// TileMap

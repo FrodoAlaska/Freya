@@ -12,8 +12,10 @@
 
 ## Improvements
 
+- Maybe do not iterate through each component, and find a better to handle that?
+- Improve the camera system by seperating the controller from the main camera
 - Async asset loading using `sokol_fetch` and `EnkiTS`
-- Improve the UI module
+- Improve the UI module (Look into `clay` again maybe?)
 - A more detecated LUA layer
 
 ## Fixes 
@@ -27,10 +29,6 @@
 
 ## Projects 
 
-- Pattern: Game -> Tool -> Game -> Tool -> etc...
-
-- A simple Breakout game with actual interesting design and cool post-processing effects 
-- A video player, using the `pl_mpeg` library 
-- A simple solitare game
+- *A 2D cave generation visualizer*
+- A dungeon crawler disguised as a simple solitare game?
 - A particle editor 
-- A 2D cave generation visualizer 
