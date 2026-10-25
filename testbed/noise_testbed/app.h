@@ -11,8 +11,6 @@ void app_shutdown();
 
 void app_update(freya::f32 dt);
 
-void app_render();
-
 void app_render_gui();
 
 /// App functions 

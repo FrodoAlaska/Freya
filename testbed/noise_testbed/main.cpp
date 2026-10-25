@@ -1,18 +1,16 @@
 #include "app.h"
 
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
   freya::AppDesc app_desc {
     .init_fn     = app_init,
     .shutdown_fn = app_shutdown,
     .update_fn   = app_update, 
-    
-    .render_fn     = app_render, 
-    .render_gui_fn = app_render_gui, 
+    .gui_fn      = app_render_gui, 
 
-    .window_title  = "Noise Testbed", 
-    .window_width  = 1600, 
-    .window_height = 900, 
-    .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_RESIZABLE | freya::WINDOW_FLAGS_CENTER_MOUSE),
+    .window_title  = "Testing Noise", 
+    .window_width  = 1280, 
+    .window_height = 720, 
+    .window_flags  = (freya::i32)(freya::WINDOW_FLAGS_CENTER_MOUSE),
 
     .args_values = argv, 
     .args_count  = argc,
@@ -20,4 +18,4 @@ int main(int argc, char** argv) {
   return freya::engine_run(app_desc);
 }
 
-// FREYA_MAIN(engine_run);
+// FREYA_MAIN(engine_main);
